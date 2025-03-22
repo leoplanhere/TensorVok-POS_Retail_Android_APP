@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:shape="rectangle"
+    tools:ignore="ExtraText">
+
+    <!-- 设置背景颜色 -->
+    <solid android:color="#ededed" />
+    <!-- 设置边框颜色和粗细 -->
+<!--    <stroke android:color="#02B4FE" android:width="1dp"/>-->
+
+    <!-- 圆角半径 -->
+    <!-- 四周向中心渐变 -->
+<!--    <gradient-->
+<!--        android:type="radial"                &lt;!&ndash; 径向渐变 &ndash;&gt;-->
+<!--    android:gradientRadius="50%p"         &lt;!&ndash; 渐变半径覆盖整个视图 &ndash;&gt;-->
+<!--    android:centerX="0.5"                 &lt;!&ndash; 中心点 X 轴位置 &ndash;&gt;-->
+<!--    android:centerY="0.5"                 &lt;!&ndash; 中心点 Y 轴位置 &ndash;&gt;-->
+<!--    android:startColor="#FF6200EE"        &lt;!&ndash; 边缘颜色 &ndash;&gt;-->
+<!--    android:endColor="#20FFC107"           &lt;!&ndash; 中心颜色（含透明度） &ndash;&gt;-->
+<!--    android:angle="0" />-->
+    <!-- 角度（径向渐变可忽略） -->
+
+    <gradient
+        android:type="radial"
+        android:gradientRadius="130%p"
+        android:centerX="0.5"
+        android:centerY="0.5"
+        android:endColor="#e3e3e3"
+        android:centerColor="@color/white"
+        android:startColor="@color/white"
+        android:angle="0"/>
+
+    <!-- 统一设置四个角 -->
+    <corners android:radius="16dp" />
+    <!-- 单独设置四个角 -->
+<!--    <corners-->
+<!--        android:topRightRadius="5dp"-->
+<!--        android:bottomRightRadius="5dp"-->
+<!--        android:topLeftRadius="5dp"-->
+<!--        android:bottomLeftRadius="5dp"/>-->
+
+</shape>

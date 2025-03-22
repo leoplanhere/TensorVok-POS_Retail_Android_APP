@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- res/drawable/scrollbar_vertical_thumb.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/black60" /> <!-- 设置颜色为黑色 -->
+    <size android:width="10dp" /> <!-- 设置宽度 -->
+    <corners android:radius="6dp" /> <!-- 设置圆角 -->
+</shape>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center">
+    
+    <LinearLayout
+        android:padding="20dp"
+        android:layout_width="800dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/white_bg">
+        <RelativeLayout
+            android:layout_marginBottom="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/hint_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"
+                android:textSize="30dp"
+                android:text="打折/改价(F4)"
+                android:textStyle="bold"
+                android:layout_centerInParent="true" />
+            <ImageView
+                android:id="@+id/guanbi_btn"
+                android:layout_centerVertical="true"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@mipmap/guanbi"
+                android:layout_alignParentRight="true"/>
+        </RelativeLayout>
+        <LinearLayout
+            android:layout_marginBottom="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:background="@drawable/rounded_border">
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:text="折扣"
+                android:textSize="20dp"
+                android:textColor="@color/black"
+                android:gravity="center"/>
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/black"/>
+            <TextView
+                android:id="@+id/zhekou_tv"
+                android:hint="请输入您的折扣（1-100）"
+                android:paddingLeft="20dp"
+                android:gravity="center_vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textColor="@color/mr_gray_80"
+                android:textSize="20dp"
+                android:text=""
+                android:textColorHint="@color/mr_gray_80"/>
+        </LinearLayout>
+        <include layout="@layout/discount_keyboard"/>
+    </LinearLayout>
+
+</LinearLayout>

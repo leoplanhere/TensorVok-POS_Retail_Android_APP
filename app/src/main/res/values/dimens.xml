@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="dp_settings_item_left_margin">35dp</dimen>
+    <dimen name="dp_settings_item_top_margin">45dp</dimen>
+    <dimen name="dp_settings_title_top_margin">70dp</dimen>
+    <dimen name="dp_settings_item_middle_margin">15dp</dimen>
+
+
+    <dimen name="sp_settings_item_label_text">25sp</dimen>
+    <dimen name="sp_settings_comment_text">21sp</dimen>
+    <dimen name="sp_settings_config_title_text">25sp</dimen>
+    <dimen name="pos_key_button_margin_size_01">3dp</dimen>
+    <dimen name="pos_key_button_font_size_01">40sp</dimen>
+    <dimen name="pos_main_top_text_margin_size_01">10dp</dimen>
+    <dimen name="pos_main_data_text_font_size_01">16sp</dimen>
+    <dimen name="pos_main_data_text_font_size_02">14sp</dimen>
+    <dimen name="pos_main_choose_top_text_margin_size_01">10dp</dimen>
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="spacing_medium">5dp</dimen>
+
+    <dimen name="margin_small_xx">2dp</dimen>
+    <dimen name="margin_small_x">5dp</dimen>
+    <dimen name="margin_small">10dp</dimen>
+    <dimen name="margin_normal">15dp</dimen>
+    <dimen name="margin_big">20dp</dimen>
+    <dimen name="margin_large">40dp</dimen>
+    <dimen name="margin_large_x">100dp</dimen>
+
+    <dimen name="padding_small_xx">3dp</dimen>
+    <dimen name="padding_small_x">6dp</dimen>
+    <dimen name="padding_small">10dp</dimen>
+    <dimen name="padding_normal">15dp</dimen>
+    <dimen name="padding_big">20dp</dimen>
+    <dimen name="padding_large">30dp</dimen>
+    <dimen name="padding_large_x">50dp</dimen>
+
+    <dimen name="text_size_small_xx">13sp</dimen>
+    <dimen name="text_size_small_x">17sp</dimen>
+    <dimen name="text_size_port_small_x">15sp</dimen>
+    <dimen name="text_size_small">20sp</dimen>
+    <dimen name="text_size_port_small">15sp</dimen>
+    <dimen name="text_size_normal">30sp</dimen>
+    <dimen name="text_size_port_normal">21sp</dimen>
+    <dimen name="text_size_big">40sp</dimen>
+    <dimen name="text_size_large">85sp</dimen>
+    <dimen name="text_size_port_large">60sp</dimen>
+</resources>

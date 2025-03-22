@@ -1,0 +1,6 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+<!--    <solid android:color="@color/white" /> &lt;!&ndash; 背景颜色 &ndash;&gt;-->
+<!--    <corners android:radius="100dp" /> &lt;!&ndash; 圆角半径 &ndash;&gt;-->
+    <stroke android:width="4dp" android:color="@color/black" /> <!-- 边框颜色和宽度 -->
+</shape>
