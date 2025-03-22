@@ -55,6 +55,7 @@ public class GoodsWarehousingPopupWindow {
 //        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         popupView.setBackgroundColor(context.getColor(R.color.black60));
         popupWindow.setOutsideTouchable(true);
+
         // 计算居中位置
         popupView.post(() -> {
             DisplayMetrics metrics = new DisplayMetrics();
