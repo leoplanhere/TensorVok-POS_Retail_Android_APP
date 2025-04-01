@@ -94,6 +94,69 @@
                 android:text="退出登录"
                 android:gravity="center"/>
         </LinearLayout>
+        <LinearLayout
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <TextView
+                android:id="@+id/qianxiangshezhi_btn"
+                android:layout_marginRight="10dp"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:background="@drawable/blue_bg4"
+                android:textColor="@color/white"
+                android:textSize="25dp"
+                android:textStyle="bold"
+                android:text="钱箱设置"
+                android:gravity="center"/>
+            <TextView
+                android:id="@+id/jiaojieban_btn"
+                android:layout_marginRight="10dp"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:background="@drawable/blue_bg4"
+                android:textColor="@color/white"
+                android:textSize="25dp"
+                android:textStyle="bold"
+                android:text="交接班"
+                android:gravity="center"/>
+            <TextView
+                android:visibility="invisible"
+                android:layout_marginRight="10dp"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:background="@drawable/blue_bg4"
+                android:textColor="@color/white"
+                android:textSize="25dp"
+                android:textStyle="bold"
+                android:text="商品入库"
+                android:gravity="center"/>
+            <TextView
+                android:visibility="invisible"
+                android:layout_marginRight="10dp"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:background="@drawable/blue_bg4"
+                android:textColor="@color/white"
+                android:textSize="25dp"
+                android:textStyle="bold"
+                android:text="历史账单"
+                android:gravity="center"/>
+            <TextView
+               android:visibility="invisible"
+                android:layout_marginRight="10dp"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:background="@drawable/blue_bg4"
+                android:textColor="@color/white"
+                android:textSize="25dp"
+                android:textStyle="bold"
+                android:text="退出登录"
+                android:gravity="center"/>
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

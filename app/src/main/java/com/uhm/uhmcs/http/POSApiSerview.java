@@ -28,11 +28,34 @@ public interface POSApiSerview {
     String getGoodsLists="Supermarket/getGoodsLists";
 
     //结账
-    String addOrder="Supermarket/addOrder";
+    String addOrder="Supermarket/addOrder1";
     //打印信息
     String operateDetails="currency/operateDetails";
     //会员查询
     String getMember="Custom/accordingPhone";
     //尾单查询
-    String getLastOder="Supermarket/printthefinalorder";
+    String getLastOder="supermarket/printthefinalorder";
+    //商品入库
+    String addStore="Supermarket/addStore";
+    //历史账单
+    String orderList="Supermarket/orderList";
+    //现金退款
+    String cash_refund="supermarket/cash_refund";
+    //支付宝退款
+    String order_refund="supermarket/order_refund";
+    //微信退款
+    String wx_refund="index/fwswddrefundOrder";
+    //交班列表
+    String handoverList="Supermarket/handoverList";
+    //交班
+    String shiftHandover="Supermarket/shiftHandover1";
+    //查询微信支付状态
+    String fwsgetOrderInformation="Supermarket/fwsgetOrderInformation";
+    //撤销微信支付订单
+    String fwscancelanOrder="Supermarket/fwscancelanOrder";
+    //查询支付宝支付状态
+    String queryOrder="supermarket/queryOrder";
+    //撤销支付宝支付订单
+    String revokeOrder="supermarket/revokeOrder";
+
 }

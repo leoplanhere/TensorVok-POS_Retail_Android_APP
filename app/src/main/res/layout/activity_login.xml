@@ -45,7 +45,7 @@
                     android:background="@drawable/pos_drawable_login_button_03"/>
                 <androidx.appcompat.widget.AppCompatEditText
                     android:id="@+id/etUserName"
-                    android:text="18933160385"
+                    android:text="18917001801"
                     style="@style/EditTextUnderlineColor"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -69,7 +69,7 @@
                     android:padding="10dp"
                     android:background="@drawable/pos_drawable_login_button_03"/>
                 <androidx.appcompat.widget.AppCompatEditText
-                    android:text="123456"
+                    android:text="001801"
                     android:id="@+id/etUserPwd"
                     style="@style/EditTextUnderlineColor"
                     android:layout_width="match_parent"

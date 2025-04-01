@@ -1,11 +1,17 @@
 package com.uhm.uhmcs.bean;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
+
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
-public class GrouponGoodsBean {
+public class GrouponGoodsBean implements Serializable{
     @SerializedName("code")
     private int code;
     @SerializedName("msg")
@@ -60,7 +66,7 @@ public class GrouponGoodsBean {
         }
     }
 
-    public class GrouponGoodsModel{
+    public static class GrouponGoodsModel implements Serializable  {
 
 
         private int id;
@@ -89,6 +95,44 @@ public class GrouponGoodsBean {
 
         private String category_ids;
 
+        private String cost_price;
+
+        private String original_price;
+
+        private String subtitle;
+
+        private BigDecimal heji=new BigDecimal("0.00");
+
+        private String flname;
+
+
+
+        private int shuliang=1;
+        private boolean is_zengsong=false;
+
+        private boolean isSelected=false;
+
+        private String discount="100";
+
+
+
+
+        public String getCost_price() {
+            return cost_price;
+        }
+
+        public void setCost_price(String cost_price) {
+            this.cost_price = cost_price;
+        }
+
+        public String getOriginal_price() {
+            return original_price;
+        }
+
+        public void setOriginal_price(String original_price) {
+            this.original_price = original_price;
+        }
+
         public String getCategory_ids() {
             return category_ids;
         }
@@ -113,21 +157,8 @@ public class GrouponGoodsBean {
             this.goods_sku_text = goods_sku_text;
         }
 
-        private String flname;
-
-        private String subtitle;
 
 
-        private int shuliang=1;
-
-        private BigDecimal heji=new BigDecimal("0.00");
-
-
-        private boolean is_zengsong=false;
-
-        private boolean isSelected=false;
-
-        private String discount="100";
 
         private BigDecimal discounted_price=new BigDecimal("0.00");
 
@@ -277,5 +308,9 @@ public class GrouponGoodsBean {
         public void setImage(String image) {
             this.image = image;
         }
+
+
+
+
     }
 }

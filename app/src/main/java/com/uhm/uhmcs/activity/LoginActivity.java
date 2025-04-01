@@ -78,7 +78,7 @@ public class LoginActivity extends Activity {
         OkHttpUtil.postFormAsync(url, params,this, new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {
-                System.out.println("响应数据: " + response);
+                Log.i("ttt","响应数据:" + response);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {

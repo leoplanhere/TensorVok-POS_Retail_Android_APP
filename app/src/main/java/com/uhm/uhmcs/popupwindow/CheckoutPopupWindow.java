@@ -3,6 +3,8 @@ package com.uhm.uhmcs.popupwindow;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.os.CountDownTimer;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -17,10 +19,14 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.dou361.dialogui.DialogUIUtils;
+import com.dou361.dialogui.bean.BuildBean;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
 import com.uhm.uhmcs.R;
+import com.uhm.uhmcs.activity.LoginActivity;
+import com.uhm.uhmcs.activity.MainActivity;
 import com.uhm.uhmcs.bean.CheckoutBean;
 import com.uhm.uhmcs.bean.PrintDataBean;
 import com.uhm.uhmcs.http.OkHttpUtil;
@@ -29,6 +35,7 @@ import com.uhm.uhmcs.utils.MyPrinterHelper;
 import com.uhm.uhmcs.utils.UserUtils;
 import com.uhm.uhmcs.view.CustomInputTextView;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,16 +44,38 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 public class CheckoutPopupWindow {
     private PopupWindow popupWindow;
     private Activity context;
     private CheckoutBean checkoutBean;
-    private TextView yingshou_tv,youhui_tv,shijishou_tv,yidong_btn,xianjin_btn,zhaolin_tv;
+    private TextView yingshou_tv,youhui_tv,shijishou_tv,weixin_btn,xianjin_btn,zhaolin_tv,zhifubao_btn,yishou_tv;
     private CustomInputTextView shoukuan_tv;
     private DeleteShopPopupWindow deleteShopPopupWindow;
+    private String yinshou="0.00";
 
     private String pay_type="";
+    private int order_status=0;
+
+    private boolean weixin_type=false;
+    private boolean zhifubao_type=false;
+    private Runnable shoukuan_tvRunnable = new Runnable() {
+        @Override
+        public void run() {
+            shoukuan_tv.requestFocus();
+        }
+    };
 
     private PopupWindowOnClickListener.CheckoutOnClickListener checkoutOnClickListener;
 
@@ -59,6 +88,7 @@ public class CheckoutPopupWindow {
         initPopup();
     }
     View popupView;
+    BuildBean buildBean;
     @SuppressLint("SetTextI18n")
     private void initPopup() {
         popupView = LayoutInflater.from(context).inflate(R.layout.popupwindow_checkout, null);
@@ -83,26 +113,13 @@ public class CheckoutPopupWindow {
         youhui_tv=popupView.findViewById(R.id.youhui_tv);
         shijishou_tv=popupView.findViewById(R.id.shijishou_tv);
         zhaolin_tv=popupView.findViewById(R.id.zhaolin_tv);
+        yishou_tv=popupView.findViewById(R.id.yishou_tv);
+        yishou_tv.setText("￥0.00");
         yingshou_tv.setText("￥"+checkoutBean.getTotal_amount());
         shijishou_tv.setText("￥"+checkoutBean.getTotal_fee());
         youhui_tv.setText("￥"+checkoutBean.getDiscount_fee());
         shoukuan_tv=popupView.findViewById(R.id.shoukuan_tv);
-        // 设置输入完成监听
-        shoukuan_tv.setOnInputCompleteListener(text -> {
-            shoukuan_tv.setText(text);
-            if (TextUtils.isEmpty(shoukuan_tv.getText().toString())){
-                return;
-            }
-            if (pay_type.equals("cash")){
-                checkoutBean.setPay_type(pay_type);
-                checkoutBean.setPay_fee(new BigDecimal(shoukuan_tv.getText().toString()).intValue());
-                checkoutBean.setCash_price(shoukuan_tv.getText().toString());
-                checkoutBean.setCash_change(zhaolin_tv.getText().toString());
-                SubmitCheckout();
-            }else {
-                deleteShopPopupWindow.show();
-            }
-        });
+
         shoukuan_tv.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -112,74 +129,152 @@ public class CheckoutPopupWindow {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 // 文本变化中实时触发，适合实时搜索‌:ml-citation{ref="7,8" data="citationList"}
+                // 实时获取当前输入的字符
+                if (TextUtils.isEmpty(s.toString())){
+                    zhaolin_tv.setText("0.00");
+                    return;
+                }
+                if (count > before) {
+                    CharSequence newChar = s.subSequence(start, start + count);
+//                    Log.d("ttt", "新增字符: " + newChar+">>>>"+s.toString());
+                    if (newChar.equals(".")||newChar.equals("-")){
+                        return;
+                    }
+                }
+                if (!isValidNumber(s.toString())){
+                    return;
+                }
+
+                BigDecimal zhaolin;
+                zhaolin=new BigDecimal(TextUtils.isEmpty(s.toString())?"0.00":s.toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)));
+                if (zhaolin.compareTo(BigDecimal.ZERO)>0){
+                    zhaolin_tv.setText(zhaolin.toString());
+                }
+
             }
 
             @Override
             public void afterTextChanged(Editable s) {
                 // 文本变化完成后触发，如手机号输入满11位时触发验证‌:ml-citation{ref="6,8" data="citationList"}
-                BigDecimal zhaolin;
-                zhaolin=new BigDecimal(TextUtils.isEmpty(s.toString())?"0.00":s.toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee()));
-                zhaolin_tv.setText(zhaolin.toString());
 
 
             }
         });
         // 自动获取焦点
-        shoukuan_tv.postDelayed(() -> shoukuan_tv.requestFocus(), 100);
+        shoukuan_tv.postDelayed(shoukuan_tvRunnable, 100);
         shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
         shoukuan_tv.setOnInputCompleteListener(text -> {
             if (TextUtils.isEmpty(shoukuan_tv.getText().toString())){
+                new DeleteShopPopupWindow(context,"请输入收款金额",true).show();
+                return;
+            }
+            if (!isValidNumber(shoukuan_tv.getText().toString())){
+                new DeleteShopPopupWindow(context,"请输入正确格式的收款金额",true).show();
                 return;
             }
             if (pay_type.equals("cash")){
                 checkoutBean.setPay_type(pay_type);
-                checkoutBean.setPay_fee(new BigDecimal(shoukuan_tv.getText().toString()).intValue());
+                checkoutBean.setPay_fee(shoukuan_tv.getText().toString());
                 checkoutBean.setCash_price(shoukuan_tv.getText().toString());
                 checkoutBean.setCash_change(zhaolin_tv.getText().toString());
                 SubmitCheckout();
             }else {
+                if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO)>0){
+                    new DeleteShopPopupWindow(context,"收款金额不能大于需要支付的金额",true).show();
+                    return;
+                }
+                shoukuan_tv.removeCallbacks(shoukuan_tvRunnable);
+                shoukuan_tv.clearFocus();
                 deleteShopPopupWindow.show();
+
             }
         });
+        buildBean=DialogUIUtils.showLoading(context,"支付中..",true,false,false,false);
         deleteShopPopupWindow=new DeleteShopPopupWindow(context, "请使用扫码枪完成支付",false, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
             @Override
             public void onClick(String text) {
+                shoukuan_tv.postDelayed(shoukuan_tvRunnable, 100);
+                Log.i("ttt",">>>1112>>>>支付码>"+text);
+                if (TextUtils.isEmpty(text)){
+                    return;
+                }
                 String type=detectPaymentType(text);
-                if (type.equals("unknown")){
+                if (type.equals("unknown")||!pay_type.equals(type)){
+                    new DeleteShopPopupWindow(context,"请扫描对应的支付码",true).show();
                     return;
                 }
                 pay_type=type;
                 checkoutBean.setPay_type(pay_type);
                 checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
                 checkoutBean.setAuthCode(text);
-                checkoutBean.setPay_fee(new BigDecimal(shoukuan_tv.getText().toString()).intValue());
+                checkoutBean.setPay_fee(shoukuan_tv.getText().toString());
                 checkoutBean.setCash_price(shoukuan_tv.getText().toString());
                 checkoutBean.setCash_change(zhaolin_tv.getText().toString());
+//                checkoutBean.setPay_fee((int) 0.01);
+//                checkoutBean.setCash_price("0.01");
+//                checkoutBean.setCash_change("0.00");
+
+                buildBean.show();
                 SubmitCheckout();
             }
         });
 
-        yidong_btn=popupView.findViewById(R.id.yidong_btn);
+        weixin_btn=popupView.findViewById(R.id.weixin_btn);
+        zhifubao_btn=popupView.findViewById(R.id.zhifubao_btn);
+
         xianjin_btn=popupView.findViewById(R.id.xianjin_btn);
-        yidong_btn.setOnClickListener(v -> {
-            yidong_btn.setBackgroundResource(R.drawable.blue_bg3);
+        weixin_btn.setOnClickListener(v -> {
+            if (weixin_type){
+                new DeleteShopPopupWindow(context,"微信已经支付过了",true).show();
+                return;
+            }
+            weixin_btn.setBackgroundResource(R.drawable.blue_bg3);
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
-            pay_type="";
-            shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
-            deleteShopPopupWindow.show();
+            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
+            pay_type="wechat";
+            shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
+            zhaolin_tv.setText("0.00");
+
         });
         xianjin_btn.setOnClickListener(v -> {
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
-            yidong_btn.setBackgroundResource(R.drawable.blue_bg2);
+            weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
+            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
             pay_type="cash";
-            shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
+            shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
+            zhaolin_tv.setText("0.00");
+        });
+        zhifubao_btn.setOnClickListener(v -> {
+            if (zhifubao_type){
+                new DeleteShopPopupWindow(context,"支付宝已经支付过了",true).show();
+                return;
+            }
+            xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
+            weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
+            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg3);
+            pay_type="alipay";
+            shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
+            zhaolin_tv.setText("0.00");
         });
         popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
             popupWindow.dismiss();
         });
         initKey();
+        time = new TimeCount(60000, 5000);//一共执行60000毫秒，每5000执行一次。
+
 
     }
+    public boolean isValidNumber(String input) {
+        if (TextUtils.isEmpty(input)) return false;
+
+        String regex = "^\\d+(\\.\\d*)?$";
+        if (!input.matches(regex)) return false;
+
+        // 检查小数点数量
+        int dotCount = input.length() - input.replace(".", "").length();
+        return dotCount <= 1;
+    }
+
     /**
      * 判断支付类型
      * @param code 扫码获取的字符串
@@ -210,15 +305,17 @@ public class CheckoutPopupWindow {
         pay_type=checkoutBean.getPay_type();
         if (pay_type.equals("cash")){
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
-            yidong_btn.setBackgroundResource(R.drawable.blue_bg2);
+            weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
+            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
             pay_type="cash";
             shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
         }else {
-            yidong_btn.setBackgroundResource(R.drawable.blue_bg3);
+            weixin_btn.setBackgroundResource(R.drawable.blue_bg3);
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
-            pay_type="";
+            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
+            pay_type="wechat";
             shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
-            deleteShopPopupWindow.show();
+
         }
     }
     @SuppressLint("SetTextI18n")
@@ -234,6 +331,16 @@ public class CheckoutPopupWindow {
                         for (int u=0;u<llNum01_09.getChildCount();u++){
                             llNum01_09.getChildAt(u).setOnClickListener(v -> {
                                 Log.i("ttt",v.getTag().toString());
+                                if (v.getTag().toString().equals("-")){
+                                    if (!TextUtils.isEmpty(shoukuan_tv.getText().toString())){
+                                        return;
+                                    }
+                                }
+                                if (v.getTag().toString().equals(".")){
+                                    if (shoukuan_tv.getText().toString().contains(".")){
+                                        return;
+                                    }
+                                }
                                 shoukuan_tv.append(v.getTag().toString());
                             });
                         }
@@ -256,16 +363,28 @@ public class CheckoutPopupWindow {
 
                             }else if(v.getTag().toString().equals("submit")){
                                 if (TextUtils.isEmpty(shoukuan_tv.getText().toString())){
+                                    new DeleteShopPopupWindow(context,"请输入收款金额",true).show();
+                                    return;
+                                }
+                                if (!isValidNumber(shoukuan_tv.getText().toString())){
+                                    new DeleteShopPopupWindow(context,"请输入正确格式的收款金额",true).show();
                                     return;
                                 }
                                 if (pay_type.equals("cash")){
                                     checkoutBean.setPay_type(pay_type);
-                                    checkoutBean.setPay_fee(new BigDecimal(shoukuan_tv.getText().toString()).intValue());
+                                    checkoutBean.setPay_fee(shoukuan_tv.getText().toString());
                                     checkoutBean.setCash_price(shoukuan_tv.getText().toString());
                                     checkoutBean.setCash_change(zhaolin_tv.getText().toString());
                                     SubmitCheckout();
                                 }else {
+                                    if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO)>0){
+                                        new DeleteShopPopupWindow(context,"收款金额不能大于需要支付的金额",true).show();
+                                        return;
+                                    }
+                                    shoukuan_tv.removeCallbacks(shoukuan_tvRunnable);
+                                    shoukuan_tv.clearFocus();
                                     deleteShopPopupWindow.show();
+
                                 }
 
 
@@ -280,35 +399,508 @@ public class CheckoutPopupWindow {
         }
     }
 
+    public String order_sn="";
+    public String xinjin_pice="",weixin_pice="",zhifubao_pice="";
     public void SubmitCheckout(){
+        checkoutBean.setOrder_sn(order_sn);
+        if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO)<0){
+            order_status=1;
+            checkoutBean.setType(2);
+        }else {
+
+            if (order_status==0){
+                checkoutBean.setType(1);
+            }else {
+                checkoutBean.setType(2);
+            }
+            order_status=2;
+        }
+        checkoutBean.setOrder_status(order_status);
         String url = POSApiSerview.POS_URL + POSApiSerview.addOrder;
         Gson gson=new Gson();
-        OkHttpUtil.postJsonAsync(url, gson.toJson(checkoutBean),context, new OkHttpUtil.OkHttpCallback() {
+        RequestBody body = RequestBody.create(gson.toJson(checkoutBean), MediaType.parse("application/json; charset=utf-8"));
+        Request.Builder builder = new Request.Builder()
+                .url(url);
+
+        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+
+
+        builder.post(body);
+
+        Request request = builder.build();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+                .build();
+        client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onSuccess(String response) {
-                Log.i("ttt",">>>>>>>>>>>>>");
-                context.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            JSONObject jsonObject=new JSONObject(response);
-                            int code=jsonObject.getInt("code");
-                            if (code==1){
-                                popupWindow.dismiss();
-                                checkoutOnClickListener.onClick();
-                                new DeleteShopPopupWindow(context,"支付成功",true).show();
-                                operateDetails();
-                            }
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                });
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
             }
 
             @Override
-            public void onFailure(IOException e) {
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success=response.body().string();
+                        JSONObject jsonObject=new JSONObject(success);
+                        context.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
 
+
+
+                                    if (jsonObject.getString("msg").contains("成功")||jsonObject.getString("msg").contains("Success")){
+                                        DialogUIUtils.dismiss(buildBean);
+
+                                        if (pay_type.equals("cash")){
+                                            if (TextUtils.isEmpty(xinjin_pice)){
+                                                xinjin_pice=shoukuan_tv.getText().toString();
+                                            }else {
+                                                xinjin_pice=new BigDecimal(xinjin_pice).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
+                                            }
+
+                                            order_sn=jsonObject.getString("data");
+
+                                        }else if (pay_type.equals("wechat")){
+                                            weixin_pice=shoukuan_tv.getText().toString();
+                                            weixin_type=true;
+                                            order_sn=new JSONObject(jsonObject.getString("code")).getString("order_sn");
+                                        }else if (pay_type.equals("alipay")){
+                                            zhifubao_pice=shoukuan_tv.getText().toString();
+                                            zhifubao_type=true;
+                                            order_sn=jsonObject.getString("order_sn");
+                                            out_trade_no=jsonObject.getString("out_trade_no");
+                                        }
+                                        yinshou=new BigDecimal(yinshou).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
+                                        yishou_tv.setText(yinshou);
+                                        new DeleteShopPopupWindow(context,"支付成功",true).show();
+                                        if (order_status==2){
+                                            order_sn="";
+                                            out_trade_no="";
+                                            deleteShopPopupWindow.dismiss();
+                                            popupWindow.dismiss();
+                                            checkoutOnClickListener.onClick();
+
+                                            if (!TextUtils.isEmpty(xinjin_pice)){
+                                                MyPrinterHelper.getInstance().asyncOpenMoneyBox(context);
+                                            }
+                                            operateDetails();
+                                        }else {
+                                            deleteShopPopupWindow.dismiss();
+                                            xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
+                                            weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
+                                            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
+                                            pay_type="cash";
+                                            shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
+                                        }
+
+
+                                    }
+                                    if (jsonObject.getString("msg").contains("失效")){
+                                        DialogUIUtils.dismiss(buildBean);
+                                        new DeleteShopPopupWindow(context, true, jsonObject.getString("msg"), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                                            @Override
+                                            public void onClick(String text) {
+                                                Intent intent=new Intent(context, LoginActivity.class);
+                                                context.startActivity(intent);
+                                            }
+                                        }).show();
+                                    }
+                                    if (jsonObject.getString("msg").contains("输入密码中")||jsonObject.getString("msg").contains("order success pay inprocess")){
+                                        if (pay_type.equals("wechat")){
+                                            order_sn=new JSONObject(jsonObject.getString("code")).getString("order_sn");
+                                            out_trade_no=new JSONObject(jsonObject.getString("code")).getString("out_trade_no");
+                                            fwsgetOrderInformation();
+                                        }else if (pay_type.equals("alipay")){
+                                            out_trade_no=jsonObject.getString("out_trade_no");
+                                            order_sn=jsonObject.getString("order_sn");
+                                            queryOrder();
+                                            time.start();
+
+                                        }
+
+                                    }
+
+
+                                } catch (JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
+
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+
+                }
+            }
+        });
+
+
+
+
+
+//        OkHttpUtil.postJsonAsync(url, gson.toJson(checkoutBean),context, new OkHttpUtil.OkHttpCallback() {
+//            @Override
+//            public void onSuccess(String response) {
+//                Log.i("ttt",">>>>>>>>>>>>>");
+//                context.runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        try {
+//                            JSONObject jsonObject=new JSONObject(response);
+//                            int code=jsonObject.getInt("code");
+//                            if (code==1){
+//                                popupWindow.dismiss();
+//                                checkoutOnClickListener.onClick();
+//                                new DeleteShopPopupWindow(context,"支付成功",true).show();
+//                                operateDetails();
+//                            }
+//                        } catch (JSONException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onFailure(IOException e) {
+//
+//            }
+//        });
+    }
+    public String out_trade_no="";
+    public void fwsgetOrderInformation() {
+        Map<String, String> params = new HashMap<>();
+        params.put("outTradeNo", out_trade_no);
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        FormBody.Builder formBuilder = new FormBody.Builder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        RequestBody formBody = formBuilder.build();
+        String url = POSApiSerview.POS_URL + POSApiSerview.fwsgetOrderInformation;
+        Request.Builder builder = new Request.Builder()
+                .url(url);
+
+        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+
+
+        builder.post(formBody);
+
+        Request request = builder.build();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success=response.body().string();
+                        context.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    JSONObject jsonObject=new JSONObject(success);
+
+                                    String msg=jsonObject.getString("msg");
+
+                                    String trade_state_desc=new JSONObject(jsonObject.getString("code")).getString("trade_state_desc");
+                                    if (trade_state_desc.contains("输入支付密码")){
+                                        fwsgetOrderInformation();
+                                    }else if (trade_state_desc.contains("支付成功")){
+                                        DialogUIUtils.dismiss(buildBean);
+
+                                       if (pay_type.equals("wechat")){
+                                            weixin_pice=shoukuan_tv.getText().toString();
+                                            weixin_type=true;
+                                        }
+                                        yinshou=new BigDecimal(yinshou).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
+                                        yishou_tv.setText(yinshou);
+                                        new DeleteShopPopupWindow(context,"支付成功",true).show();
+                                        if (order_status==2){
+                                            order_sn="";
+                                            out_trade_no="";
+                                            deleteShopPopupWindow.dismiss();
+                                            popupWindow.dismiss();
+                                            checkoutOnClickListener.onClick();
+
+                                            operateDetails();
+                                        }else {
+                                            deleteShopPopupWindow.dismiss();
+                                            xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
+                                            weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
+                                            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
+                                            pay_type="cash";
+                                            shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
+                                        }
+                                    }else if (trade_state_desc.contains("支付失败")){
+                                        new DeleteShopPopupWindow(context, trade_state_desc, true).show();
+                                        fwscancelanOrder();
+                                    }
+
+
+                                } catch (JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+
+                }
+            }
+        });
+    }
+
+    public void queryOrder() {
+        Map<String, String> params = new HashMap<>();
+        params.put("out_trade_no", out_trade_no);
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        FormBody.Builder formBuilder = new FormBody.Builder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        RequestBody formBody = formBuilder.build();
+        String url = POSApiSerview.POS_URL + POSApiSerview.queryOrder;
+        Request.Builder builder = new Request.Builder()
+                .url(url);
+
+        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+
+
+        builder.post(formBody);
+
+        Request request = builder.build();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success=response.body().string();
+                        context.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    JSONObject jsonObject=new JSONObject(success);
+
+                                    String trade_status=jsonObject.getString("trade_status");
+                                    if (is_chaoshi&&!trade_status.contains("TRADE_FINISHED")&&!trade_status.contains("TRADE_SUCCESS")){
+                                        is_chaoshi=false;
+                                        new DeleteShopPopupWindow(context,"订单支付超时",true).show();
+                                        revokeOrder();
+                                        return;
+                                    }
+                                    if (trade_status.contains("TRADE_FINISHED")||trade_status.contains("TRADE_SUCCESS")){
+                                        time.cancel();
+
+                                        DialogUIUtils.dismiss(buildBean);
+                                        if (pay_type.equals("alipay")){
+                                            zhifubao_pice=shoukuan_tv.getText().toString();
+                                            zhifubao_type=true;
+                                        }
+                                        yinshou=new BigDecimal(yinshou).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
+                                        yishou_tv.setText(yinshou);
+                                        new DeleteShopPopupWindow(context,"支付成功",true).show();
+                                        if (order_status==2){
+                                            order_sn="";
+                                            out_trade_no="";
+                                            deleteShopPopupWindow.dismiss();
+                                            popupWindow.dismiss();
+                                            checkoutOnClickListener.onClick();
+
+                                            operateDetails();
+                                        }else {
+                                            deleteShopPopupWindow.dismiss();
+                                            xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
+                                            weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
+                                            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
+                                            pay_type="cash";
+                                            shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
+                                        }
+
+                                    }
+
+
+                                } catch (JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+
+                }
+            }
+        });
+    }
+    public void fwscancelanOrder() {
+        Map<String, String> params = new HashMap<>();
+        params.put("outTradeNo", out_trade_no);
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        FormBody.Builder formBuilder = new FormBody.Builder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        RequestBody formBody = formBuilder.build();
+        String url = POSApiSerview.POS_URL + POSApiSerview.fwscancelanOrder;
+        Request.Builder builder = new Request.Builder()
+                .url(url);
+
+        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+
+
+        builder.post(formBody);
+
+        Request request = builder.build();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success=response.body().string();
+                        context.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    order_sn="";
+                                    out_trade_no="";
+                                    JSONObject jsonObject=new JSONObject(success);
+                                    DialogUIUtils.dismiss(buildBean);
+                                    String msg=jsonObject.getString("msg");
+
+                                    new DeleteShopPopupWindow(context, msg, true).show();
+
+
+                                } catch (JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+
+                }
+            }
+        });
+    }
+    public void revokeOrder() {
+        Map<String, String> params = new HashMap<>();
+        params.put("out_trade_no", out_trade_no);
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        FormBody.Builder formBuilder = new FormBody.Builder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        RequestBody formBody = formBuilder.build();
+        String url = POSApiSerview.POS_URL + POSApiSerview.revokeOrder;
+        Request.Builder builder = new Request.Builder()
+                .url(url);
+
+        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+
+
+        builder.post(formBody);
+
+        Request request = builder.build();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success=response.body().string();
+                        context.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    order_sn="";
+                                    out_trade_no="";
+                                    DialogUIUtils.dismiss(buildBean);
+                                    JSONObject jsonObject=new JSONObject(success);
+                                    DialogUIUtils.dismiss(buildBean);
+                                    String msg=jsonObject.getString("msg");
+
+                                    new DeleteShopPopupWindow(context, msg, true).show();
+
+
+                                } catch (JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+
+                }
             }
         });
     }
@@ -329,7 +921,9 @@ public class CheckoutPopupWindow {
                             int code=jsonObject.getInt("code");
                             if (code==1){
                                 ArrayList<PrintDataBean> printDataBeanArrayList = new Gson().fromJson(jsonObject.getString("data"),new TypeToken<ArrayList<PrintDataBean>>(){}.getType());
-                                MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,printDataBeanArrayList.get(0));
+                                MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,printDataBeanArrayList.get(0),xinjin_pice,weixin_pice,zhifubao_pice);
+                            }else {
+                                MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,null,xinjin_pice,weixin_pice,zhifubao_pice);
                             }
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
@@ -344,4 +938,29 @@ public class CheckoutPopupWindow {
             }
         });
     }
+    private TimeCount time;
+    private boolean is_chaoshi=false;
+    class TimeCount extends CountDownTimer {
+
+
+        public TimeCount(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        //时间定时器运行过程调用此方法。millisUntilFinished   为剩余时间
+        @Override
+        public void onTick(long millisUntilFinished) {
+
+            queryOrder();
+
+        }
+
+        //时间定时器结束调用此方法
+        @Override
+        public void onFinish() {
+            is_chaoshi=true;
+            queryOrder();
+        }
+    }
+
 }

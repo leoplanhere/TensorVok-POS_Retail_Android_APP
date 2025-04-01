@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -26,7 +27,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 
+import com.bumptech.glide.Glide;
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.dou361.dialogui.DialogUIUtils;
+import com.dou361.dialogui.bean.BuildBean;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.uhm.uhmcs.R;
@@ -47,13 +51,22 @@ import com.uhm.uhmcs.popupwindow.DeleteShopPopupWindow;
 import com.uhm.uhmcs.popupwindow.DiscountPopupWindow;
 import com.uhm.uhmcs.popupwindow.GetRegistrationShopPopupWindow;
 import com.uhm.uhmcs.popupwindow.GoodsWarehousingPopupWindow;
+import com.uhm.uhmcs.popupwindow.HistoryOrderPopupWindow;
 import com.uhm.uhmcs.popupwindow.MemberPopupWindow;
+import com.uhm.uhmcs.popupwindow.MoneyBoxPopupWindow;
 import com.uhm.uhmcs.popupwindow.MorefunctionPopupWindow;
 import com.uhm.uhmcs.popupwindow.PopupWindowOnClickListener;
+import com.uhm.uhmcs.popupwindow.PrintLabelsPopupWindow;
+import com.uhm.uhmcs.popupwindow.RelieveShiftPopupWindow;
 import com.uhm.uhmcs.utils.MyPrinterHelper;
+import com.uhm.uhmcs.utils.MyUsbDeviceHelper;
+import com.uhm.uhmcs.utils.NetworkUtils;
+import com.uhm.uhmcs.utils.ParcelUtils;
+import com.uhm.uhmcs.utils.SerializableUtils;
 import com.uhm.uhmcs.utils.UserUtils;
 import com.uhm.uhmcs.view.CustomInputTextView;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -64,7 +77,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 public class MainActivity extends Activity {
 
@@ -98,7 +122,7 @@ public class MainActivity extends Activity {
     private BigDecimal zong_youhui = new BigDecimal("0.00");
     private String memben_discount;
     private boolean is_tongbu=false;
-
+    BuildBean buildBean;
 
 
     @Override
@@ -106,22 +130,30 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+        MyUsbDeviceHelper.getInstance().inti(this);
 
-        if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
-            Gson gson = new Gson();
-            CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
-            shopTypeAdapter.setNewData(categoryListBean.getData());
-        } else {
+        if(NetworkUtils.getInstance().isNetworkConnected(this)){
             OverviewList();
-        }
-        if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
-            Gson gson = new Gson();
-            GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
-            allGrouponGoodsModelList = grouponGoodsBean.getData();
-            grouponGoodsAdapter.setNewData(grouponGoodsBean.getData());
-        } else {
             getGrouponGoods();
+        }else {
+            if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
+                Gson gson = new Gson();
+                CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
+                shopTypeAdapter.setNewData(categoryListBean.getData());
+            } else {
+                OverviewList();
+            }
+            if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
+                Gson gson = new Gson();
+                GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
+                allGrouponGoodsModelList = grouponGoodsBean.getData();
+                grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, allGrouponGoodsModelList));
+            } else {
+                getGrouponGoods();
+            }
         }
+
+
 
     }
 
@@ -210,15 +242,14 @@ public class MainActivity extends Activity {
                     RegistrationShopBean registrationShopBean = new RegistrationShopBean();
                     registrationShopBean.setTime(formattedTime);
                     registrationShopBean.setTotal_price(zongjia);
-                    ArrayList<GrouponGoodsBean.GrouponGoodsModel> registrationShopList = new ArrayList<>();
-                    registrationShopList.addAll(selectedShopList);
+                    ArrayList<GrouponGoodsBean.GrouponGoodsModel> registrationShopList = SerializableUtils.deepCopyList(selectedShopList );
                     registrationShopBean.setRegistrationShopList(registrationShopList);
                     registrationShopBeanArrayList.add(registrationShopBean);
 
                     qudan_btn.setText(getString(R.string.qudan_num, registrationShopBeanArrayList.size() + ""));
 
                     selectedShopList.clear();
-                    selectedShopAdapter.notifyDataSetChanged();
+                    selectedShopAdapter.setNewData(selectedShopList);
                     zongjia = new BigDecimal("0.00");
                     tv_zongjia.setText(zongjia + "");
                     tv_zongjian.setText("0");
@@ -234,11 +265,14 @@ public class MainActivity extends Activity {
                             @Override
                             public void onClick(int index, int type) {
                                 RegistrationShopBean registrationShopBean = registrationShopBeanArrayList.get(index);
-                                registrationShopBeanArrayList.remove(index);
+
                                 if (type == 1) {//取单
+                                    Log.i("ttt",">>>>>>>>>>>>取单");
+                                    selectedShopAdapter.setNewData(new ArrayList<>());
                                     zongjia = registrationShopBean.getTotal_price();
                                     tv_zongjia.setText(zongjia + "");
-                                    selectedShopList = registrationShopBean.getRegistrationShopList();
+                                    selectedShopList=new ArrayList<>();
+                                    selectedShopList =registrationShopBean.getRegistrationShopList() ;
                                     tv_zongjian.setText(selectedShopList.size() + "");
                                     selectedShopAdapter.setNewData(selectedShopList);
 
@@ -248,6 +282,7 @@ public class MainActivity extends Activity {
                                     }
 
                                 }
+                                registrationShopBeanArrayList.remove(index);
                                 if (!registrationShopBeanArrayList.isEmpty()) {
                                     qudan_btn.setText(getString(R.string.qudan_num, registrationShopBeanArrayList.size() + ""));
                                 } else {
@@ -345,7 +380,7 @@ public class MainActivity extends Activity {
                     checkoutBean.setUser_id(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId());
                     checkoutBean.setMachineNumber("001");
 
-                    checkoutBean.setTotal_fee(zongjia.intValue());
+                    checkoutBean.setTotal_fee(zongjia.toString());
 
                     if (is_kuangjie) {
                         checkoutBean.setPay_type("cash");
@@ -375,6 +410,8 @@ public class MainActivity extends Activity {
                         goodsJsonBean.setGoods_price(grouponGoodsModel.getPrice());
                         goodsJsonBean.setGoods_num(grouponGoodsModel.getShuliang());
                         goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
+//                        goodsJsonBean.setPay_price("0.01");
+//                        goodsJsonBean.setGoods_price("0.01");
                         goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGoods_sku_ids());
                         goodsJsonBean.setGoods_sku_text(grouponGoodsModel.getGoods_sku_text());
 
@@ -384,9 +421,11 @@ public class MainActivity extends Activity {
                     Gson gson = new Gson();
 
                     checkoutBean.setGoodsjson(gson.toJson(goodsJsonBeanArrayList));
-                    checkoutBean.setDiscount_fee(discount_fee.intValue());
-                    checkoutBean.setTotal_amount(zongjia.add(discount_fee).intValue());
-                    checkoutBean.setGoods_original_amount(zongjia.add(discount_fee).intValue());
+                    checkoutBean.setDiscount_fee(discount_fee.toString());
+                    checkoutBean.setTotal_amount(zongjia.add(discount_fee).toString());
+                    checkoutBean.setGoods_original_amount(zongjia.add(discount_fee).toString());
+//                    checkoutBean.setTotal_amount((int) 0.01);
+//                    checkoutBean.setTotal_amount((int) 0.01);
 
                     new CheckoutPopupWindow(MainActivity.this, checkoutBean, new PopupWindowOnClickListener.CheckoutOnClickListener() {
                         @Override
@@ -447,6 +486,7 @@ public class MainActivity extends Activity {
                  */
                 if (id == R.id.daying_btn) {
                     getLastOder();
+
                 }
                 /**
                  * 删除会员
@@ -483,6 +523,8 @@ public class MainActivity extends Activity {
                  * 更多功能
                  */
                 if (R.id.more_function_btn == id) {
+//                    MyLabeksPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this,new ArrayList<>());
+
                     new MorefunctionPopupWindow(MainActivity.this, new PopupWindowOnClickListener.MorefunctionOnClickListener() {
                         @Override
                         public void onClick(int btnType) {
@@ -498,19 +540,30 @@ public class MainActivity extends Activity {
                                  * 标签打印
                                  */
                                 case 2:
+                                    new PrintLabelsPopupWindow(MainActivity.this).show();
 
                                     break;
                                 /**
                                  * 商品入库
                                  */
                                 case 3:
-                                    new GoodsWarehousingPopupWindow(MainActivity.this).show();
+                                    new GoodsWarehousingPopupWindow(MainActivity.this, allGrouponGoodsModelList, new PopupWindowOnClickListener.GoodsWarehousingOnClickListener() {
+                                        @Override
+                                        public void onClick(int code, String msg) {
+                                            Log.i("ttt",">>>>>>wwww>>>"+msg);
+                                            if (code==1){
+                                                new DeleteShopPopupWindow(MainActivity.this,"商品入库成功",true).show();
+                                            }else {
+                                                new DeleteShopPopupWindow(MainActivity.this,msg,true).show();
+                                            }
+                                        }
+                                    }).show();
                                     break;
                                 /**
                                  * 历史账单
                                  */
                                 case 4:
-
+                                    new HistoryOrderPopupWindow(MainActivity.this).show();
                                     break;
                                 /**
                                  * 退出登录
@@ -521,6 +574,18 @@ public class MainActivity extends Activity {
                                     UserUtils.getInstance().setLoginBase(MainActivity.this,null);
                                     UserUtils.getInstance().setShopDataBean(MainActivity.this,null);
                                     startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                                    break;
+                                /**
+                                 * 钱箱设置
+                                 */
+                                case 6:
+                                    new MoneyBoxPopupWindow(MainActivity.this).show();
+                                    break;
+                                /**
+                                 * 交接班
+                                 */
+                                case 7:
+                                    new RelieveShiftPopupWindow(MainActivity.this).show();
                                     break;
                                 default:
                                     throw new IllegalStateException("Unexpected value: " + btnType);
@@ -558,65 +623,149 @@ public class MainActivity extends Activity {
         tv_zongjia = findViewById(R.id.tv_zongjia);
         tv_zongjian = findViewById(R.id.tv_zongjian);
 
-        animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.scale_click);
+        animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.shake);
 
         et_tiaoxingma = findViewById(R.id.et_tiaoxingma);
+        buildBean=DialogUIUtils.showLoading(this,"支付中..",true,false,false,false);
         // 设置输入完成监听
         et_tiaoxingma.setOnInputCompleteListener(text -> {
             Log.i("ttt", ">>>>>>>>>>>>>>" + text);
             et_tiaoxingma.setText("");
-            //
-            ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = allGrouponGoodsModelList.stream()
-                    .filter(grouponGoodsModel -> grouponGoodsModel.getSn().equals(text))
-                    .collect(Collectors.toCollection(ArrayList::new));
-            if (grouponGoodsModelArrayList == null || grouponGoodsModelArrayList.size() <= 0) {
-                new DeleteShopPopupWindow(MainActivity.this, "商品库中没有该商品", true).show();
-                return;
-            }
-            GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = grouponGoodsModelArrayList.get(0);
-            if (selectedShopList != null && !selectedShopList.isEmpty()) {
+            String textType=detectPaymentType(text);
+            if (textType.equals("unknown")){
+                //
+                ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = allGrouponGoodsModelList.stream()
+                        .filter(grouponGoodsModel -> grouponGoodsModel.getSn().equals(text))
+                        .collect(Collectors.toCollection(ArrayList::new));
+                if (grouponGoodsModelArrayList == null || grouponGoodsModelArrayList.size() <= 0) {
+                    new DeleteShopPopupWindow(MainActivity.this, "商品库中没有该商品", true).show();
+                    return;
+                }
+                GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = grouponGoodsModelArrayList.get(0);
+                if (selectedShopList != null && !selectedShopList.isEmpty()) {
 
-                for (int i = 0; i < selectedShopList.size(); i++) {
-                    GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
-                    Log.i("ttt", ">>>>>>>>>>>>>>" + model.getId() + "<<<<<" + grouponGoodsModel.getId());
-                    if (model.getId() == grouponGoodsModel.getId()) {
-                        model.setShuliang(model.getShuliang() + 1);
-                        BigDecimal price = new BigDecimal(model.getPrice());
-                        if (!TextUtils.isEmpty(model.getDiscount())) {
-                            price = price.multiply(new BigDecimal(model.getDiscount())).divide(new BigDecimal(100));
-                            model.setDiscounted_price(model.getDiscounted_price().add(new BigDecimal(model.getPrice()).subtract(price)));
-                        }
-                        BigDecimal heji = price.add(model.getHeji()).setScale(2, RoundingMode.UP);
-                        model.setHeji(heji);
-                        if (!model.isIs_zengsong()) {
-                            zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
-                        }
+                    for (int i = 0; i < selectedShopList.size(); i++) {
+                        GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
+                        Log.i("ttt", ">>>>>>>>>>>>>>" + model.getId() + "<<<<<" + grouponGoodsModel.getId());
+                        if (model.getId() == grouponGoodsModel.getId()) {
+                            model.setShuliang(model.getShuliang() + 1);
+                            BigDecimal price = new BigDecimal(model.getPrice());
+                            if (!TextUtils.isEmpty(model.getDiscount())) {
+                                price = price.multiply(new BigDecimal(model.getDiscount())).divide(new BigDecimal(100));
+                                model.setDiscounted_price(model.getDiscounted_price().add(new BigDecimal(model.getPrice()).subtract(price)));
+                            }
+                            BigDecimal heji = price.add(model.getHeji()).setScale(2, RoundingMode.UP);
+                            model.setHeji(heji);
+                            if (!model.isIs_zengsong()) {
+                                zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
+                            }
 
-                        tv_zongjia.setText(zongjia + "");
-                        selectedShopAdapter.notifyItemChanged(i);
-                        return;
+                            tv_zongjia.setText(zongjia + "");
+                            selectedShopAdapter.notifyItemChanged(i);
+                            return;
+                        }
                     }
                 }
+                BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
+                if (!TextUtils.isEmpty(memben_discount)) {
+                    price = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
+                    grouponGoodsModel.setDiscounted_price(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price));
+                    grouponGoodsModel.setDiscount(memben_discount);
+                }
+
+                BigDecimal heji = price.setScale(2, RoundingMode.UP);
+                grouponGoodsModel.setHeji(heji);
+                grouponGoodsModel.setShuliang(1);
+                selectedShopList.add(0, grouponGoodsModel);
+
+
+                selectedShopAdapter.setNewData(selectedShopList);
+                // 滚动到位置 0（第一条）
+                selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
+                tv_zongjian.setText(selectedShopAdapter.getItemCount() + "");
+                zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
+                tv_zongjia.setText(zongjia + "");
+            }else {
+                if (selectedShopAdapter.getItemCount() <= 0) {
+                    return;
+                }
+                checkoutBean = new CheckoutBean();
+
+
+                checkoutBean.setUser_id(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId());
+                checkoutBean.setMachineNumber("001");
+
+                checkoutBean.setTotal_fee(zongjia.toString());
+
+                if (is_kuangjie) {
+                    checkoutBean.setPay_type("cash");
+                } else {
+                    checkoutBean.setPay_type("");
+                }
+
+                is_kuangjie = false;
+//                    checkoutBean.setPay_fee();
+
+                checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+                BigDecimal discount_fee = new BigDecimal("0.00");
+                ArrayList<CheckoutBean.GoodsJsonBean> goodsJsonBeanArrayList = new ArrayList<>();
+
+
+                for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopList) {
+                    if (grouponGoodsModel.getDiscounted_price() != null) {
+                        discount_fee = discount_fee.add(grouponGoodsModel.getDiscounted_price());
+                    }
+                    CheckoutBean.GoodsJsonBean goodsJsonBean = new CheckoutBean.GoodsJsonBean();
+                    goodsJsonBean.setGoods_id(grouponGoodsModel.getId());
+                    goodsJsonBean.setTitle(grouponGoodsModel.getTitle());
+                    goodsJsonBean.setGoods_sn(grouponGoodsModel.getGoods_sn());
+                    goodsJsonBean.setSn(grouponGoodsModel.getSn());
+                    goodsJsonBean.setDiscount(TextUtils.isEmpty(grouponGoodsModel.getDiscount()) ? "100" : grouponGoodsModel.getDiscount());
+                    goodsJsonBean.setDiscounted_price(grouponGoodsModel.getDiscounted_price() == null ? "0.00" : grouponGoodsModel.getDiscounted_price().toString());
+                    goodsJsonBean.setGoods_price(grouponGoodsModel.getPrice());
+                    goodsJsonBean.setGoods_num(grouponGoodsModel.getShuliang());
+                    goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
+//                        goodsJsonBean.setPay_price("0.01");
+//                        goodsJsonBean.setGoods_price("0.01");
+                    goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGoods_sku_ids());
+                    goodsJsonBean.setGoods_sku_text(grouponGoodsModel.getGoods_sku_text());
+
+
+                    goodsJsonBeanArrayList.add(goodsJsonBean);
+                }
+                Gson gson = new Gson();
+
+                checkoutBean.setGoodsjson(gson.toJson(goodsJsonBeanArrayList));
+                checkoutBean.setDiscount_fee(discount_fee.toString());
+                checkoutBean.setTotal_amount(zongjia.add(discount_fee).toString());
+                checkoutBean.setGoods_original_amount(zongjia.add(discount_fee).toString());
+//                    checkoutBean.setTotal_amount((int) 0.01);
+//                    checkoutBean.setTotal_amount((int) 0.01);
+
+//                new CheckoutPopupWindow(MainActivity.this, checkoutBean, new PopupWindowOnClickListener.CheckoutOnClickListener() {
+//                    @Override
+//                    public void onClick() {
+//                        onClickListener.onClick(qingkong_btn);
+//                    }
+//                }).show();
+                checkoutBean.setPay_type(textType);
+                checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+                checkoutBean.setAuthCode(text);
+                checkoutBean.setPay_fee(zongjia.toString());
+                checkoutBean.setCash_price(zongjia.toString());
+                checkoutBean.setCash_change("0.00");
+//                checkoutBean.setPay_fee((int) 0.01);
+//                checkoutBean.setCash_price("0.01");
+//                checkoutBean.setCash_change("0.00");
+
+                buildBean.show();
+                SubmitCheckout(checkoutBean);
+
             }
-            BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
-            if (!TextUtils.isEmpty(memben_discount)) {
-                price = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
-                grouponGoodsModel.setDiscounted_price(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price));
-                grouponGoodsModel.setDiscount(memben_discount);
-            }
-
-            BigDecimal heji = price.setScale(2, RoundingMode.UP);
-            grouponGoodsModel.setHeji(heji);
-            grouponGoodsModel.setShuliang(1);
-            selectedShopList.add(0, grouponGoodsModel);
 
 
-            selectedShopAdapter.setNewData(selectedShopList);
-            // 滚动到位置 0（第一条）
-            selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
-            tv_zongjian.setText(selectedShopAdapter.getItemCount() + "");
-            zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
-            tv_zongjia.setText(zongjia + "");
+
+
         });
 
         // 自动获取焦点
@@ -703,6 +852,7 @@ public class MainActivity extends Activity {
 
                     } else {
                         deleteShopPopupWindow = new DeleteShopPopupWindow(MainActivity.this, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                            @SuppressLint("SetTextI18n")
                             @Override
                             public void onClick(String text) {
                                 if (!grouponGoodsModel.isIs_zengsong()) {
@@ -717,7 +867,7 @@ public class MainActivity extends Activity {
                                 }
                                 selectedShopList.remove(position);
                                 selectedShopAdapter.setNewData(selectedShopList);
-                                tv_zongjian.setText(selectedShopAdapter.getItemCount());
+                                tv_zongjian.setText(selectedShopAdapter.getItemCount()+"");
 
                             }
                         });
@@ -804,19 +954,25 @@ public class MainActivity extends Activity {
         shop_rv.setLayoutManager(new GridLayoutManager(this, 4)); // 设置3列，横向布局，不反转方向（false）
         grouponGoodsAdapter = new GrouponGoodsAdapter(this, R.layout.item_groupon_goods);
         shop_rv.setAdapter(grouponGoodsAdapter);
-//        shop_rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//            @Override
-//            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-//                super.onScrolled(recyclerView, dx, dy);
-//                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-//                int visibleItemCount = layoutManager.getChildCount();
-//                int totalItemCount = layoutManager.getItemCount();
-//                int pastVisiblesItems = layoutManager.findFirstVisibleItemPosition();
+//        grouponGoodsAdapter.setOnLoadMoreListener(() -> {
 //
-//                if (!grouponGoodsAdapter.isLoading && !grouponGoodsAdapter.hasMore) { // 如果已经在加载或者没有更多数据，则不处理滚动事件
-//                    return;
-//                }
-//                if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) { // 当滚动到列表底部时触发加载更多事件
+//        }, shop_rv);
+        grouponGoodsAdapter.setPreLoadNumber(3);
+        shop_rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                int visibleItemCount = layoutManager.getChildCount();
+                int totalItemCount = layoutManager.getItemCount();
+                int pastVisiblesItems = layoutManager.findFirstVisibleItemPosition();
+
+                if (!grouponGoodsAdapter.isLoading || !grouponGoodsAdapter.hasMore) { // 如果已经在加载或者没有更多数据，则不处理滚动事件
+                    return;
+                }
+                if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) { // 当滚动到列表底部时触发加载更多事件
+                    // 异步加载下一页数据
+                    loadNextPage();
 //                    Log.i("ttt", ">>>>>>>>>>>>>>" + grouponGoodsAdapter.getItemCount() % 20);
 //                    if (grouponGoodsAdapter.getItemCount() % 20 == 0) {
 //                        // 这里调用你的加载更多方法，例如：myAdapter.loadMoreData(newData);
@@ -825,13 +981,23 @@ public class MainActivity extends Activity {
 //                    } else {
 //                        grouponGoodsAdapter.hasMore = false;
 //                    }
-//
-//
-//                }
-//
-//
-//            }
-//        });
+
+
+                }
+
+
+            }
+
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    Glide.with(MainActivity.this).resumeRequests();
+                } else {
+                    Glide.with(MainActivity.this).pauseRequests();
+                }
+            }
+        });
 
         grouponGoodsAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
@@ -896,7 +1062,312 @@ public class MainActivity extends Activity {
             }
         });
 
+        time = new TimeCount(60000, 5000);//一共执行60000毫秒，每5000执行一次。
+    }
+    CheckoutBean checkoutBean;
+    boolean hasMoreData = true;
+    public void loadNextPage() {
+        if (!hasMoreData) return;
+        grouponGoods_page++;
+        ArrayList<GrouponGoodsBean.GrouponGoodsModel> pageData = getPageData(grouponGoods_page, allGrouponGoodsModelList);
+        if (pageData.isEmpty()) {
+            Log.i("ttt",">>>>loadNextPage>>>>>>");
+            hasMoreData = false;
+            grouponGoodsAdapter.hasMore = false;
+            return;
+        }
+        // 请求成功后，更新数据并通知适配器数据已更改
+        grouponGoodsAdapter.loadMoreData(pageData); // newDataList 是新加载的数据列表
+    }
 
+    public ArrayList<GrouponGoodsBean.GrouponGoodsModel> getPageData(int currentPage, ArrayList<GrouponGoodsBean.GrouponGoodsModel> sourceList) {
+        int start = (currentPage - 1) * 20;
+        int end = Math.min(start + 20, sourceList.size());
+        if (start >= end) return new ArrayList<>();
+        return new ArrayList<>(sourceList.subList(start, end)); // 避免直接使用 subList
+    }
+    /**
+     * 判断支付类型
+     * @param code 扫码获取的字符串
+     * @return "alipay"（支付宝）、"wechat"（微信）、"unknown"（未知）
+     */
+    public static String detectPaymentType(String code) {
+        if (TextUtils.isEmpty(code)) return "unknown";
+
+        // 检查是否为纯数字
+        if (!code.matches("\\d+")) return "unknown";
+
+        // 微信规则验证
+        if (code.length() == 18 && code.matches("^(10|11|12|13|14|15)\\d{16}$")) {
+            return "wechat";
+        }
+
+        // 支付宝规则验证
+        if (code.length() >= 16 && code.length() <= 24
+                && code.matches("^(25|26|27|28|29|30)\\d+")) {
+            return "alipay";
+        }
+
+        return "unknown";
+    }
+    public void SubmitCheckout(CheckoutBean checkoutBean) {
+        String url = POSApiSerview.POS_URL + POSApiSerview.addOrder;
+        Gson gson = new Gson();
+        RequestBody body = RequestBody.create(gson.toJson(checkoutBean), MediaType.parse("application/json; charset=utf-8"));
+        Request.Builder builder = new Request.Builder()
+                .url(url);
+
+        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+
+
+        builder.post(body);
+
+        Request request = builder.build();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success = response.body().string();
+                        JSONObject jsonObject = new JSONObject(success);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    if (jsonObject.getString("msg").contains("成功") || jsonObject.getString("msg").contains("Success")) {
+
+                                        order_sn="";
+                                        out_trade_no="";
+                                        DialogUIUtils.dismiss(buildBean);
+                                        onClickListener.onClick(qingkong_btn);
+                                        new DeleteShopPopupWindow(MainActivity.this, "支付成功", true).show();
+                                        operateDetails(checkoutBean);
+                                        return;
+                                    }
+                                    if (jsonObject.getString("msg").contains("失效")) {
+                                        DialogUIUtils.dismiss(buildBean);
+                                        new DeleteShopPopupWindow(MainActivity.this, true, jsonObject.getString("msg"), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                                            @Override
+                                            public void onClick(String text) {
+                                                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                                                startActivity(intent);
+                                            }
+                                        }).show();
+                                        return;
+                                    }
+                                    if (jsonObject.getString("msg").contains("输入密码中")||jsonObject.getString("msg").contains("order success pay inprocess")){
+                                        if (checkoutBean.getPay_type().equals("wechat")){
+                                            order_sn=new JSONObject(jsonObject.getString("code")).getString("order_sn");
+                                            out_trade_no=new JSONObject(jsonObject.getString("code")).getString("out_trade_no");
+                                            fwsgetOrderInformation(checkoutBean);
+                                        }else if (checkoutBean.getPay_type().equals("alipay")){
+                                            out_trade_no=jsonObject.getString("out_trade_no");
+                                            order_sn=jsonObject.getString("order_sn");
+                                            queryOrder(checkoutBean);
+                                            time.start();
+                                        }
+                                        return;
+
+                                    }
+                                    new DeleteShopPopupWindow(MainActivity.this,"支付失败",true).show();
+
+
+                                } catch (JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
+
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+
+                }
+            }
+        });
+    }
+    public void queryOrder(CheckoutBean checkoutBean) {
+        Map<String, String> params = new HashMap<>();
+        params.put("out_trade_no", out_trade_no);
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        FormBody.Builder formBuilder = new FormBody.Builder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        RequestBody formBody = formBuilder.build();
+        String url = POSApiSerview.POS_URL + POSApiSerview.queryOrder;
+        Request.Builder builder = new Request.Builder()
+                .url(url);
+
+        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+
+
+        builder.post(formBody);
+
+        Request request = builder.build();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success=response.body().string();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    JSONObject jsonObject=new JSONObject(success);
+
+                                    String trade_status=jsonObject.getString("trade_status");
+                                    if (is_chaoshi&&!trade_status.contains("TRADE_FINISHED")&&!trade_status.contains("TRADE_SUCCESS")){
+                                        is_chaoshi=false;
+                                        new DeleteShopPopupWindow(MainActivity.this,"订单支付超时",true).show();
+                                        revokeOrder();
+                                        return;
+                                    }
+                                    if (trade_status.contains("TRADE_FINISHED")||trade_status.contains("TRADE_SUCCESS")){
+                                        order_sn="";
+                                        out_trade_no="";
+                                        time.cancel();
+                                        DialogUIUtils.dismiss(buildBean);
+                                        onClickListener.onClick(qingkong_btn);
+                                        new DeleteShopPopupWindow(MainActivity.this, "支付成功", true).show();
+                                        operateDetails(checkoutBean);
+
+                                    }
+
+
+                                } catch (JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+
+                }
+            }
+        });
+    }
+    private TimeCount time;
+    private boolean is_chaoshi=false;
+    class TimeCount extends CountDownTimer {
+
+
+        public TimeCount(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        //时间定时器运行过程调用此方法。millisUntilFinished   为剩余时间
+        @Override
+        public void onTick(long millisUntilFinished) {
+
+            queryOrder(checkoutBean);
+
+        }
+
+        //时间定时器结束调用此方法
+        @Override
+        public void onFinish() {
+            is_chaoshi=true;
+            queryOrder(checkoutBean);
+        }
+    }
+    public void revokeOrder() {
+        Map<String, String> params = new HashMap<>();
+        params.put("out_trade_no", out_trade_no);
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        FormBody.Builder formBuilder = new FormBody.Builder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        RequestBody formBody = formBuilder.build();
+        String url = POSApiSerview.POS_URL + POSApiSerview.revokeOrder;
+        Request.Builder builder = new Request.Builder()
+                .url(url);
+
+        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+
+
+        builder.post(formBody);
+
+        Request request = builder.build();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success=response.body().string();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    order_sn="";
+                                    out_trade_no="";
+                                    DialogUIUtils.dismiss(buildBean);
+                                    JSONObject jsonObject=new JSONObject(success);
+                                    DialogUIUtils.dismiss(buildBean);
+                                    String msg=jsonObject.getString("msg");
+
+                                    new DeleteShopPopupWindow(MainActivity.this, msg, true).show();
+
+
+                                } catch (JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+
+                }
+            }
+        });
     }
 
     //tab货品类型list
@@ -951,6 +1422,11 @@ public class MainActivity extends Activity {
 
             @Override
             public void onFailure(IOException e) {
+                if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
+                    Gson gson = new Gson();
+                    CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
+                    shopTypeAdapter.setNewData(categoryListBean.getData());
+                }
                 System.err.println("请求失败: " + e.getMessage());
             }
         });
@@ -991,7 +1467,7 @@ public class MainActivity extends Activity {
                                 if (grouponGoods_page == 1) {
                                     if (grouponGoodsBean.getData() != null) {
                                         allGrouponGoodsModelList = grouponGoodsBean.getData();
-                                        grouponGoodsAdapter.setNewData(grouponGoodsBean.getData());
+                                        grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, allGrouponGoodsModelList));
                                     } else {
                                         Toast.makeText(MainActivity.this, "未查询到商品", LENGTH_SHORT).show();
                                     }
@@ -1021,6 +1497,12 @@ public class MainActivity extends Activity {
 
             @Override
             public void onFailure(IOException e) {
+                if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
+                    Gson gson = new Gson();
+                    GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
+                    allGrouponGoodsModelList = grouponGoodsBean.getData();
+                    grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, allGrouponGoodsModelList));
+                }
                 System.err.println("请求失败: " + e.getMessage());
             }
         });
@@ -1083,11 +1565,12 @@ public class MainActivity extends Activity {
         return super.dispatchKeyEvent(event);
     }
 
+
     //tab货品类型list
     public void getLastOder() {
 
         Map<String, String> params = new HashMap<>();
-
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
         String url = POSApiSerview.POS_URL + POSApiSerview.getLastOder;
         OkHttpUtil.postFormAsync(url, params,this, new OkHttpUtil.OkHttpCallback() {
             @Override
@@ -1125,7 +1608,186 @@ public class MainActivity extends Activity {
 
 
     }
+    public String out_trade_no="",order_sn="";
 
+    public void fwsgetOrderInformation(CheckoutBean checkoutBean) {
+        Map<String, String> params = new HashMap<>();
+        params.put("outTradeNo", out_trade_no);
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        FormBody.Builder formBuilder = new FormBody.Builder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        RequestBody formBody = formBuilder.build();
+        String url = POSApiSerview.POS_URL + POSApiSerview.fwsgetOrderInformation;
+        Request.Builder builder = new Request.Builder()
+                .url(url);
+
+        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+
+
+        builder.post(formBody);
+
+        Request request = builder.build();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success=response.body().string();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    JSONObject jsonObject=new JSONObject(success);
+
+                                    String msg=jsonObject.getString("msg");
+
+                                    String trade_state_desc=new JSONObject(jsonObject.getString("code")).getString("trade_state_desc");
+                                    if (trade_state_desc.contains("输入支付密码")){
+                                        fwsgetOrderInformation(checkoutBean);
+                                    }else if (trade_state_desc.contains("支付成功")){
+                                        order_sn="";
+                                        out_trade_no="";
+                                        DialogUIUtils.dismiss(buildBean);
+                                        onClickListener.onClick(qingkong_btn);
+                                        new DeleteShopPopupWindow(MainActivity.this, "支付成功", true).show();
+                                        operateDetails(checkoutBean);
+                                    }else if (trade_state_desc.contains("支付失败")){
+                                        new DeleteShopPopupWindow(MainActivity.this, trade_state_desc, true).show();
+                                        fwscancelanOrder();
+                                    }
+
+
+                                } catch (JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+
+                }
+            }
+        });
+    }
+    public void fwscancelanOrder() {
+        Map<String, String> params = new HashMap<>();
+        params.put("outTradeNo", out_trade_no);
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        FormBody.Builder formBuilder = new FormBody.Builder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        RequestBody formBody = formBuilder.build();
+        String url = POSApiSerview.POS_URL + POSApiSerview.fwscancelanOrder;
+        Request.Builder builder = new Request.Builder()
+                .url(url);
+
+        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+
+
+        builder.post(formBody);
+
+        Request request = builder.build();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success=response.body().string();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    order_sn="";
+                                    out_trade_no="";
+                                    JSONObject jsonObject=new JSONObject(success);
+                                    DialogUIUtils.dismiss(buildBean);
+                                    String msg=jsonObject.getString("msg");
+
+                                    new DeleteShopPopupWindow(MainActivity.this, msg, true).show();
+
+
+                                } catch (JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+
+                }
+            }
+        });
+    }
+    public void operateDetails(CheckoutBean checkoutBean){
+        Map<String, String> params = new HashMap<>();
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        String url = POSApiSerview.POS_URL + POSApiSerview.operateDetails;
+        OkHttpUtil.postFormAsync(url, params,this, new OkHttpUtil.OkHttpCallback() {
+            @Override
+            public void onSuccess(String response) {
+                Log.i("ttt",">>>>>>>>>>>>>");
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            JSONObject jsonObject=new JSONObject(response);
+                            int code=jsonObject.getInt("code");
+                            String weixin_pice=checkoutBean.getPay_type().equals("wechat")?checkoutBean.getPay_fee():"";
+                            String zhifubao_pice=checkoutBean.getPay_type().equals("alipay")?checkoutBean.getPay_fee():"";
+                            if (code==1){
+                                ArrayList<PrintDataBean> printDataBeanArrayList = new Gson().fromJson(jsonObject.getString("data"),new TypeToken<ArrayList<PrintDataBean>>(){}.getType());
+                                MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this,checkoutBean,printDataBeanArrayList.get(0), "", weixin_pice, zhifubao_pice);
+                            }else {
+                                MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this,checkoutBean,null, "", weixin_pice, zhifubao_pice);
+                            }
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(IOException e) {
+
+            }
+        });
+    }
     public void operateDetails(LastOrderBean lastOrderBean) {
         Map<String, String> params = new HashMap<>();
         params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
@@ -1144,6 +1806,8 @@ public class MainActivity extends Activity {
                                 ArrayList<PrintDataBean> printDataBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<PrintDataBean>>() {
                                 }.getType());
                                 MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, lastOrderBean, printDataBeanArrayList.get(0));
+                            }else {
+                                MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this,lastOrderBean,null);
                             }
                         } catch (JSONException e) {
                             throw new RuntimeException(e);

@@ -1,6 +1,7 @@
 package com.uhm.uhmcs.popupwindow;
 
 import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 
 import android.app.Activity;
 import android.content.Context;
@@ -34,6 +35,8 @@ public class DeleteShopPopupWindow {
     private String hint_content;
     private boolean is_dismiss=false;
     private boolean is_shouBtn=true;
+    private CustomInputTextView pay_password;
+    private boolean is_edit=false;
 
 
     public DeleteShopPopupWindow(Context context,PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
@@ -53,10 +56,23 @@ public class DeleteShopPopupWindow {
         this.deleteShopOnClickListener=deleteShopOnClickListener;
         initPopup();
     }
+    public DeleteShopPopupWindow(boolean is_edit,Context context,String hint_content,PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
+        this.context = context;
+        this.is_edit=is_edit;
+        this.hint_content=hint_content;
+        this.deleteShopOnClickListener=deleteShopOnClickListener;
+        initPopup();
+    }
     public DeleteShopPopupWindow(Context context,String hint_content,boolean is_dismiss) {
         this.context = context;
         this.hint_content=hint_content;
         this.is_dismiss=is_dismiss;
+        initPopup();
+    }
+    public DeleteShopPopupWindow(Context context,String hint_content,PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
+        this.context = context;
+        this.hint_content=hint_content;
+        this.deleteShopOnClickListener=deleteShopOnClickListener;
         initPopup();
     }
     public DeleteShopPopupWindow(Context context,boolean is_dismiss,String hint_content,PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
@@ -75,9 +91,12 @@ public class DeleteShopPopupWindow {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 true
         );
+        popupWindow.setFocusable(true);
+        popupWindow.setTouchable(true);
+        popupWindow.setOutsideTouchable(false);
 //        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         popupView.setBackgroundColor(context.getColor(R.color.black60));
-        popupWindow.setOutsideTouchable(true);
+
         // 计算居中位置
         popupView.post(() -> {
             DisplayMetrics metrics = new DisplayMetrics();
@@ -95,10 +114,22 @@ public class DeleteShopPopupWindow {
             popupWindow.dismiss();
         });
         popupView.findViewById(R.id.btn_queren).setOnClickListener(v -> {
-            popupWindow.dismiss();
+
             if (deleteShopOnClickListener!=null){
-                deleteShopOnClickListener.onClick("");
+                if (is_edit){
+                    if (pay_password.getText().toString().equals("1234")){
+                        deleteShopOnClickListener.onClick(pay_password.getText().toString());
+                    }else {
+                        hint_tv.setText("密码错误");
+                        hint_tv.setTextColor(Color.RED);
+                        return;
+                    }
+                }else {
+                    deleteShopOnClickListener.onClick("");
+                }
+
             }
+            popupWindow.dismiss();
 
         });
         btn_view=popupView.findViewById(R.id.btn_view);
@@ -109,19 +140,46 @@ public class DeleteShopPopupWindow {
             btn_view.setVisibility(GONE);
         }
         popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
+            if (deleteShopOnClickListener!=null){
+                deleteShopOnClickListener.onClick("");
+            }
             popupWindow.dismiss();
         });
         pay_code=popupView.findViewById(R.id.pay_code);
-        // 自动获取焦点
-        pay_code.postDelayed(() -> pay_code.requestFocus(), 100);
+
         pay_code.setOnInputCompleteListener(text -> {
             pay_code.setText("");
             Log.i("ttt",">>>>>>>支付码>"+text);
+//            popupWindow.dismiss();
             if (deleteShopOnClickListener!=null){
-                deleteShopOnClickListener.onClick(text);
+                if (is_shouBtn){
+                    deleteShopOnClickListener.onClick("");
+                    popupWindow.dismiss();
+                }else {
+                    deleteShopOnClickListener.onClick(text);
+                }
+
             }
 
         });
+        pay_password=popupView.findViewById(R.id.pay_password);
+
+        pay_password.setOnInputCompleteListener(text -> {
+            Log.i("ttt",">>>>>>>支付码>"+text);
+//            popupWindow.dismiss();
+            if (deleteShopOnClickListener!=null){
+                if (text.equals("1234")){
+                    popupWindow.dismiss();
+                    deleteShopOnClickListener.onClick(text);
+                }else {
+                    hint_tv.setText("密码错误");
+                    hint_tv.setTextColor(Color.RED);
+                }
+
+            }
+
+        });
+
 
     }
     CustomInputTextView pay_code;
@@ -129,6 +187,16 @@ public class DeleteShopPopupWindow {
     public void show() {
         View rootView = ((Activity) context).getWindow().getDecorView();
         popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
+        if (is_edit){
+            // 自动获取焦点
+            pay_password.setVisibility(VISIBLE);
+            pay_password.postDelayed(() -> pay_password.requestFocus(), 100);
+
+        }else {
+            // 自动获取焦点
+            pay_code.postDelayed(() -> pay_code.requestFocus(), 100);
+        }
+
         if (is_dismiss){
             btn_view.setVisibility(GONE);
             new Handler().postDelayed(new Runnable() {
@@ -141,5 +209,8 @@ public class DeleteShopPopupWindow {
                 }
             }, 2000);
         }
+    }
+    public void dismiss(){
+        popupWindow.dismiss();
     }
 }

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp"
+    android:gravity="center"
+    android:id="@+id/item_shop_view">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <LinearLayout
+            android:gravity="center_vertical"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/zhifuleixing_tv"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="25dp"
+                android:textColor="@color/black"
+                android:text=""
+                android:gravity="center"/>
+            <TextView
+                android:id="@+id/jiage_tv"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:textSize="25dp"
+                android:textColor="@color/black"
+                android:text=""
+                android:gravity="center"/>
+            <LinearLayout
+                android:gravity="center"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_weight="1">
+                <TextView
+                    android:id="@+id/tuikuan_btn"
+                    android:layout_width="140dp"
+                    android:layout_margin="20dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/rounded_border"
+                    android:layout_weight="1"
+                    android:textSize="25dp"
+                    android:textColor="@color/black"
+                    android:text="退款"
+                    android:gravity="center"/>
+            </LinearLayout>
+
+
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#ebeef5" />
+    </LinearLayout>
+</LinearLayout>

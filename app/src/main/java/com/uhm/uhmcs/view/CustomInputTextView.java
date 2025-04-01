@@ -1,5 +1,7 @@
 package com.uhm.uhmcs.view;
 
+import static android.view.KeyEvent.KEYCODE_NUMPAD_ENTER;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -76,7 +78,7 @@ public class CustomInputTextView extends AppCompatTextView {
                 return true;
             }
             // 处理回车键
-            if (keyCode == KeyEvent.KEYCODE_ENTER) {
+            if (keyCode == KeyEvent.KEYCODE_ENTER||keyCode ==KEYCODE_NUMPAD_ENTER) {
                 performInputComplete(); // 输入完成回调
                 return true;
             }
@@ -87,7 +89,7 @@ public class CustomInputTextView extends AppCompatTextView {
                 }
                 return true;
             }
-            Log.i("ttt",">>>>KEYCODE_DEL>>"+keyCode);
+            Log.i("ttt",">>>>KEYCODE_DEL>>"+keyCode+">>?>"+(char)event.getUnicodeChar());
         }
         return super.onKeyDown(keyCode, event);
     }

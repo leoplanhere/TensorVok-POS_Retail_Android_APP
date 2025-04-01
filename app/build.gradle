@@ -48,6 +48,12 @@ dependencies {
     implementation libs.gson
     implementation libs.zxing.android.embedded // 封装了ZXing的核心功能
     implementation libs.core                 // 核心编码库
+    implementation libs.cosmocalendar
+
+    implementation libs.jjdxm.dialogui
+    implementation libs.materialdatetimepicker
+    implementation libs.rangepicker
+
 
 
 }

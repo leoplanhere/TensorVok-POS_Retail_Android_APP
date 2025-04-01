@@ -5,26 +5,97 @@ import java.util.ArrayList;
 public class LastOrderBean {
     public String member_name;
     public String cardnumber;
+    public String cash_user_sn;
+    public String order_sn;
+    public int paytime;
+    public int createtime;
 
     public String member_phone;
     public ArrayList<GoodsJsonBean> order_item;
+    public ArrayList<PaymentlogBean> paymentlog;
+    public ArrayList<PaymentlogBean> payment;
     public int user_id;
     public String machineNumber;
     public String pay_type;
-    public int total_amount;
-    public int total_fee;
-    public int discount_fee;
-    public int coupon_fee;
-    public int pay_fee;
-    public int goods_original_amount;
+    public String total_amount;
+    public String total_fee;
+    public String discount_fee;
+    public String coupon_fee;
+    public String pay_fee;
+    public String goods_original_amount;
     public String authCode;
     public String shop_id;
+    public int refund_type;
 
     public String cash_change;
 
     public String cash_price;
 
+    public String transaction_id;
 
+    public ArrayList<PaymentlogBean> getPayment() {
+        return payment;
+    }
+
+    public void setPayment(ArrayList<PaymentlogBean> payment) {
+        this.payment = payment;
+    }
+
+    public ArrayList<PaymentlogBean> getPaymentlog() {
+        return paymentlog;
+    }
+
+    public void setPaymentlog(ArrayList<PaymentlogBean> paymentlog) {
+        this.paymentlog = paymentlog;
+    }
+
+    public String getTransaction_id() {
+        return transaction_id;
+    }
+
+    public void setTransaction_id(String transaction_id) {
+        this.transaction_id = transaction_id;
+    }
+
+    public int getRefund_type() {
+        return refund_type;
+    }
+
+    public void setRefund_type(int refund_type) {
+        this.refund_type = refund_type;
+    }
+
+    public String getCash_user_sn() {
+        return cash_user_sn;
+    }
+
+    public void setCash_user_sn(String cash_user_sn) {
+        this.cash_user_sn = cash_user_sn;
+    }
+
+    public String getOrder_sn() {
+        return order_sn;
+    }
+
+    public void setOrder_sn(String order_sn) {
+        this.order_sn = order_sn;
+    }
+
+    public int getPaytime() {
+        return paytime;
+    }
+
+    public void setPaytime(int paytime) {
+        this.paytime = paytime;
+    }
+
+    public int getCreatetime() {
+        return createtime;
+    }
+
+    public void setCreatetime(int createtime) {
+        this.createtime = createtime;
+    }
 
     public String getCash_price() {
         return cash_price;
@@ -101,51 +172,51 @@ public class LastOrderBean {
         this.pay_type = pay_type;
     }
 
-    public int getTotal_amount() {
+    public String getTotal_amount() {
         return total_amount;
     }
 
-    public void setTotal_amount(int total_amount) {
+    public void setTotal_amount(String total_amount) {
         this.total_amount = total_amount;
     }
 
-    public int getTotal_fee() {
+    public String getTotal_fee() {
         return total_fee;
     }
 
-    public void setTotal_fee(int total_fee) {
+    public void setTotal_fee(String total_fee) {
         this.total_fee = total_fee;
     }
 
-    public int getDiscount_fee() {
+    public String getDiscount_fee() {
         return discount_fee;
     }
 
-    public void setDiscount_fee(int discount_fee) {
+    public void setDiscount_fee(String discount_fee) {
         this.discount_fee = discount_fee;
     }
 
-    public int getCoupon_fee() {
+    public String getCoupon_fee() {
         return coupon_fee;
     }
 
-    public void setCoupon_fee(int coupon_fee) {
+    public void setCoupon_fee(String coupon_fee) {
         this.coupon_fee = coupon_fee;
     }
 
-    public int getPay_fee() {
+    public String getPay_fee() {
         return pay_fee;
     }
 
-    public void setPay_fee(int pay_fee) {
+    public void setPay_fee(String pay_fee) {
         this.pay_fee = pay_fee;
     }
 
-    public int getGoods_original_amount() {
+    public String getGoods_original_amount() {
         return goods_original_amount;
     }
 
-    public void setGoods_original_amount(int goods_original_amount) {
+    public void setGoods_original_amount(String goods_original_amount) {
         this.goods_original_amount = goods_original_amount;
     }
 
@@ -177,8 +248,8 @@ public class LastOrderBean {
         public String goods_price;
         public int goods_num;
 
-        public int goods_weight;
-        public int weigh_id;
+        public String goods_weight;
+        public String weigh_id;
         public String pay_price;
         public String goods_sku_price_id;
 
@@ -227,19 +298,19 @@ public class LastOrderBean {
             this.goods_num = goods_num;
         }
 
-        public int getGoods_weight() {
+        public String getGoods_weight() {
             return goods_weight;
         }
 
-        public void setGoods_weight(int goods_weight) {
+        public void setGoods_weight(String goods_weight) {
             this.goods_weight = goods_weight;
         }
 
-        public int getWeigh_id() {
+        public String getWeigh_id() {
             return weigh_id;
         }
 
-        public void setWeigh_id(int weigh_id) {
+        public void setWeigh_id(String weigh_id) {
             this.weigh_id = weigh_id;
         }
 
@@ -289,6 +360,63 @@ public class LastOrderBean {
 
          public void setGoods_sku_text(String goods_sku_text) {
              this.goods_sku_text = goods_sku_text;
+         }
+     }
+
+     public static class PaymentlogBean{
+        private String order_sn;
+         private String shop_id;
+         private String pay_type;
+         private String receivedmoney;
+         private String transaction_id;
+         private int order_status;
+
+         public String getOrder_sn() {
+             return order_sn;
+         }
+
+         public void setOrder_sn(String order_sn) {
+             this.order_sn = order_sn;
+         }
+
+         public String getShop_id() {
+             return shop_id;
+         }
+
+         public void setShop_id(String shop_id) {
+             this.shop_id = shop_id;
+         }
+
+         public String getPay_type() {
+             return pay_type;
+         }
+
+         public void setPay_type(String pay_type) {
+             this.pay_type = pay_type;
+         }
+
+         public String getReceivedmoney() {
+             return receivedmoney;
+         }
+
+         public void setReceivedmoney(String receivedmoney) {
+             this.receivedmoney = receivedmoney;
+         }
+
+         public String getTransaction_id() {
+             return transaction_id;
+         }
+
+         public void setTransaction_id(String transaction_id) {
+             this.transaction_id = transaction_id;
+         }
+
+         public int getOrder_status() {
+             return order_status;
+         }
+
+         public void setOrder_status(int order_status) {
+             this.order_status = order_status;
          }
      }
 }

@@ -5,10 +5,14 @@ import static android.view.View.VISIBLE;
 
 import android.content.Context;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.uhm.uhmcs.R;
@@ -41,6 +45,7 @@ public class GrouponGoodsAdapter extends BaseQuickAdapter <GrouponGoodsBean.Grou
                     .load(item.getImage())
 //                    .placeholder(R.mipmap.ic_launcher)
 //                    .error(R.mipmap.ic_launcher)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(imageView);
         }
         helper.setText(R.id.price,item.getPrice()+"元");
@@ -57,5 +62,7 @@ public class GrouponGoodsAdapter extends BaseQuickAdapter <GrouponGoodsBean.Grou
             }
         }
     }
+
+
 
 }

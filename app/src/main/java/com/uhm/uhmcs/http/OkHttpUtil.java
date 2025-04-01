@@ -3,6 +3,7 @@ package com.uhm.uhmcs.http;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import com.uhm.uhmcs.activity.LoginActivity;
 import com.uhm.uhmcs.popupwindow.DeleteShopPopupWindow;
@@ -161,6 +162,7 @@ public class OkHttpUtil {
     public static void postFormAsync(String url, Map<String, String> headers, Map<String, String> params, OkHttpCallback callback) {
         FormBody.Builder formBuilder = new FormBody.Builder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
+            Log.i("ttt","??>>>"+entry.getKey()+">>>>"+entry.getValue());
             formBuilder.add(entry.getKey(), entry.getValue());
         }
         RequestBody formBody = formBuilder.build();
@@ -294,10 +296,7 @@ public class OkHttpUtil {
                     try {
                         String success=response.body().string();
                         JSONObject jsonObject=new JSONObject(success);
-                        int code=jsonObject.getInt("code");
-                        if (code==1){
-                            callback.onSuccess(success);
-                        }else if (code==2){
+                        if (jsonObject.getString("msg").contains("失效")){
                             context.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -316,6 +315,8 @@ public class OkHttpUtil {
                                 }
                             });
 
+                        }else {
+                            callback.onSuccess(success);
                         }
 
                     } catch (JSONException e) {

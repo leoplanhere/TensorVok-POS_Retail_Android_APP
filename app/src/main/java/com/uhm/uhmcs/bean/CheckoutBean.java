@@ -12,12 +12,12 @@ public class CheckoutBean {
     public int user_id;
     public String machineNumber;
     public String pay_type;
-    public int total_amount;
-    public int total_fee;
-    public int discount_fee;
-    public int coupon_fee;
-    public int pay_fee;
-    public int goods_original_amount;
+    public String total_amount;
+    public String total_fee;
+    public String discount_fee;
+    public String coupon_fee;
+    public String pay_fee;
+    public String goods_original_amount;
     public String authCode;
     public String shop_id;
 
@@ -25,7 +25,34 @@ public class CheckoutBean {
 
     public String cash_price;
 
+    public int type;
 
+    public int order_status;
+    public String order_sn;
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public int getOrder_status() {
+        return order_status;
+    }
+
+    public void setOrder_status(int order_status) {
+        this.order_status = order_status;
+    }
+
+    public String getOrder_sn() {
+        return order_sn;
+    }
+
+    public void setOrder_sn(String order_sn) {
+        this.order_sn = order_sn;
+    }
 
     public String getCash_price() {
         return cash_price;
@@ -100,51 +127,51 @@ public class CheckoutBean {
         this.pay_type = pay_type;
     }
 
-    public int getTotal_amount() {
+    public String getTotal_amount() {
         return total_amount;
     }
 
-    public void setTotal_amount(int total_amount) {
+    public void setTotal_amount(String total_amount) {
         this.total_amount = total_amount;
     }
 
-    public int getTotal_fee() {
+    public String getTotal_fee() {
         return total_fee;
     }
 
-    public void setTotal_fee(int total_fee) {
+    public void setTotal_fee(String total_fee) {
         this.total_fee = total_fee;
     }
 
-    public int getDiscount_fee() {
+    public String getDiscount_fee() {
         return discount_fee;
     }
 
-    public void setDiscount_fee(int discount_fee) {
+    public void setDiscount_fee(String discount_fee) {
         this.discount_fee = discount_fee;
     }
 
-    public int getCoupon_fee() {
+    public String getCoupon_fee() {
         return coupon_fee;
     }
 
-    public void setCoupon_fee(int coupon_fee) {
+    public void setCoupon_fee(String coupon_fee) {
         this.coupon_fee = coupon_fee;
     }
 
-    public int getPay_fee() {
+    public String getPay_fee() {
         return pay_fee;
     }
 
-    public void setPay_fee(int pay_fee) {
+    public void setPay_fee(String pay_fee) {
         this.pay_fee = pay_fee;
     }
 
-    public int getGoods_original_amount() {
+    public String getGoods_original_amount() {
         return goods_original_amount;
     }
 
-    public void setGoods_original_amount(int goods_original_amount) {
+    public void setGoods_original_amount(String goods_original_amount) {
         this.goods_original_amount = goods_original_amount;
     }
 

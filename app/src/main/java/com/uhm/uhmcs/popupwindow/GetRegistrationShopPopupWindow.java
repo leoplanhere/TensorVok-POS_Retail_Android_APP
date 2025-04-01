@@ -1,10 +1,14 @@
 package com.uhm.uhmcs.popupwindow;
 
+import static android.view.KeyEvent.KEYCODE_NUMPAD_ENTER;
+
 import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +38,7 @@ public class GetRegistrationShopPopupWindow {
     private RecyclerView guadan_rv,guadan_shop_rv;
     private GuaDanAdapter guaDanAdapter;
     private GuaDanShopAdapter guaDanShopAdapter;
+    private TextView qudan_btn;
 
     public GetRegistrationShopPopupWindow(Context context,ArrayList<RegistrationShopBean> registrationShopBeanArrayList,  PopupWindowOnClickListener.GetRegistrationShopOnClickListener listener) {
         this.registrationShopBeanArrayList = registrationShopBeanArrayList;
@@ -67,9 +72,22 @@ public class GetRegistrationShopPopupWindow {
         });
 
         // 绑定子 View 事件
-        popupView.findViewById(R.id.qudan_btn).setOnClickListener(v -> {
-            popupWindow.dismiss();
+        qudan_btn=popupView.findViewById(R.id.qudan_btn);
+        qudan_btn.setOnClickListener(v -> {
             listener.onClick(index,1);
+            popupWindow.dismiss();
+
+        });
+
+        qudan_btn.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && (keyCode == KeyEvent.KEYCODE_ENTER|| keyCode ==KEYCODE_NUMPAD_ENTER)) {
+                // 处理 Enter 键
+
+                listener.onClick(index,1);
+                popupWindow.dismiss();
+                return true; // 消费事件
+            }
+            return true; // 允许事件传递
         });
         popupView.findViewById(R.id.delete_shop).setOnClickListener(v -> {
             if (registrationShopBeanArrayList.size()==1){
@@ -110,5 +128,7 @@ public class GetRegistrationShopPopupWindow {
     public void show() {
         View rootView = ((Activity) context).getWindow().getDecorView();
         popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
+        qudan_btn.requestFocus();
+//        qudan_btn.postDelayed(() -> qudan_btn.requestFocus(), 100);
     }
 }
