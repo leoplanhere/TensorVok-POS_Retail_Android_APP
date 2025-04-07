@@ -175,7 +175,7 @@ public class HistoryOrderPopupWindow {
                     new PaymentPopupWindow(context,historyOrderAdapter.getData().get(position).getPaymentlog()).show();
                 }
                 if (id==R.id.daying_tv){
-                   operateDetails(historyOrderAdapter.getData().get(position));
+                    MyPrinterHelper.getInstance().asyncPrintLastOrder(context,historyOrderAdapter.getData().get(position),null);
                 }
             }
         });

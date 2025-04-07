@@ -97,6 +97,18 @@ public class MorefunctionPopupWindow {
             popupWindow.dismiss();
         });
 
+        popupView.findViewById(R.id.zhangdandayingji_btn).setOnClickListener(v -> {
+            v.startAnimation(animation);
+            morefunctionOnClickListener.onClick(8);
+            popupWindow.dismiss();
+        });
+
+        popupView.findViewById(R.id.bianqiandayingji_btn).setOnClickListener(v -> {
+            v.startAnimation(animation);
+            morefunctionOnClickListener.onClick(9);
+            popupWindow.dismiss();
+        });
+
 
 
     }

@@ -8,7 +8,9 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.usb.UsbDevice;
 import android.media.MediaRouter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -50,6 +52,7 @@ import com.uhm.uhmcs.bean.LastOrderBean;
 import com.uhm.uhmcs.bean.MemberBean;
 import com.uhm.uhmcs.bean.PrintDataBean;
 import com.uhm.uhmcs.bean.RegistrationShopBean;
+import com.uhm.uhmcs.http.NetworkErrorInterceptor;
 import com.uhm.uhmcs.http.OkHttpUtil;
 import com.uhm.uhmcs.http.POSApiSerview;
 import com.uhm.uhmcs.popupwindow.AddNoCodePopupWindow;
@@ -63,6 +66,7 @@ import com.uhm.uhmcs.popupwindow.MemberPopupWindow;
 import com.uhm.uhmcs.popupwindow.MoneyBoxPopupWindow;
 import com.uhm.uhmcs.popupwindow.MorefunctionPopupWindow;
 import com.uhm.uhmcs.popupwindow.PopupWindowOnClickListener;
+import com.uhm.uhmcs.popupwindow.PrintDevicePopupWindow;
 import com.uhm.uhmcs.popupwindow.PrintLabelsPopupWindow;
 import com.uhm.uhmcs.popupwindow.RelieveShiftPopupWindow;
 import com.uhm.uhmcs.utils.MyPrinterHelper;
@@ -143,7 +147,7 @@ public class MainActivity extends Activity {
         Log.i("ttt",">>>>onCreate>>>>");
         MyUsbDeviceHelper.getInstance().inti(this);
 
-        if(NetworkUtils.getInstance().isNetworkConnected(this)){
+        if(!NetworkUtils.getInstance().isNetworkConnected(this)){
             OverviewList();
             getGrouponGoods();
         }else {
@@ -644,6 +648,34 @@ public class MainActivity extends Activity {
                                  */
                                 case 7:
                                     new RelieveShiftPopupWindow(MainActivity.this).show();
+                                    break;
+                                /**
+                                 * 账单打印机设置
+                                 */
+                                case 8:
+                                    new PrintDevicePopupWindow(MainActivity.this, new PopupWindowOnClickListener.PrintDeviceOnClickListener() {
+                                        @Override
+                                        public void onClick(UsbDevice usbDevice) {
+                                            UserUtils.getInstance().setVENDOR_ID(MainActivity.this,usbDevice.getVendorId());
+                                            UserUtils.getInstance().setPRODUCT_ID(MainActivity.this,usbDevice.getProductId());
+                                            MyUsbDeviceHelper.getInstance().requestUsbPermission(usbDevice);
+                                            new DeleteShopPopupWindow(MainActivity.this,"设置成功",true).show();
+                                        }
+                                    }).show();
+                                    break;
+                                /**
+                                 * 标签打印机设置
+                                 */
+                                case 9:
+                                    new PrintDevicePopupWindow(MainActivity.this, new PopupWindowOnClickListener.PrintDeviceOnClickListener() {
+                                        @Override
+                                        public void onClick(UsbDevice usbDevice) {
+                                            UserUtils.getInstance().setLABEKS_VENDOR_ID(MainActivity.this,usbDevice.getVendorId());
+                                            UserUtils.getInstance().setLABEKS_PRODUCT_ID(MainActivity.this,usbDevice.getProductId());
+                                            MyUsbDeviceHelper.getInstance().requestUsbPermission(usbDevice);
+                                            new DeleteShopPopupWindow(MainActivity.this,"设置成功",true).show();
+                                        }
+                                    }).show();
                                     break;
 
                                 default:
@@ -1216,12 +1248,18 @@ public class MainActivity extends Activity {
                 .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
                 .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
                 .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new DeleteShopPopupWindow(MainActivity.this, "请检查网络",true).show();
+                    }
+                });
             }
 
             @Override
@@ -1241,7 +1279,10 @@ public class MainActivity extends Activity {
                                         DialogUIUtils.dismiss(buildBean);
                                         onClickListener.onClick(qingkong_btn);
                                         new DeleteShopPopupWindow(MainActivity.this, "支付成功", true).show();
-                                        operateDetails(checkoutBean);
+                                        String weixin_pice=checkoutBean.getPay_type().equals("wechat")?checkoutBean.getPay_fee():"";
+                                        String zhifubao_pice=checkoutBean.getPay_type().equals("alipay")?checkoutBean.getPay_fee():"";
+                                        MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this,checkoutBean,null, "", weixin_pice, zhifubao_pice);
+                                        
                                         return;
                                     }
                                     if (jsonObject.getString("msg").contains("失效")) {
@@ -1312,12 +1353,18 @@ public class MainActivity extends Activity {
                 .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
                 .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
                 .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new DeleteShopPopupWindow(MainActivity.this, "请检查网络",true).show();
+                    }
+                });
             }
 
             @Override
@@ -1345,7 +1392,9 @@ public class MainActivity extends Activity {
                                         DialogUIUtils.dismiss(buildBean);
                                         onClickListener.onClick(qingkong_btn);
                                         new DeleteShopPopupWindow(MainActivity.this, "支付成功", true).show();
-                                        operateDetails(checkoutBean);
+                                        String weixin_pice=checkoutBean.getPay_type().equals("wechat")?checkoutBean.getPay_fee():"";
+                                        String zhifubao_pice=checkoutBean.getPay_type().equals("alipay")?checkoutBean.getPay_fee():"";
+                                        MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this,checkoutBean,null, "", weixin_pice, zhifubao_pice);
 
                                     }
 
@@ -1414,12 +1463,18 @@ public class MainActivity extends Activity {
                 .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
                 .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
                 .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new DeleteShopPopupWindow(MainActivity.this, "请检查网络",true).show();
+                    }
+                });
             }
 
             @Override
@@ -1461,7 +1516,7 @@ public class MainActivity extends Activity {
     public void OverviewList() {
 
         Map<String, String> params = new HashMap<>();
-
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
         String url = POSApiSerview.POS_URL + POSApiSerview.getGrouponCategory;
         OkHttpUtil.postFormAsync(url, params,this, new OkHttpUtil.OkHttpCallback() {
             @Override
@@ -1509,12 +1564,15 @@ public class MainActivity extends Activity {
 
             @Override
             public void onFailure(IOException e) {
-                if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
-                    Gson gson = new Gson();
-                    CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
-                    shopTypeAdapter.setNewData(categoryListBean.getData());
-                }
-                System.err.println("请求失败: " + e.getMessage());
+                runOnUiThread(()->{
+                    if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
+                        Gson gson = new Gson();
+                        CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
+                        shopTypeAdapter.setNewData(categoryListBean.getData());
+                    }
+                    System.err.println("请求失败: " + e.getMessage());
+                });
+
             }
         });
 
@@ -1531,6 +1589,7 @@ public class MainActivity extends Activity {
         Map<String, String> params = new HashMap<>();
         params.put("category_ids", TextUtils.isEmpty(category_ids) ? "" : category_ids);
         params.put("goods_sn", goods_sn);
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
 //        params.put("page", grouponGoods_page + "");
 //        params.put("strip", "20");
         String url = POSApiSerview.POS_URL + POSApiSerview.getGrouponGoods2;
@@ -1588,16 +1647,19 @@ public class MainActivity extends Activity {
 
             @Override
             public void onFailure(IOException e) {
-                if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
-                    Gson gson = new Gson();
-                    GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
-                    allGrouponGoodsModelList = grouponGoodsBean.getData();
-                    indexGrouponGoodsModelList=allGrouponGoodsModelList;
-                    grouponGoods_page=1;
-                    grouponGoodsAdapter.hasMore=true;
-                    grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
-                }
-                System.err.println("请求失败: " + e.getMessage());
+                runOnUiThread(()->{
+                    if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
+                        Gson gson = new Gson();
+                        GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
+                        allGrouponGoodsModelList = grouponGoodsBean.getData();
+                        indexGrouponGoodsModelList=allGrouponGoodsModelList;
+                        grouponGoods_page=1;
+                        grouponGoodsAdapter.hasMore=true;
+                        grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+                    }
+                    System.err.println("请求失败: " + e.getMessage());
+                });
+
             }
         });
     }
@@ -1655,6 +1717,10 @@ public class MainActivity extends Activity {
                 // 监听外接键盘的返回键
                 return true;
             }
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                onBackPressed();
+                return true;
+            }
         }
         return super.dispatchKeyEvent(event);
     }
@@ -1680,7 +1746,7 @@ public class MainActivity extends Activity {
                                 if (code == 1 && !TextUtils.isEmpty(jsonObject.getString("data"))) {
                                     ArrayList<LastOrderBean> lastOrderBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<LastOrderBean>>() {
                                     }.getType());
-                                    operateDetails(lastOrderBeanArrayList.get(0));
+                                    MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this,lastOrderBeanArrayList.get(0),null);
                                 }
                             } catch (JSONException e) {
                                 throw new RuntimeException(e);
@@ -1729,12 +1795,18 @@ public class MainActivity extends Activity {
                 .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
                 .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
                 .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new DeleteShopPopupWindow(MainActivity.this, "请检查网络",true).show();
+                    }
+                });
             }
 
             @Override
@@ -1759,7 +1831,9 @@ public class MainActivity extends Activity {
                                         DialogUIUtils.dismiss(buildBean);
                                         onClickListener.onClick(qingkong_btn);
                                         new DeleteShopPopupWindow(MainActivity.this, "支付成功", true).show();
-                                        operateDetails(checkoutBean);
+                                        String weixin_pice=checkoutBean.getPay_type().equals("wechat")?checkoutBean.getPay_fee():"";
+                                        String zhifubao_pice=checkoutBean.getPay_type().equals("alipay")?checkoutBean.getPay_fee():"";
+                                        MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this,checkoutBean,null, "", weixin_pice, zhifubao_pice);
                                     }else if (trade_state_desc.contains("支付失败")){
                                         new DeleteShopPopupWindow(MainActivity.this, trade_state_desc, true).show();
                                         fwscancelanOrder();
@@ -1806,12 +1880,18 @@ public class MainActivity extends Activity {
                 .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
                 .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
                 .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new DeleteShopPopupWindow(MainActivity.this, "请检查网络",true).show();
+                    }
+                });
             }
 
             @Override

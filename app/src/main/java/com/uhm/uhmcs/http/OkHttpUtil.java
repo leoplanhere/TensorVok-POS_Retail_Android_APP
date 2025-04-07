@@ -48,6 +48,7 @@ public class OkHttpUtil {
                 .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
                 .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
                 .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
     }
@@ -288,6 +289,12 @@ public class OkHttpUtil {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 callback.onFailure(e);
+                context.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new DeleteShopPopupWindow(context, "请检查网络",true).show();
+                    }
+                });
             }
 
             @Override

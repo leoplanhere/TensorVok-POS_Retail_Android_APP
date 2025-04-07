@@ -44,6 +44,8 @@ public class LoginActivity extends Activity {
             currEditText = (EditText)findViewById(R.id.etUserName);
             etUserName = (EditText)findViewById(R.id.etUserName);
             etUserPwd = (EditText)findViewById(R.id.etUserPwd);
+            etUserName.setText(UserUtils.getInstance().getLoginPhone());
+            etUserPwd.setText(UserUtils.getInstance().getLoginPassword());
             findViewById(R.id.etUserName).setOnClickListener(v -> {
                 currEditText = findViewById(R.id.etUserName);
             });
@@ -88,6 +90,9 @@ public class LoginActivity extends Activity {
                             LoginBase loginBase = gson.fromJson(responseData, LoginBase.class);
                             Log.i("登录返回",responseData+"");
                             UserUtils.getInstance().setLoginBase(LoginActivity.this,loginBase);
+                            UserUtils.getInstance().setLoginPassword(LoginActivity.this,etUserPwd.getText().toString());
+                            UserUtils.getInstance().setLoginPhone(LoginActivity.this,etUserName.getText().toString());
+
                             if(response != null){
                                 try{
                                     if(loginBase.getCode() == 1){

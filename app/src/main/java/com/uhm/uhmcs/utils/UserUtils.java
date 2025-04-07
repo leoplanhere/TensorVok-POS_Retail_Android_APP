@@ -20,6 +20,16 @@ public class UserUtils {
 
     private String categoryListBeanJson;
 
+    public  int VENDOR_ID ;  // 替换为你的打印机厂商ID（如芯烨为 1155）
+    public  int PRODUCT_ID ; // 替换为你的打印机产品ID
+
+    public  int LABEKS_VENDOR_ID ;  // 替换为你的打印机厂商ID（如芯烨为 1155）
+    public  int LABEKS_PRODUCT_ID ; // 替换为你的打印机产品ID
+
+    private String loginPhone;
+
+    private String loginPassword;
+
 
 
     /**
@@ -45,9 +55,99 @@ public class UserUtils {
         }
         grouponGoodsBeanJson=prefUserInfo.getString("grouponGoodsBeanJson","");
         categoryListBeanJson=prefUserInfo.getString("categoryListBeanJson","");
+        VENDOR_ID=prefUserInfo.getInt("VENDOR_ID",1046);
+        PRODUCT_ID=prefUserInfo.getInt("PRODUCT_ID",20497);
+        LABEKS_VENDOR_ID=prefUserInfo.getInt("LABEKS_VENDOR_ID",8137);
+        LABEKS_PRODUCT_ID=prefUserInfo.getInt("LABEKS_PRODUCT_ID",8214);
+        loginPassword=prefUserInfo.getString("loginPassword","");
+        loginPhone=prefUserInfo.getString("loginPhone","");
 
     }
 
+    public String getLoginPassword() {
+        return loginPassword;
+    }
+
+    public void setLoginPassword(Context context,String loginPassword) {
+        SharedPreferences prefUserInfo = context.getSharedPreferences(
+                USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefUserInfo.edit();
+        this.loginPassword = loginPassword;
+        editor.putString("loginPassword",loginPassword);
+        editor.apply();
+        editor=null;
+    }
+
+    public String getLoginPhone() {
+        return loginPhone;
+    }
+
+    public void setLoginPhone(Context context,String loginPhone) {
+        SharedPreferences prefUserInfo = context.getSharedPreferences(
+                USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefUserInfo.edit();
+        this.loginPhone = loginPhone;
+        editor.putString("loginPhone",loginPhone);
+        editor.apply();
+        editor=null;
+    }
+
+    public int getVENDOR_ID() {
+        return VENDOR_ID;
+    }
+
+    public void setVENDOR_ID(Context context,int VENDOR_ID) {
+
+        SharedPreferences prefUserInfo = context.getSharedPreferences(
+                USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefUserInfo.edit();
+        this.VENDOR_ID = VENDOR_ID;
+        editor.putInt("VENDOR_ID",VENDOR_ID);
+        editor.apply();
+        editor=null;
+    }
+
+    public int getPRODUCT_ID() {
+        return PRODUCT_ID;
+    }
+
+    public void setPRODUCT_ID(Context context,int PRODUCT_ID) {
+        SharedPreferences prefUserInfo = context.getSharedPreferences(
+                USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefUserInfo.edit();
+        this.PRODUCT_ID = PRODUCT_ID;
+        editor.putInt("PRODUCT_ID",PRODUCT_ID);
+        editor.apply();
+        editor=null;
+    }
+
+    public int getLABEKS_VENDOR_ID() {
+        return LABEKS_VENDOR_ID;
+    }
+
+    public void setLABEKS_VENDOR_ID(Context context,int LABEKS_VENDOR_ID) {
+        SharedPreferences prefUserInfo = context.getSharedPreferences(
+                USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefUserInfo.edit();
+        this.LABEKS_VENDOR_ID = LABEKS_VENDOR_ID;
+        editor.putInt("LABEKS_VENDOR_ID",LABEKS_VENDOR_ID);
+        editor.apply();
+        editor=null;
+    }
+
+    public int getLABEKS_PRODUCT_ID() {
+        return LABEKS_PRODUCT_ID;
+    }
+
+    public void setLABEKS_PRODUCT_ID(Context context,int LABEKS_PRODUCT_ID) {
+        SharedPreferences prefUserInfo = context.getSharedPreferences(
+                USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefUserInfo.edit();
+        this.LABEKS_PRODUCT_ID = LABEKS_PRODUCT_ID;
+        editor.putInt("LABEKS_PRODUCT_ID",LABEKS_PRODUCT_ID);
+        editor.apply();
+        editor=null;
+    }
 
     public String getGrouponGoodsBeanJson() {
         return grouponGoodsBeanJson;
@@ -63,7 +163,7 @@ public class UserUtils {
         }else {
             editor.putString("grouponGoodsBeanJson",grouponGoodsBeanJson);
         }
-        editor.commit();
+        editor.apply();
         editor=null;
     }
 
@@ -82,7 +182,7 @@ public class UserUtils {
         }else {
             editor.putString("categoryListBeanJson",categoryListBeanJson);
         }
-        editor.commit();
+        editor.apply();
         editor=null;
     }
 
@@ -100,7 +200,7 @@ public class UserUtils {
         }else {
             editor.putString("shopDataBean",new Gson().toJson(shopDataBean));
         }
-        editor.commit();
+        editor.apply();
         editor=null;
     }
 
@@ -118,7 +218,7 @@ public class UserUtils {
         }else {
             editor.putString("loginBase",new Gson().toJson(loginBase));
         }
-        editor.commit();
+        editor.apply();
         editor=null;
     }
 }

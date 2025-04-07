@@ -29,6 +29,7 @@ import com.uhm.uhmcs.activity.LoginActivity;
 import com.uhm.uhmcs.activity.MainActivity;
 import com.uhm.uhmcs.bean.CheckoutBean;
 import com.uhm.uhmcs.bean.PrintDataBean;
+import com.uhm.uhmcs.http.NetworkErrorInterceptor;
 import com.uhm.uhmcs.http.OkHttpUtil;
 import com.uhm.uhmcs.http.POSApiSerview;
 import com.uhm.uhmcs.utils.MyPrinterHelper;
@@ -441,12 +442,18 @@ public class CheckoutPopupWindow {
                 .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
                 .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
                 .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                context.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new DeleteShopPopupWindow(context, "请检查网络",true).show();
+                    }
+                });
             }
 
             @Override
@@ -497,7 +504,7 @@ public class CheckoutPopupWindow {
                                             if (!TextUtils.isEmpty(xinjin_pice)){
                                                 MyPrinterHelper.getInstance().asyncOpenMoneyBox(context);
                                             }
-                                            operateDetails();
+                                            MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,null,xinjin_pice,weixin_pice,zhifubao_pice);
                                         }else {
                                             new DeleteShopPopupWindow(context,"支付成功",true).show();
                                             deleteShopPopupWindow.dismiss();
@@ -570,7 +577,7 @@ public class CheckoutPopupWindow {
 //                                popupWindow.dismiss();
 //                                checkoutOnClickListener.onClick();
 //                                new DeleteShopPopupWindow(context,"支付成功",true).show();
-//                                operateDetails();
+//                                MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,null,xinjin_pice,weixin_pice,zhifubao_pice);
 //                            }
 //                        } catch (JSONException e) {
 //                            throw new RuntimeException(e);
@@ -611,12 +618,18 @@ public class CheckoutPopupWindow {
                 .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
                 .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
                 .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                context.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new DeleteShopPopupWindow(context, "请检查网络",true).show();
+                    }
+                });
             }
 
             @Override
@@ -652,7 +665,7 @@ public class CheckoutPopupWindow {
                                             popupWindow.dismiss();
                                             checkoutOnClickListener.onClick();
 
-                                            operateDetails();
+                                            MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,null,xinjin_pice,weixin_pice,zhifubao_pice);
                                         }else {
                                             new DeleteShopPopupWindow(context,"支付成功",true).show();
                                             deleteShopPopupWindow.dismiss();
@@ -710,12 +723,18 @@ public class CheckoutPopupWindow {
                 .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
                 .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
                 .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                context.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new DeleteShopPopupWindow(context, "请检查网络",true).show();
+                    }
+                });
             }
 
             @Override
@@ -754,7 +773,7 @@ public class CheckoutPopupWindow {
                                             popupWindow.dismiss();
                                             checkoutOnClickListener.onClick();
 
-                                            operateDetails();
+                                            MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,null,xinjin_pice,weixin_pice,zhifubao_pice);
                                         }else {
                                             new DeleteShopPopupWindow(context,"支付成功",true).show();
                                             deleteShopPopupWindow.dismiss();
@@ -809,12 +828,18 @@ public class CheckoutPopupWindow {
                 .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
                 .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
                 .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                context.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new DeleteShopPopupWindow(context, "请检查网络",true).show();
+                    }
+                });
             }
 
             @Override
@@ -875,12 +900,18 @@ public class CheckoutPopupWindow {
                 .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
                 .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
                 .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                context.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new DeleteShopPopupWindow(context, "请检查网络",true).show();
+                    }
+                });
             }
 
             @Override

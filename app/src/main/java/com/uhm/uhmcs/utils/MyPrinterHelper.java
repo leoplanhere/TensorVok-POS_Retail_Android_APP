@@ -68,7 +68,6 @@ public class MyPrinterHelper {
             UsbEndpoint ep = usbInterface.getEndpoint(i);
             if (ep.getDirection() == UsbConstants.USB_DIR_OUT) {
                 endpointOut = ep;
-
                 break;
             }
         }

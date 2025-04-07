@@ -1,5 +1,6 @@
 package com.uhm.uhmcs.popupwindow;
 
+import android.hardware.usb.UsbDevice;
 import android.view.View;
 
 import com.uhm.uhmcs.bean.GrouponGoodsBean;
@@ -53,6 +54,14 @@ public class PopupWindowOnClickListener {
          */
         void onClick();
     }
+    public interface PrintDeviceOnClickListener {
+        /**
+         * Called when a view has been clicked.
+         *
+         */
+        void onClick(UsbDevice usbDevice);
+    }
+
     public interface MemberOnClickListener {
         /**
          * Called when a view has been clicked.

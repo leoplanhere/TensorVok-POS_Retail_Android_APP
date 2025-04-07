@@ -201,7 +201,7 @@
                         android:layout_marginLeft="5dp"
                         android:layout_width="40dp"
                         android:layout_height="match_parent"
-                        android:src="@mipmap/huiyuan"/>
+                        android:src="@drawable/huiyuan"/>
                     <TextView
                         android:id="@+id/huiyuan_name"
                         android:layout_marginLeft="5dp"

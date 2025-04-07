@@ -6,21 +6,23 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.util.Log;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class MyUsbDeviceHelper {
     private Context context;
     private static MyUsbDeviceHelper instance;
     private  final String ACTION_USB_PERMISSION = "com.example.USB_PERMISSION";
     private UsbManager usbManager;
-    private  final int VENDOR_ID = 1046;  // 替换为你的打印机厂商ID（如芯烨为 1155）
-    private  final int PRODUCT_ID = 20497; // 替换为你的打印机产品ID
 
     /**
      * 获取单件实例
@@ -55,7 +57,7 @@ public class MyUsbDeviceHelper {
                             /**
                              * 账单打印机
                              */
-                            if (device.getVendorId() == VENDOR_ID && device.getProductId() == PRODUCT_ID) { // 替换为实际 VID/PID
+                            if (device.getVendorId() == UserUtils.getInstance().getVENDOR_ID() && device.getProductId() ==  UserUtils.getInstance().getPRODUCT_ID()) { // 替换为实际 VID/PID
                                 UsbDeviceConnection usbConnection;
                                 usbConnection = usbManager.openDevice(device);
                                 MyPrinterHelper.getInstance().connectAndPrint(device,usbConnection);
@@ -63,7 +65,7 @@ public class MyUsbDeviceHelper {
                             /**
                              * 标签打印机
                              */
-                            if (device.getVendorId() == 8137 && device.getProductId() == 8214) { // 替换为实际 VID/PID
+                            if (device.getVendorId() ==  UserUtils.getInstance().getLABEKS_VENDOR_ID() && device.getProductId() ==  UserUtils.getInstance().getLABEKS_PRODUCT_ID()) { // 替换为实际 VID/PID
                                 UsbDeviceConnection usbConnection;
                                 usbConnection = usbManager.openDevice(device);
                                 MyLabeksPrinterHelper.getInstance().connectAndPrint(device,usbConnection);
@@ -82,21 +84,37 @@ public class MyUsbDeviceHelper {
         }
     };
     // 检测已连接的打印机
-    private void checkConnectedDevices() {
+    public void checkConnectedDevices() {
         HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
         for (UsbDevice device : deviceList.values()) {
             Log.i("ttt",">>>>qqqqq>>>>>>>>>"+device.getVendorId()+"asdadad"+device.getProductId());
-            if (device.getVendorId() == VENDOR_ID && device.getProductId() == PRODUCT_ID) { // 替换为实际 VID/PID
+            if (device.getVendorId() ==  UserUtils.getInstance().getVENDOR_ID() && device.getProductId() ==  UserUtils.getInstance().getPRODUCT_ID()) { // 替换为实际 VID/PID
                 requestUsbPermission(device);
             }
-            if (device.getVendorId() == 8137 && device.getProductId() == 8214) { // 替换为实际 VID/PID
+            if (device.getVendorId() ==  UserUtils.getInstance().getLABEKS_VENDOR_ID() && device.getProductId() ==  UserUtils.getInstance().getLABEKS_PRODUCT_ID()) { // 替换为实际 VID/PID
                 requestUsbPermission(device);
             }
         }
     }
+    // 检测已连接的打印机
+    public List<UsbDevice> getDeviceList() {
+        List<UsbDevice> usbDeviceList=new ArrayList<>();
+        HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+        for (UsbDevice device : deviceList.values()) {
+            for (int i = 0; i < device.getInterfaceCount(); i++) {
+                UsbInterface usbInterface = device.getInterface(i);
+                if (usbInterface.getInterfaceClass() == UsbConstants.USB_CLASS_PRINTER) {
+                    // 识别为打印机设备
+                    usbDeviceList.add(device);
+                }
+            }
+        }
+        return usbDeviceList;
+
+    }
 
     // 请求 USB 权限
-    private void requestUsbPermission(UsbDevice device) {
+    public void requestUsbPermission(UsbDevice device) {
         Log.i("ttt",">>>>ssssssssaaaaaaaaaa>>>>>>>>>");
         PendingIntent permissionIntent = PendingIntent.getBroadcast(
                 context, 0, new Intent(ACTION_USB_PERMISSION), android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : 0
