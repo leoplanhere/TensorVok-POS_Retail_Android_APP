@@ -31,15 +31,25 @@
                 android:scrollbars="vertical"
                 android:visibility="visible" />
             <RelativeLayout
-
                 android:layout_width="match_parent"
                 android:layout_height="80dp">
                 <ImageView
+                    android:layout_centerVertical="true"
                     android:id="@+id/more_function_btn"
-                    android:layout_marginLeft="10dp"
-                    android:layout_width="50dp"
+                    android:paddingLeft="10dp"
+                    android:layout_width="70dp"
+                    android:paddingRight="10dp"
                     android:layout_height="match_parent"
-                    android:src="@mipmap/more_function" />
+                    android:src="@drawable/more_function" />
+
+                <ImageView
+                    android:paddingLeft="10dp"
+                    android:layout_width="70dp"
+                    android:paddingRight="10dp"
+                    android:id="@+id/add_no_code_btn"
+                    android:layout_marginLeft="80dp"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/add_no_code" />
                 <LinearLayout
                     android:focusable="true"
                     android:focusableInTouchMode="true"
@@ -191,22 +201,23 @@
                         android:layout_marginLeft="5dp"
                         android:layout_width="40dp"
                         android:layout_height="match_parent"
-                        android:src="@mipmap/huanyuan"/>
+                        android:src="@mipmap/huiyuan"/>
                     <TextView
                         android:id="@+id/huiyuan_name"
                         android:layout_marginLeft="5dp"
                         android:layout_width="0dp"
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:text="会员昵称"
+                        android:text="会员昵称(F10)"
                         android:textColor="@color/black"
                         android:textSize="20dp"/>
                     <ImageView
+                        android:paddingLeft="20dp"
                         android:id="@+id/shanchuhuiyuan_btn"
                         android:layout_marginRight="5dp"
-                        android:layout_width="@dimen/dp_40"
+                        android:layout_width="65dp"
                         android:layout_height="match_parent"
-                        android:src="@mipmap/shanchu" />
+                        android:src="@drawable/shanchu" />
                 </LinearLayout>
             </LinearLayout>
             <LinearLayout
@@ -334,18 +345,34 @@
                         android:textColor="@color/black"
                         android:text="操作"/>
                 </LinearLayout>
-                <androidx.recyclerview.widget.RecyclerView
-
-                    android:id="@+id/selected_shop_rv"
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:fadeScrollbars="false"
-                    android:gravity="center"
-                    android:scrollbarFadeDuration="0"
-                    android:scrollbarThumbVertical="@drawable/scrollbar_vertical_thumb"
-                    android:scrollbars="vertical"
-                    android:visibility="visible" />
+                    android:layout_weight="1">
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/selected_shop_rv"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:fadeScrollbars="false"
+                        android:gravity="center"
+                        android:scrollbarFadeDuration="0"
+                        android:scrollbarThumbVertical="@drawable/scrollbar_vertical_thumb"
+                        android:scrollbars="vertical"
+                        android:visibility="visible" />
+                    <LinearLayout
+                        android:visibility="gone"
+                        android:id="@+id/have_paid_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <ImageView
+                            android:id="@+id/image"
+                            android:layout_width="200dp"
+                            android:layout_height="200dp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
 
             </LinearLayout>
             <LinearLayout

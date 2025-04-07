@@ -4,18 +4,18 @@
     <scale
         android:duration="100"
         android:fromXScale="1.0"
-        android:toXScale="0.9"
+        android:toXScale="0.99"
         android:fromYScale="1.0"
-        android:toYScale="0.9"
+        android:toYScale="0.99"
         android:pivotX="50%"
         android:pivotY="50%"/>
     <!-- 恢复动画 -->
     <scale
         android:startOffset="100"
         android:duration="100"
-        android:fromXScale="0.9"
+        android:fromXScale="0.99"
         android:toXScale="1.0"
-        android:fromYScale="0.9"
+        android:fromYScale="0.99"
         android:toYScale="1.0"
         android:pivotX="50%"
         android:pivotY="50%"/>

@@ -125,7 +125,7 @@ public class GoodsWarehousingPopupWindow {
         kuchunshuliang_tv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!grouponGoodsModelArrayList.isEmpty()){
+                if (grouponGoodsModelArrayList!=null&&!grouponGoodsModelArrayList.isEmpty()){
                     shangpintiaoma_tv.removeCallbacks(shangpintiaomaRunnable);
                     kuchunshuliang_tv.postDelayed(kuchunshuliangRunnable,100);
                 }

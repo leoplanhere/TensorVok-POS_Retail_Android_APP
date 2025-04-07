@@ -53,6 +53,9 @@ dependencies {
     implementation libs.jjdxm.dialogui
     implementation libs.materialdatetimepicker
     implementation libs.rangepicker
+    implementation libs.convenientbanner  // 轮播图核心库‌:ml-citation{ref="5" data="citationList"}
+    implementation libs.updateapputilsx
+
 
 
 

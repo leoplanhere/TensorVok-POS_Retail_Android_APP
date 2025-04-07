@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/rlMainArea"
-    android:background="@mipmap/pos_ui_main_bg_01"
     tools:ignore="MissingDefaultResource">
 
     <LinearLayout
@@ -45,7 +44,7 @@
                     android:background="@drawable/pos_drawable_login_button_03"/>
                 <androidx.appcompat.widget.AppCompatEditText
                     android:id="@+id/etUserName"
-                    android:text="18917001801"
+                    android:text=""
                     style="@style/EditTextUnderlineColor"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -69,7 +68,7 @@
                     android:padding="10dp"
                     android:background="@drawable/pos_drawable_login_button_03"/>
                 <androidx.appcompat.widget.AppCompatEditText
-                    android:text="001801"
+                    android:text=""
                     android:id="@+id/etUserPwd"
                     style="@style/EditTextUnderlineColor"
                     android:layout_width="match_parent"

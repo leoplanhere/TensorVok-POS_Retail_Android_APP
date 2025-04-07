@@ -37,6 +37,14 @@ public class PopupWindowOnClickListener {
         void onClick(ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList);
     }
 
+    public interface AddNoCodeOnClickListener {
+        /**
+         * Called when a view has been clicked.
+         *
+         */
+        void onClick(GrouponGoodsBean.GrouponGoodsModel grouponGoodsMode);
+    }
+
 
     public interface CheckoutOnClickListener {
         /**

@@ -105,4 +105,7 @@ public class MyUsbDeviceHelper {
 
 
     }
+    public void unregisterReceiver(){
+        context.unregisterReceiver(usbReceiver);
+    }
 }

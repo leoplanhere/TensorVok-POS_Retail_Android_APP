@@ -22,12 +22,21 @@ public class ShopTypeAdapter extends BaseQuickAdapter<CategoryListBean.CategoryL
         super(layoutResId);
         this.context=context;
     }
+    private int index=0;
 
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+        notifyDataSetChanged();
+    }
 
     @Override
     protected void convert(BaseViewHolder helper, CategoryListBean.CategoryListModel item) {
         helper.setText(R.id.shop_type,item.getName());
-        if (item.isSelected()){
+        if (helper.getLayoutPosition()==index){
             helper.setBackgroundRes(R.id.item_shop_type_view,R.drawable.shop_bg);
             helper.setTextColor(R.id.shop_type,context.getResources().getColor(R.color.white));
         }else {

@@ -34,6 +34,7 @@ import com.uhm.uhmcs.http.POSApiSerview;
 import com.uhm.uhmcs.utils.MyPrinterHelper;
 import com.uhm.uhmcs.utils.UserUtils;
 import com.uhm.uhmcs.view.CustomInputTextView;
+import com.uhm.uhmcs.view.MyPresentation;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -79,7 +80,9 @@ public class CheckoutPopupWindow {
 
     private PopupWindowOnClickListener.CheckoutOnClickListener checkoutOnClickListener;
 
-
+    public boolean isShow(){
+        return popupWindow.isShowing();
+    }
 
     public CheckoutPopupWindow(Activity context, CheckoutBean checkoutBean, PopupWindowOnClickListener.CheckoutOnClickListener checkoutOnClickListener) {
         this.context = context;
@@ -189,6 +192,7 @@ public class CheckoutPopupWindow {
 
             }
         });
+        shoukuan_tv.setOnFnListener(()->popupWindow.dismiss());
         buildBean=DialogUIUtils.showLoading(context,"支付中..",true,false,false,false);
         deleteShopPopupWindow=new DeleteShopPopupWindow(context, "请使用扫码枪完成支付",false, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
             @Override
@@ -317,6 +321,9 @@ public class CheckoutPopupWindow {
             shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
 
         }
+    }
+    public void dismiss(){
+        popupWindow.dismiss();
     }
     @SuppressLint("SetTextI18n")
     private void initKey(){
@@ -479,7 +486,7 @@ public class CheckoutPopupWindow {
                                         }
                                         yinshou=new BigDecimal(yinshou).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
                                         yishou_tv.setText(yinshou);
-                                        new DeleteShopPopupWindow(context,"支付成功",true).show();
+
                                         if (order_status==2){
                                             order_sn="";
                                             out_trade_no="";
@@ -492,11 +499,13 @@ public class CheckoutPopupWindow {
                                             }
                                             operateDetails();
                                         }else {
+                                            new DeleteShopPopupWindow(context,"支付成功",true).show();
                                             deleteShopPopupWindow.dismiss();
                                             xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
                                             weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
                                             zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
                                             pay_type="cash";
+                                            MyPresentation.setDaizhifu_tv(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
                                             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
                                         }
 
@@ -635,7 +644,7 @@ public class CheckoutPopupWindow {
                                         }
                                         yinshou=new BigDecimal(yinshou).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
                                         yishou_tv.setText(yinshou);
-                                        new DeleteShopPopupWindow(context,"支付成功",true).show();
+
                                         if (order_status==2){
                                             order_sn="";
                                             out_trade_no="";
@@ -645,11 +654,13 @@ public class CheckoutPopupWindow {
 
                                             operateDetails();
                                         }else {
+                                            new DeleteShopPopupWindow(context,"支付成功",true).show();
                                             deleteShopPopupWindow.dismiss();
                                             xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
                                             weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
                                             zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
                                             pay_type="cash";
+                                            MyPresentation.setDaizhifu_tv(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
                                             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
                                         }
                                     }else if (trade_state_desc.contains("支付失败")){
@@ -735,7 +746,7 @@ public class CheckoutPopupWindow {
                                         }
                                         yinshou=new BigDecimal(yinshou).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
                                         yishou_tv.setText(yinshou);
-                                        new DeleteShopPopupWindow(context,"支付成功",true).show();
+
                                         if (order_status==2){
                                             order_sn="";
                                             out_trade_no="";
@@ -745,11 +756,13 @@ public class CheckoutPopupWindow {
 
                                             operateDetails();
                                         }else {
+                                            new DeleteShopPopupWindow(context,"支付成功",true).show();
                                             deleteShopPopupWindow.dismiss();
                                             xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
                                             weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
                                             zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
                                             pay_type="cash";
+                                            MyPresentation.setDaizhifu_tv(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
                                             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
                                         }
 

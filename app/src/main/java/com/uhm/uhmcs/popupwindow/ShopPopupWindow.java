@@ -146,9 +146,9 @@ public class ShopPopupWindow {
             Gson gson = new Gson();
             CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
             categoryListModelArrayList=categoryListBean.getData();
-            categoryListModelArrayList.get(0).setSelected(true);
             category_ids=categoryListModelArrayList.get(0).getCategory_id();
             shopTypeAdapter1.setNewData(categoryListModelArrayList);
+            shopTypeAdapter1.setIndex(0);
         }
         if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
             Gson gson = new Gson();
@@ -175,14 +175,11 @@ public class ShopPopupWindow {
                 }
                 is_all_select=false;
                 all_select.setBackgroundResource(R.mipmap.checkbox_1);
-                for (CategoryListBean.CategoryListModel categoryListModel : shopTypeAdapter1.getData()) {
-                    categoryListModel.setSelected(false);
-                }
+
                 for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : allGrouponGoodsModelList) {
                     grouponGoodsModel.setSelected(false);
                 }
-                shopTypeAdapter1.getData().get(position).setSelected(true);
-                shopTypeAdapter1.notifyDataSetChanged();
+                shopTypeAdapter1.setIndex(position);
                 category_ids = TextUtils.isEmpty(shopTypeAdapter1.getData().get(position).getId()) ? "" : shopTypeAdapter1.getData().get(position).getId();
 //                grouponGoods_page = 1;
 //                grouponGoodsAdapter.hasMore = true;

@@ -1,21 +1,27 @@
 package com.uhm.uhmcs.activity;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 import static android.widget.Toast.LENGTH_SHORT;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.media.MediaRouter;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,6 +52,7 @@ import com.uhm.uhmcs.bean.PrintDataBean;
 import com.uhm.uhmcs.bean.RegistrationShopBean;
 import com.uhm.uhmcs.http.OkHttpUtil;
 import com.uhm.uhmcs.http.POSApiSerview;
+import com.uhm.uhmcs.popupwindow.AddNoCodePopupWindow;
 import com.uhm.uhmcs.popupwindow.CheckoutPopupWindow;
 import com.uhm.uhmcs.popupwindow.DeleteShopPopupWindow;
 import com.uhm.uhmcs.popupwindow.DiscountPopupWindow;
@@ -65,6 +72,7 @@ import com.uhm.uhmcs.utils.ParcelUtils;
 import com.uhm.uhmcs.utils.SerializableUtils;
 import com.uhm.uhmcs.utils.UserUtils;
 import com.uhm.uhmcs.view.CustomInputTextView;
+import com.uhm.uhmcs.view.MyPresentation;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -123,6 +131,8 @@ public class MainActivity extends Activity {
     private String memben_discount;
     private boolean is_tongbu=false;
     BuildBean buildBean;
+    private MyPresentation presentation;
+    private LinearLayout have_paid_view;
 
 
     @Override
@@ -130,6 +140,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+        Log.i("ttt",">>>>onCreate>>>>");
         MyUsbDeviceHelper.getInstance().inti(this);
 
         if(NetworkUtils.getInstance().isNetworkConnected(this)){
@@ -147,7 +158,8 @@ public class MainActivity extends Activity {
                 Gson gson = new Gson();
                 GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
                 allGrouponGoodsModelList = grouponGoodsBean.getData();
-                grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, allGrouponGoodsModelList));
+                indexGrouponGoodsModelList=allGrouponGoodsModelList;
+                grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
             } else {
                 getGrouponGoods();
             }
@@ -175,9 +187,24 @@ public class MainActivity extends Activity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        MyUsbDeviceHelper.getInstance().unregisterReceiver();
+    }
+
     boolean is_kuangjie = false;
 
     private void initView() {
+        MediaRouter mediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
+        MediaRouter.RouteInfo route = mediaRouter.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_VIDEO);
+        if (route != null) {
+            Display presentationDisplay = route.getPresentationDisplay();
+            if (presentationDisplay != null) {
+                presentation = new MyPresentation(this, presentationDisplay);
+                presentation.show();
+            }
+        }
 
 
         onClickListener = new View.OnClickListener() {
@@ -202,9 +229,12 @@ public class MainActivity extends Activity {
                             if (!selectedShopList.get(selectedShopIndex).isIs_zengsong()) {
                                 zongjia = zongjia.subtract(selectedShopList.get(selectedShopIndex).getHeji()).setScale(2, RoundingMode.UP);
                                 tv_zongjia.setText(zongjia + "");
+                                MyPresentation.setZongjia(zongjia.toString());
                             }
+
                             selectedShopList.remove(selectedShopIndex.intValue());
                             selectedShopAdapter.setNewData(selectedShopList);
+                            MyPresentation.setShopArrayList(selectedShopAdapter.getData());
                             tv_zongjian.setText(selectedShopAdapter.getItemCount() + "");
                             selectedShopIndex = null;
 
@@ -227,6 +257,8 @@ public class MainActivity extends Activity {
                     zongjia = new BigDecimal("0.00");
                     tv_zongjia.setText(zongjia + "");
                     tv_zongjian.setText("0");
+                    MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+                    MyPresentation.setZongjia(zongjia.toString());
                 }
                 /**
                  * 挂单
@@ -253,6 +285,8 @@ public class MainActivity extends Activity {
                     zongjia = new BigDecimal("0.00");
                     tv_zongjia.setText(zongjia + "");
                     tv_zongjian.setText("0");
+                    MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+                    MyPresentation.setZongjia(zongjia.toString());
 
                 }
 
@@ -275,6 +309,8 @@ public class MainActivity extends Activity {
                                     selectedShopList =registrationShopBean.getRegistrationShopList() ;
                                     tv_zongjian.setText(selectedShopList.size() + "");
                                     selectedShopAdapter.setNewData(selectedShopList);
+                                    MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+                                    MyPresentation.setZongjia(zongjia.toString());
 
                                 } else if (type == 2) {//删除
                                     if (!registrationShopBeanArrayList.isEmpty()) {
@@ -327,6 +363,8 @@ public class MainActivity extends Activity {
                             Log.i("ttt", ">>sss>>>>" + zongjia);
                             tv_zongjia.setText(zongjia + "");
                             selectedShopAdapter.notifyItemChanged(selectedShopIndex);
+                            MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+                            MyPresentation.setZongjia(zongjia.toString());
 
 
                         }
@@ -360,6 +398,8 @@ public class MainActivity extends Activity {
                                 zongjia = zongjia.add(zhehoujia);
                                 tv_zongjia.setText(zongjia + "");
                                 selectedShopAdapter.notifyDataSetChanged();
+                                MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+                                MyPresentation.setZongjia(zongjia.toString());
 
                             }
 
@@ -412,8 +452,8 @@ public class MainActivity extends Activity {
                         goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
 //                        goodsJsonBean.setPay_price("0.01");
 //                        goodsJsonBean.setGoods_price("0.01");
-                        goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGoods_sku_ids());
-                        goodsJsonBean.setGoods_sku_text(grouponGoodsModel.getGoods_sku_text());
+                        goodsJsonBean.setGoods_sku_price_id(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_ids())?grouponGoodsModel.getGgspid()+"":grouponGoodsModel.getGoods_sku_ids());
+                        goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text())?"":grouponGoodsModel.getGoods_sku_text());
 
 
                         goodsJsonBeanArrayList.add(goodsJsonBean);
@@ -427,12 +467,26 @@ public class MainActivity extends Activity {
 //                    checkoutBean.setTotal_amount((int) 0.01);
 //                    checkoutBean.setTotal_amount((int) 0.01);
 
-                    new CheckoutPopupWindow(MainActivity.this, checkoutBean, new PopupWindowOnClickListener.CheckoutOnClickListener() {
+                    CheckoutPopupWindow checkoutPopupWindow=new CheckoutPopupWindow(MainActivity.this, checkoutBean, new PopupWindowOnClickListener.CheckoutOnClickListener() {
                         @Override
                         public void onClick() {
+                            have_paid_view.setVisibility(VISIBLE);
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    have_paid_view.setVisibility(GONE);
+                                }
+                            }, 3000);
                             onClickListener.onClick(qingkong_btn);
                         }
-                    }).show();
+                    });
+                    Log.i("ttt",">>>>>>>sss>SS>>"+checkoutPopupWindow.isShow());
+                    if (checkoutPopupWindow.isShow()){
+                        checkoutPopupWindow.dismiss();
+                    }else {
+                        checkoutPopupWindow.show();
+                    }
+
                 }
 
                 /**
@@ -476,6 +530,8 @@ public class MainActivity extends Activity {
                                 zongjia = zongjia.add(zhehoujia);
                                 tv_zongjia.setText(zongjia + "");
                                 selectedShopAdapter.notifyDataSetChanged();
+                                MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+                                MyPresentation.setZongjia(zongjia.toString());
 
                             }
                         }
@@ -492,7 +548,7 @@ public class MainActivity extends Activity {
                  * 删除会员
                  */
                 if (R.id.shanchuhuiyuan_btn == id) {
-                    huiyuan_name.setText("会员昵称");
+                    huiyuan_name.setText("会员昵称(F10)");
                     memben_discount = "100";
 
                     if (selectedShopAdapter.getItemCount() <= 0) {
@@ -516,6 +572,8 @@ public class MainActivity extends Activity {
                         zongjia = zongjia.add(zhehoujia);
                         tv_zongjia.setText(zongjia + "");
                         selectedShopAdapter.notifyDataSetChanged();
+                        MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+                        MyPresentation.setZongjia(zongjia.toString());
 
                     }
                 }
@@ -587,9 +645,43 @@ public class MainActivity extends Activity {
                                 case 7:
                                     new RelieveShiftPopupWindow(MainActivity.this).show();
                                     break;
+
                                 default:
                                     throw new IllegalStateException("Unexpected value: " + btnType);
                             }
+                        }
+                    }).show();
+                }
+                /**
+                 * 无码收银
+                 */
+
+                if (id==R.id.add_no_code_btn){
+                    new AddNoCodePopupWindow(MainActivity.this, new PopupWindowOnClickListener.AddNoCodeOnClickListener() {
+                        @Override
+                        public void onClick(GrouponGoodsBean.GrouponGoodsModel grouponGoodsMode) {
+                            BigDecimal price = new BigDecimal(grouponGoodsMode.getPrice());
+                            if (!TextUtils.isEmpty(memben_discount)) {
+                                price = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
+                                grouponGoodsMode.setDiscounted_price(new BigDecimal(grouponGoodsMode.getPrice()).subtract(price));
+                                grouponGoodsMode.setDiscount(memben_discount);
+                            }
+
+                            BigDecimal heji = price.setScale(2, RoundingMode.UP);
+                            grouponGoodsMode.setHeji(heji);
+                            grouponGoodsMode.setShuliang(1);
+                            selectedShopList.add(0, SerializableUtils.deepCopy(grouponGoodsMode));
+
+                            have_paid_view.setVisibility(GONE);
+                            selectedShopAdapter.setNewData(selectedShopList);
+                            MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+
+                            // 滚动到位置 0（第一条）
+                            selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
+                            tv_zongjian.setText(selectedShopAdapter.getItemCount() + "");
+                            zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
+                            tv_zongjia.setText(zongjia + "");
+                            MyPresentation.setZongjia(zongjia.toString());
                         }
                     }).show();
                 }
@@ -597,6 +689,11 @@ public class MainActivity extends Activity {
 
             }
         };
+        ImageView imageView=findViewById(R.id.image);
+
+        // 加载本地资源
+        Glide.with(this).load(R.drawable.have_paid_img).into(imageView);
+        have_paid_view=findViewById(R.id.have_paid_view);
         findViewById(R.id.delete_shop).setOnClickListener(onClickListener);
         guadan_btn = findViewById(R.id.guadan_btn);
         guadan_btn.setOnClickListener(onClickListener);
@@ -618,14 +715,16 @@ public class MainActivity extends Activity {
         huiyuan_name = findViewById(R.id.huiyuan_name);
         findViewById(R.id.shanchuhuiyuan_btn).setOnClickListener(onClickListener);
         findViewById(R.id.more_function_btn).setOnClickListener(onClickListener);
+        findViewById(R.id.add_no_code_btn).setOnClickListener(onClickListener);
 
 
         tv_zongjia = findViewById(R.id.tv_zongjia);
         tv_zongjian = findViewById(R.id.tv_zongjian);
 
-        animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.shake);
+        animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.scale_click);
 
         et_tiaoxingma = findViewById(R.id.et_tiaoxingma);
+        et_tiaoxingma.setOnClickListener(v ->et_tiaoxingma.postDelayed(() -> et_tiaoxingma.requestFocus(), 100) );
         buildBean=DialogUIUtils.showLoading(this,"支付中..",true,false,false,false);
         // 设置输入完成监听
         et_tiaoxingma.setOnInputCompleteListener(text -> {
@@ -662,6 +761,8 @@ public class MainActivity extends Activity {
 
                             tv_zongjia.setText(zongjia + "");
                             selectedShopAdapter.notifyItemChanged(i);
+                            MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+                            MyPresentation.setZongjia(zongjia.toString());
                             return;
                         }
                     }
@@ -676,15 +777,18 @@ public class MainActivity extends Activity {
                 BigDecimal heji = price.setScale(2, RoundingMode.UP);
                 grouponGoodsModel.setHeji(heji);
                 grouponGoodsModel.setShuliang(1);
-                selectedShopList.add(0, grouponGoodsModel);
+                selectedShopList.add(0, SerializableUtils.deepCopy(grouponGoodsModel));
 
-
+                have_paid_view.setVisibility(GONE);
                 selectedShopAdapter.setNewData(selectedShopList);
+                MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+
                 // 滚动到位置 0（第一条）
                 selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
                 tv_zongjian.setText(selectedShopAdapter.getItemCount() + "");
                 zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
                 tv_zongjia.setText(zongjia + "");
+                MyPresentation.setZongjia(zongjia.toString());
             }else {
                 if (selectedShopAdapter.getItemCount() <= 0) {
                     return;
@@ -727,8 +831,8 @@ public class MainActivity extends Activity {
                     goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
 //                        goodsJsonBean.setPay_price("0.01");
 //                        goodsJsonBean.setGoods_price("0.01");
-                    goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGoods_sku_ids());
-                    goodsJsonBean.setGoods_sku_text(grouponGoodsModel.getGoods_sku_text());
+                    goodsJsonBean.setGoods_sku_price_id(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_ids())?grouponGoodsModel.getGgspid()+"":grouponGoodsModel.getGoods_sku_ids());
+                    goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text())?"":grouponGoodsModel.getGoods_sku_text());
 
 
                     goodsJsonBeanArrayList.add(goodsJsonBean);
@@ -772,40 +876,7 @@ public class MainActivity extends Activity {
         et_tiaoxingma.postDelayed(() -> et_tiaoxingma.requestFocus(), 100);
 
 
-//        hideKeyboard();
-//        // 初始化时隐藏
-//        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-//        // 禁用输入法并保留光标（兼容高版本）
-//        et_tiaoxingma.setShowSoftInputOnFocus(false);
-//
-//        // 点击 EditText 时拦截键盘
-//        et_tiaoxingma.setOnTouchListener((v, event) -> {
-//            // 拦截触摸事件，避免获取焦点
-//            return true;
-//        });
-//
-//        et_tiaoxingma.setInputType(InputType.TYPE_NULL); // 禁止软键盘
-//        // 1. 禁止软键盘弹出（但不影响光标）
-//        et_tiaoxingma.setShowSoftInputOnFocus(false);
-//
-//// 2. 强制显示光标（XML 或代码均可）
-//        et_tiaoxingma.setCursorVisible(true); // 代码设置
-//        // 在请求焦点后调用
-//        et_tiaoxingma.requestFocus();
-//        // 设置光标到文本末尾
-//        et_tiaoxingma.setSelection(et_tiaoxingma.getText().length());
-//        // 设置焦点监听
-//        et_tiaoxingma.setOnFocusChangeListener((v, hasFocus) -> {
-//            hideKeyboard();
-//        });
-        // 反射禁用软键盘
-//        try {
-//            Method method = EditText.class.getMethod("setShowSoftInputOnFocus", boolean.class);
-//            method.setAccessible(true);
-//            method.invoke(et_tiaoxingma, false);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+
 
 
         //=================================选中购买的商品start=========================================//
@@ -864,10 +935,13 @@ public class MainActivity extends Activity {
 
                                     zongjia = zongjia.subtract(price).setScale(2, RoundingMode.UP);
                                     tv_zongjia.setText(zongjia + "");
+                                    MyPresentation.setZongjia(zongjia.toString());
                                 }
                                 selectedShopList.remove(position);
                                 selectedShopAdapter.setNewData(selectedShopList);
                                 tv_zongjian.setText(selectedShopAdapter.getItemCount()+"");
+                                MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+
 
                             }
                         });
@@ -909,6 +983,8 @@ public class MainActivity extends Activity {
 
                 }
                 tv_zongjia.setText(zongjia + "");
+                MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+                MyPresentation.setZongjia(zongjia.toString());
                 selectedShopAdapter.notifyItemChanged(position);
             }
         });
@@ -925,26 +1001,28 @@ public class MainActivity extends Activity {
         shopTypeAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                for (CategoryListBean.CategoryListModel categoryListModel : shopTypeAdapter.getData()) {
-                    categoryListModel.setSelected(false);
-                }
-                shopTypeAdapter.getData().get(position).setSelected(true);
-                shopTypeAdapter.notifyDataSetChanged();
+                shopTypeAdapter.setIndex(position);
                 category_ids = TextUtils.isEmpty(shopTypeAdapter.getData().get(position).getId()) ? "" : shopTypeAdapter.getData().get(position).getId();
 //                grouponGoods_page = 1;
 //                grouponGoodsAdapter.hasMore = true;
 //                goods_sn = "";
 //                getGrouponGoods();
                 if (TextUtils.isEmpty(category_ids)) {
-                    grouponGoodsAdapter.setNewData(allGrouponGoodsModelList);
+                    indexGrouponGoodsModelList=allGrouponGoodsModelList;
+                    grouponGoods_page=1;
+                    grouponGoodsAdapter.hasMore=true;
+                    grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+
                     return;
                 }
                 ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = new ArrayList<>();
                 grouponGoodsModelArrayList = allGrouponGoodsModelList.stream()
                         .filter(grouponGoodsModel -> grouponGoodsModel.getCategory_ids().equals(category_ids))
                         .collect(Collectors.toCollection(ArrayList::new));
-
-                grouponGoodsAdapter.setNewData(grouponGoodsModelArrayList);
+                indexGrouponGoodsModelList=grouponGoodsModelArrayList;
+                grouponGoods_page=1;
+                grouponGoodsAdapter.hasMore=true;
+                grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
             }
         });
         //=================================商品类型endt=========================================//
@@ -967,7 +1045,7 @@ public class MainActivity extends Activity {
                 int totalItemCount = layoutManager.getItemCount();
                 int pastVisiblesItems = layoutManager.findFirstVisibleItemPosition();
 
-                if (!grouponGoodsAdapter.isLoading || !grouponGoodsAdapter.hasMore) { // 如果已经在加载或者没有更多数据，则不处理滚动事件
+                if (!grouponGoodsAdapter.isLoading && !grouponGoodsAdapter.hasMore) { // 如果已经在加载或者没有更多数据，则不处理滚动事件
                     return;
                 }
                 if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) { // 当滚动到列表底部时触发加载更多事件
@@ -1035,6 +1113,8 @@ public class MainActivity extends Activity {
 
                             tv_zongjia.setText(zongjia + "");
                             selectedShopAdapter.notifyItemChanged(i);
+                            MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+                            MyPresentation.setZongjia(zongjia.toString());
                             return;
                         }
                     }
@@ -1049,15 +1129,18 @@ public class MainActivity extends Activity {
                 BigDecimal heji = price.setScale(2, RoundingMode.UP);
                 grouponGoodsModel.setHeji(heji);
                 grouponGoodsModel.setShuliang(1);
-                selectedShopList.add(0, grouponGoodsModel);
+                selectedShopList.add(0, SerializableUtils.deepCopy(grouponGoodsModel));
 
-
+                have_paid_view.setVisibility(GONE);
                 selectedShopAdapter.setNewData(selectedShopList);
+                MyPresentation.setShopArrayList(selectedShopAdapter.getData());
+
                 // 滚动到位置 0（第一条）
                 selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
                 tv_zongjian.setText(selectedShopAdapter.getItemCount() + "");
                 zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
                 tv_zongjia.setText(zongjia + "");
+                MyPresentation.setZongjia(zongjia.toString());
 
             }
         });
@@ -1069,15 +1152,19 @@ public class MainActivity extends Activity {
     public void loadNextPage() {
         if (!hasMoreData) return;
         grouponGoods_page++;
-        ArrayList<GrouponGoodsBean.GrouponGoodsModel> pageData = getPageData(grouponGoods_page, allGrouponGoodsModelList);
+        ArrayList<GrouponGoodsBean.GrouponGoodsModel> pageData = getPageData(grouponGoods_page, indexGrouponGoodsModelList);
         if (pageData.isEmpty()) {
             Log.i("ttt",">>>>loadNextPage>>>>>>");
             hasMoreData = false;
             grouponGoodsAdapter.hasMore = false;
             return;
         }
-        // 请求成功后，更新数据并通知适配器数据已更改
-        grouponGoodsAdapter.loadMoreData(pageData); // newDataList 是新加载的数据列表
+
+        shop_rv.post(() -> {
+            // 请求成功后，更新数据并通知适配器数据已更改
+            grouponGoodsAdapter.loadMoreData(pageData); // newDataList 是新加载的数据列表
+            // 或执行 add/remove 操作
+        });
     }
 
     public ArrayList<GrouponGoodsBean.GrouponGoodsModel> getPageData(int currentPage, ArrayList<GrouponGoodsBean.GrouponGoodsModel> sourceList) {
@@ -1393,7 +1480,6 @@ public class MainActivity extends Activity {
                                 ArrayList<CategoryListBean.CategoryListModel> models = categoryListBean.getData();
                                 CategoryListBean.CategoryListModel categoryListModel = new CategoryListBean.CategoryListModel();
                                 categoryListModel.setName("全部");
-                                categoryListModel.setSelected(true);
                                 categoryListModel.setId("");
 
 
@@ -1407,6 +1493,7 @@ public class MainActivity extends Activity {
 //                            models.add(1, categoryListModel1);
 //
 //
+                                shopTypeAdapter.setIndex(0);
                                 shopTypeAdapter.setNewData(models);
 //                            Log.i("ttt", chooseFoodMenuListAdapter.getItemCount() + "sSsDD");
                             }
@@ -1438,6 +1525,7 @@ public class MainActivity extends Activity {
     private String category_ids = "";
     private int grouponGoods_page = 1;
     private ArrayList<GrouponGoodsBean.GrouponGoodsModel> allGrouponGoodsModelList = new ArrayList<>();
+    private ArrayList<GrouponGoodsBean.GrouponGoodsModel> indexGrouponGoodsModelList = new ArrayList<>();
 
     private void getGrouponGoods() {
         Map<String, String> params = new HashMap<>();
@@ -1467,7 +1555,10 @@ public class MainActivity extends Activity {
                                 if (grouponGoods_page == 1) {
                                     if (grouponGoodsBean.getData() != null) {
                                         allGrouponGoodsModelList = grouponGoodsBean.getData();
-                                        grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, allGrouponGoodsModelList));
+                                        indexGrouponGoodsModelList=allGrouponGoodsModelList;
+                                        grouponGoods_page=1;
+                                        grouponGoodsAdapter.hasMore=true;
+                                        grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
                                     } else {
                                         Toast.makeText(MainActivity.this, "未查询到商品", LENGTH_SHORT).show();
                                     }
@@ -1501,7 +1592,10 @@ public class MainActivity extends Activity {
                     Gson gson = new Gson();
                     GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
                     allGrouponGoodsModelList = grouponGoodsBean.getData();
-                    grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, allGrouponGoodsModelList));
+                    indexGrouponGoodsModelList=allGrouponGoodsModelList;
+                    grouponGoods_page=1;
+                    grouponGoodsAdapter.hasMore=true;
+                    grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
                 }
                 System.err.println("请求失败: " + e.getMessage());
             }

@@ -89,17 +89,35 @@ public class CustomInputTextView extends AppCompatTextView {
                 }
                 return true;
             }
+            if (keyCode==KeyEvent.KEYCODE_F10||keyCode==KeyEvent.KEYCODE_F8||keyCode==KeyEvent.KEYCODE_F9){
+                onFnListener.OnFn();
+                return true;
+            }
             Log.i("ttt",">>>>KEYCODE_DEL>>"+keyCode+">>?>"+(char)event.getUnicodeChar());
         }
-        return super.onKeyDown(keyCode, event);
+        return true;
     }
 
     // 输入完成回调接口
     public interface OnInputCompleteListener {
         void onInputComplete(String text);
+
+    }
+    public interface OnFnListener {
+        void OnFn();
+
+    }
+    private OnFnListener onFnListener;
+    private OnInputCompleteListener mListener;
+
+    public OnFnListener getOnFnListener() {
+        return onFnListener;
     }
 
-    private OnInputCompleteListener mListener;
+    public void setOnFnListener(OnFnListener onFnListener) {
+        this.onFnListener = onFnListener;
+    }
+
     public void setOnInputCompleteListener(OnInputCompleteListener listener) {
         mListener = listener;
     }

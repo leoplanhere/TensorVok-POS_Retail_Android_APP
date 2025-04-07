@@ -54,7 +54,7 @@ public class CategoryListBean {
 
     public static class CategoryListModel{
 
-        private boolean isSelected=false;
+
         private String id="";
         private String shop_id;
         private String category_id="";
@@ -64,13 +64,7 @@ public class CategoryListBean {
         private String createtime;
 
 
-        public boolean isSelected() {
-            return isSelected;
-        }
 
-        public void setSelected(boolean selected) {
-            isSelected = selected;
-        }
 
         public int getDrawableId() {
             return drawableId;

@@ -18,6 +18,7 @@ import com.uhm.uhmcs.bean.CheckoutBean;
 import com.uhm.uhmcs.bean.LastOrderBean;
 import com.uhm.uhmcs.bean.PrintDataBean;
 import com.uhm.uhmcs.bean.RelieveShiftPrintBean;
+import com.uhm.uhmcs.view.MyPresentation;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -77,6 +78,7 @@ public class MyPrinterHelper {
      * 异步打印结账
      */
     public  void asyncPrintCheckout(Activity context, CheckoutBean bean, PrintDataBean printDataBean, String xinjin_pice, String weixin_pice, String zhifubao_pice) {
+        MyPresentation.showHavePaidView();
         printExecutor.execute(() -> {
             try {
                 Gson gson=new Gson();
