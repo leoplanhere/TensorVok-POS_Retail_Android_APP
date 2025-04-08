@@ -468,7 +468,6 @@ public class CheckoutPopupWindow {
                                 try {
 
 
-
                                     if (jsonObject.getString("msg").contains("成功")||jsonObject.getString("msg").contains("Success")){
                                         DialogUIUtils.dismiss(buildBean);
 
