@@ -481,6 +481,7 @@ public class CheckoutPopupWindow {
                                             order_sn=jsonObject.getString("data");
 
                                         }else if (pay_type.equals("wechat")){
+
                                             weixin_pice=shoukuan_tv.getText().toString();
                                             weixin_type=true;
                                             order_sn=new JSONObject(jsonObject.getString("code")).getString("order_sn");
