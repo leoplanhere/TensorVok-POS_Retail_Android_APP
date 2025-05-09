@@ -2,6 +2,7 @@ package com.uhm.uhmcs.bean;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
@@ -87,6 +88,8 @@ public class GrouponGoodsBean implements Serializable{
 
         private String price;
 
+        private String ggprice;
+
         private String pay_price;
 
         private String goods_sku_text;
@@ -115,7 +118,13 @@ public class GrouponGoodsBean implements Serializable{
         private String discount="100";
 
 
+        public String getGgprice() {
+            return ggprice;
+        }
 
+        public void setGgprice(String ggprice) {
+            this.ggprice = ggprice;
+        }
 
         public String getCost_price() {
             return cost_price;
@@ -270,7 +279,12 @@ public class GrouponGoodsBean implements Serializable{
         }
 
         public String getPrice() {
-            return price;
+            if (!TextUtils.isEmpty(ggprice)){
+                return ggprice;
+            }else {
+                return price;
+            }
+
         }
 
         public void setPrice(String price) {

@@ -38,9 +38,9 @@ public class ShopTypeAdapter extends BaseQuickAdapter<CategoryListBean.CategoryL
         helper.setText(R.id.shop_type,item.getName());
         if (helper.getLayoutPosition()==index){
             helper.setBackgroundRes(R.id.item_shop_type_view,R.drawable.shop_bg);
-            helper.setTextColor(R.id.shop_type,context.getResources().getColor(R.color.white));
+            helper.setTextColor(R.id.shop_type,context.getColor(R.color.white));
         }else {
-            helper.setTextColor(R.id.shop_type,context.getResources().getColor(R.color.black));
+            helper.setTextColor(R.id.shop_type,context.getColor(R.color.black));
             helper.setBackgroundRes(R.id.item_shop_type_view,R.drawable.menu_bg);
         }
     }

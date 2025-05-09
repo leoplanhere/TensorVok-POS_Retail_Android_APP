@@ -30,6 +30,37 @@ public class CheckoutBean {
     public int order_status;
     public String order_sn;
 
+    public int allNum;
+
+    public String transaction_id;
+
+    public String pay_time;
+
+
+    public String getPay_time() {
+        return pay_time;
+    }
+
+    public void setPay_time(String pay_time) {
+        this.pay_time = pay_time;
+    }
+
+    public String getTransaction_id() {
+        return transaction_id;
+    }
+
+    public void setTransaction_id(String transaction_id) {
+        this.transaction_id = transaction_id;
+    }
+
+    public int getAllNum() {
+        return allNum;
+    }
+
+    public void setAllNum(int allNum) {
+        this.allNum = allNum;
+    }
+
     public int getType() {
         return type;
     }

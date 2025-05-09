@@ -14,6 +14,10 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.common.BitMatrix;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 import com.uhm.uhmcs.bean.CheckoutBean;
 import com.uhm.uhmcs.bean.LastOrderBean;
 import com.uhm.uhmcs.bean.PrintDataBean;
@@ -27,6 +31,7 @@ import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -76,7 +81,7 @@ public class MyPrinterHelper {
     /**
      * 异步打印结账
      */
-    public  void asyncPrintCheckout(Activity context, CheckoutBean bean, PrintDataBean printDataBean, String xinjin_pice, String weixin_pice, String zhifubao_pice) {
+    public  void asyncPrintCheckout(Activity context, CheckoutBean bean, PrintDataBean printDataBean, String xinjin_pice, String weixin_pice, String zhifubao_pice,String order_sn) {
         MyPresentation.showHavePaidView();
         printExecutor.execute(() -> {
             try {
@@ -120,14 +125,14 @@ public class MyPrinterHelper {
                     output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
                 }
 
-//                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getName()+"\n").getBytes(Charset.forName("GBK")));
-//                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getAddress()+"\n").getBytes(Charset.forName("GBK")));
-//                output.write(("全国客服热线:"+UserUtils.getInstance().getShopDataBean().getData().get(0).getPhone()+"\n").getBytes(Charset.forName("GBK")));
+                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getName()+"\n").getBytes(Charset.forName("GBK")));
+                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getAddress()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("全国客服热线:"+UserUtils.getInstance().getShopDataBean().getData().get(0).getPhone()+"\n").getBytes(Charset.forName("GBK")));
 
 
-                output.write("潮享三句半\n".getBytes(Charset.forName("GBK")));
-                output.write("上海市静安区大悦城s516\n".getBytes(Charset.forName("GBK")));
-                output.write("全国客服热线:021-37631329\n".getBytes(Charset.forName("GBK")));
+//                output.write("潮享三句半\n".getBytes(Charset.forName("GBK")));
+//                output.write("上海市静安区大悦城s516\n".getBytes(Charset.forName("GBK")));
+//                output.write("全国客服热线:021-37631329\n".getBytes(Charset.forName("GBK")));
                 // 左对齐
                 output.write(new byte[]{0x1B, 0x61, 0x00});
                 // 定义日期格式模板
@@ -165,8 +170,9 @@ public class MyPrinterHelper {
                 }
                 output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
                 String goumaishangpinshulian="购买商品数量:";
-                goumaishangpinshulian+=(new String(new char[48-13-calculateDisplayWidth(goodsJsonBeanArrayList.size()+"件")]).replace('\0', ' '));
-                goumaishangpinshulian+=(goodsJsonBeanArrayList.size()+"件");
+                goumaishangpinshulian+=(new String(new char[48-13-calculateDisplayWidth(checkoutBean.getAllNum()+"件")]).replace('\0', ' '));
+                goumaishangpinshulian+=(checkoutBean.getAllNum()+"件");
+                Log.i("ttt","购买商品数量"+checkoutBean.getAllNum());
                 output.write(goumaishangpinshulian.getBytes("GBK"));
                 output.write(0x0A); // 换行
 
@@ -239,8 +245,18 @@ public class MyPrinterHelper {
 //                        .get();
 //                Bitmap erweimaprocessed = ImagePrinter.toMonochrome(erweimabitmap);
 //                output.write(ImagePrinter.convertBitmapToEscPos(erweimaprocessed));
-//                // 左对齐
-//                output.write(new byte[]{0x1B, 0x61, 0x00});
+                // 设置居中对齐
+                output.write(new byte[]{0x1B, 0x61, 0x01});
+                output.write(0x0A); // 换行
+                if(!TextUtils.isEmpty(order_sn)){
+                    Bitmap biaoqingbitmap= generateBarcode(order_sn,BarcodeFormat.CODE_128,360,80);
+                    Bitmap biaoqingprocessed = ImagePrinter.toMonochrome(biaoqingbitmap);
+                    output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
+                }
+                output.write((order_sn+"\n").getBytes(Charset.forName("GBK")));
+                output.write(0x0A); // 换行
+                // 左对齐
+                output.write(new byte[]{0x1B, 0x61, 0x00});
                 output.write("此单据二维码为开具增值税普通发票\n".getBytes(Charset.forName("GBK")));
                 output.write("的唯一凭证，请妥善保管。\n".getBytes(Charset.forName("GBK")));
                 output.write("请保留此单据，作为退丶换货凭证。\n".getBytes(Charset.forName("GBK")));
@@ -269,7 +285,17 @@ public class MyPrinterHelper {
             }
         });
     }
-
+    private Bitmap generateBarcode(String content, BarcodeFormat format, int width, int height) {
+        try {
+            MultiFormatWriter writer = new MultiFormatWriter();
+            BitMatrix matrix = writer.encode(content, format, width, height);
+            BarcodeEncoder encoder = new BarcodeEncoder();
+            return encoder.createBitmap(matrix);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     public  void asyncPrintLastOrder(Activity context, LastOrderBean bean, PrintDataBean printDataBean) {
         printExecutor.execute(() -> {
@@ -314,18 +340,18 @@ public class MyPrinterHelper {
 
 
 
-//                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getName()+"\n").getBytes(Charset.forName("GBK")));
-//                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getAddress()+"\n").getBytes(Charset.forName("GBK")));
-//                output.write(("全国客服热线:"+UserUtils.getInstance().getShopDataBean().getData().get(0).getPhone()+"\n").getBytes(Charset.forName("GBK")));
-                output.write("潮享三句半\n".getBytes(Charset.forName("GBK")));
-                output.write("上海市静安区大悦城s516\n".getBytes(Charset.forName("GBK")));
-                output.write("全国客服热线:021-37631329\n".getBytes(Charset.forName("GBK")));
+                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getName()+"\n").getBytes(Charset.forName("GBK")));
+                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getAddress()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("全国客服热线:"+UserUtils.getInstance().getShopDataBean().getData().get(0).getPhone()+"\n").getBytes(Charset.forName("GBK")));
+//                output.write("潮享三句半\n".getBytes(Charset.forName("GBK")));
+//                output.write("上海市静安区大悦城s516\n".getBytes(Charset.forName("GBK")));
+//                output.write("全国客服热线:021-37631329\n".getBytes(Charset.forName("GBK")));
                 // 左对齐
                 output.write(new byte[]{0x1B, 0x61, 0x00});
                 // 定义日期格式模板
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                 // 获取当前时间（基于系统时区）
-                String formattedTime = sdf.format(System.currentTimeMillis());
+                String formattedTime = sdf.format(new Date(lastOrderBean.getPaytime()* 1000L));
                 output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
                 output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
                 String title="商品名称";
@@ -339,8 +365,10 @@ public class MyPrinterHelper {
                 output.write(title.getBytes("GBK"));
                 output.write(0x0A); // 换行
                 output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
+                int allNum=0;
                 for (int j=0;j<goodsJsonBeans.size();j++){
                     LastOrderBean.GoodsJsonBean goodsJsonBean=goodsJsonBeans.get(j);
+                    allNum+=goodsJsonBean.getGoods_num();
                     if (calculateDisplayWidth((j+1)+" "+goodsJsonBean.getTitle())>14){
                         List<String>  strings=splitByGbkUnits((j+1)+" "+goodsJsonBean.getTitle(),14);
                         for (int i=0;i<strings.size();i++){
@@ -357,8 +385,9 @@ public class MyPrinterHelper {
                 }
                 output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
                 String goumaishangpinshulian="购买商品数量:";
-                goumaishangpinshulian+=(new String(new char[48-13-calculateDisplayWidth(goodsJsonBeans.size()+"件")]).replace('\0', ' '));
-                goumaishangpinshulian+=(goodsJsonBeans.size()+"件");
+                goumaishangpinshulian+=(new String(new char[48-13-calculateDisplayWidth(allNum+"件")]).replace('\0', ' '));
+                Log.i("ttt","购买商品数量"+allNum);
+                goumaishangpinshulian+=(allNum+"件");
                 output.write(goumaishangpinshulian.getBytes("GBK"));
                 output.write(0x0A); // 换行
 
@@ -454,8 +483,19 @@ public class MyPrinterHelper {
 //                        .get();
 //                Bitmap erweimaprocessed = ImagePrinter.toMonochrome(erweimabitmap);
 //                output.write(ImagePrinter.convertBitmapToEscPos(erweimaprocessed));
-//                // 左对齐
-//                output.write(new byte[]{0x1B, 0x61, 0x00});
+
+                // 设置居中对齐
+                output.write(new byte[]{0x1B, 0x61, 0x01});
+                output.write(0x0A); // 换行
+                if(!TextUtils.isEmpty(lastOrderBean.getOrder_sn())){
+                    Bitmap biaoqingbitmap= generateBarcode(lastOrderBean.getOrder_sn(),BarcodeFormat.CODE_128,360,80);
+                    Bitmap biaoqingprocessed = ImagePrinter.toMonochrome(biaoqingbitmap);
+                    output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
+                }
+                output.write((lastOrderBean.getOrder_sn()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(0x0A); // 换行
+                // 左对齐
+                output.write(new byte[]{0x1B, 0x61, 0x00});
                 output.write("此单据二维码为开具增值税普通发票\n".getBytes(Charset.forName("GBK")));
                 output.write("的唯一凭证，请妥善保管。\n".getBytes(Charset.forName("GBK")));
                 output.write("请保留此单据，作为退丶换货凭证。\n".getBytes(Charset.forName("GBK")));

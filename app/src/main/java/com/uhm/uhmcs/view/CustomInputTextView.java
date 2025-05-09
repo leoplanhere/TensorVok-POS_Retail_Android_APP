@@ -74,6 +74,9 @@ public class CustomInputTextView extends AppCompatTextView {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             // 处理字母/数字输入
             if (event.getUnicodeChar() >= 32) { // 可打印字符
+                if (!TextUtils.isEmpty(getText().toString())&&isValidDecimal(getText().toString(),2)){
+                    return true;
+                }
                 setText(getText().toString() + (char) event.getUnicodeChar());
                 return true;
             }
@@ -97,7 +100,19 @@ public class CustomInputTextView extends AppCompatTextView {
         }
         return true;
     }
+    public static boolean isValidDecimal(String input, int maxDecimalDigits) {
+        if (input == null || input.isEmpty()) return false;
 
+        // 校验整体格式（含小数点）
+        if (!input.contains(".")) return false;
+
+        // 校验小数位数
+        int dotIndex = input.indexOf('.');
+        if (dotIndex != -1 && input.substring(dotIndex + 1).length() < maxDecimalDigits) {
+            return false;
+        }
+        return true;
+    }
     // 输入完成回调接口
     public interface OnInputCompleteListener {
         void onInputComplete(String text);

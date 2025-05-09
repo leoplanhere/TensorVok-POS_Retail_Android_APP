@@ -102,11 +102,11 @@ public class MyPresentation extends Presentation {
     }
 
     @SuppressLint("SetTextI18n")
-    public static void setShopArrayList(List<GrouponGoodsBean.GrouponGoodsModel> shopArrayList1) {
+    public static void setShopArrayList(List<GrouponGoodsBean.GrouponGoodsModel> shopArrayList1,int allNum) {
         if (shopAdapter1!=null){
             shopArrayList = shopArrayList1;
             shopAdapter1.setNewData(shopArrayList);
-            all_num.setText("x"+shopArrayList.size());
+            all_num.setText("x"+allNum);
             have_paid_view.setVisibility(GONE);
         }
 

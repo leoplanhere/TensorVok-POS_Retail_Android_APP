@@ -67,7 +67,7 @@ public class MyLabeksPrinterHelper {
      * 异步打印结账
      */
     @SuppressLint("DefaultLocale")
-    public void asyncPrintCheckout(Activity context, ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList) {
+    public void asyncPrintCheckout(Activity context, ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList, int num) {
         printExecutor.execute(() -> {
             try {
 
@@ -87,18 +87,23 @@ public class MyLabeksPrinterHelper {
                 // 此处需添加位图数据（简化示例，实际需遍历像素生成二进制数据）
 
                 for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : grouponGoodsModelArrayList) {
+                    for (int j=0;j<num;j++){
+                        cmd.append("CLS\r\n");                // 清空缓冲区
+                        List<String> lines = splitByGbkUnits(grouponGoodsModel.getTitle(), 24);
+                        int currentY = 0;
+                        for (int i = 0; i < lines.size(); i++) {
+                            currentY = 10+ (i * 30);
 
-                    cmd.append("CLS\r\n");                // 清空缓冲区
-                    List<String> lines = splitByGbkUnits(grouponGoodsModel.getTitle(), 22);
-                    for (int i = 0; i < lines.size(); i++) {
-                        int currentY = 40 + (i * 30);
+                            cmd.append("TEXT " + 40 + ",").append(currentY).append(",\"TSS24.BF2\",0,1,1,\"").append(lines.get(i)).append("\"\r\n");
+                        }
+                        // 添加文本
 
-                        cmd.append("TEXT " + 10 + ",").append(currentY).append(",\"TSS24.BF2\",0,1,1,\"").append(lines.get(i)).append("\"\r\n");
+                        cmd.append("TEXT " + 40 + "," + (currentY+30) + ",\"TSS24.BF2\",0,1,1,\"" + "￥").append(grouponGoodsModel.getPrice()).append("\"\r\n");
+                        cmd.append("BARCODE "+40+","+(currentY+60)+",\"128\",80,1,0,2,2,\"").append(grouponGoodsModel.getSn()).append("\"\r\n");
+                        cmd.append("PRINT 1\r\n");
                     }
-                    // 添加文本
 
-                    cmd.append("TEXT " + 10 + "," + 160 + ",\"TSS24.BF2\",0,2,2,\"" + "￥").append(grouponGoodsModel.getPrice()).append("\"\r\n");
-                    cmd.append("PRINT 1\r\n");
+
                 }
                 // 执行打印
 //                cmd.append("PRINT "+grouponGoodsModelArrayList.size()+"\r\n"); // 打印 n 份

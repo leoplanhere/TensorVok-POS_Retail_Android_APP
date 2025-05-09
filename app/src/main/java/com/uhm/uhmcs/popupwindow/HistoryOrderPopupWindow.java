@@ -41,6 +41,7 @@ import com.uhm.uhmcs.http.POSApiSerview;
 import com.uhm.uhmcs.utils.MyLabeksPrinterHelper;
 import com.uhm.uhmcs.utils.MyPrinterHelper;
 import com.uhm.uhmcs.utils.UserUtils;
+import com.uhm.uhmcs.view.CustomInputTextView;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -76,6 +77,8 @@ public class HistoryOrderPopupWindow {
     private int page=1;
     private int totalpage=1;
     private BuildBean buildBean;
+
+    private CustomInputTextView order_sn_et;
 
 
     public HistoryOrderPopupWindow(Activity context) {
@@ -128,6 +131,12 @@ public class HistoryOrderPopupWindow {
 //        endtime_tv.setOnClickListener(v -> {
 //            showEndDatePicker();
 //        });
+        order_sn_et=popupView.findViewById(R.id.order_sn_et);
+        // 自动获取焦点
+        order_sn_et.postDelayed(() -> order_sn_et.requestFocus(), 100);
+        order_sn_et.setOnInputCompleteListener(text -> {
+            getOrderList();
+        });
         popupView.findViewById(R.id.time_btn).setOnClickListener(v -> {
             new TimePopupWindow(context, new PopupWindowOnClickListener.TimeOnClickListener() {
                 @Override
@@ -237,6 +246,9 @@ public class HistoryOrderPopupWindow {
     }
     private void getOrderList() {
         Map<String, String> params = new HashMap<>();
+        if (!TextUtils.isEmpty(order_sn_et.getText().toString())){
+            params.put("order_sn", order_sn_et.getText().toString());
+        }
         params.put("starttime",starttime);
         params.put("endtime", endtime);
         params.put("page", page+"");
@@ -268,8 +280,15 @@ public class HistoryOrderPopupWindow {
                                 }
 
                             }else {
-                                historyOrderAdapter.setNewData(new ArrayList<>());
+                                if (!TextUtils.isEmpty(order_sn_et.getText().toString())){
+                                    new DeleteShopPopupWindow(context,"没有查询到对应账单",true).show();
+                                }else {
+                                    historyOrderAdapter.setNewData(new ArrayList<>());
+                                }
+
                             }
+
+                            order_sn_et.setText("");
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
                         }

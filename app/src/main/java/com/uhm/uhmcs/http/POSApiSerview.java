@@ -6,8 +6,8 @@ package com.uhm.uhmcs.http;
  */
 public interface POSApiSerview {
 
-//    String POS_URL = "https://xlcc.uhimao.com/api/";
-    String POS_URL = "https://shbs.uhimao.com/api/";
+    String POS_URL = "https://xlcc.uhimao.com/api/";
+//    String POS_URL = "https://shbs.uhimao.com/api/";
 
     //登录
     String login = "user/login";
@@ -61,5 +61,8 @@ public interface POSApiSerview {
 
     //添加无码商品
     String addNoCode = "supermarket/addNoCode";
+
+    //推送订单
+    String pushorders = "supermarket/pushorders";
 
 }

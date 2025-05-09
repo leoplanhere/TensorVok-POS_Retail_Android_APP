@@ -141,8 +141,15 @@ public class PrintLabelsPopupWindow {
             if (grouponGoodsModelArrayList.isEmpty()){
                 return;
             }
-            MyLabeksPrinterHelper.getInstance().asyncPrintCheckout(context,grouponGoodsModelArrayList);
-            popupWindow.dismiss();
+            new PrintNumPopupWindow(context, new PopupWindowOnClickListener.DiscountOnClickListener() {
+                @Override
+                public void onClick(String discount) {
+                    MyLabeksPrinterHelper.getInstance().asyncPrintCheckout(context,grouponGoodsModelArrayList,Integer.parseInt(discount));
+                    popupWindow.dismiss();
+                }
+            }).show();
+
+
         });
 
 

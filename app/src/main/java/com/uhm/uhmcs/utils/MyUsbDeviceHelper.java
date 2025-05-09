@@ -107,6 +107,7 @@ public class MyUsbDeviceHelper {
                     // 识别为打印机设备
                     usbDeviceList.add(device);
                 }
+//                usbDeviceList.add(device);
             }
         }
         return usbDeviceList;

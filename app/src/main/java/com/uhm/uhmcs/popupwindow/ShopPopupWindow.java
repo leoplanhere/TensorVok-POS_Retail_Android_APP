@@ -1,10 +1,13 @@
 package com.uhm.uhmcs.popupwindow;
 
+import static android.view.KeyEvent.KEYCODE_NUMPAD_ENTER;
+
 import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -113,6 +116,26 @@ public class ShopPopupWindow {
             shopAdapter.notifyDataSetChanged();
         });
         sousuo_tv=popupView.findViewById(R.id.sousuo_tv);
+        sousuo_tv.postDelayed(() -> sousuo_tv.requestFocus(), 100);
+        sousuo_tv.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && (keyCode == KeyEvent.KEYCODE_ENTER|| keyCode ==KEYCODE_NUMPAD_ENTER)) {
+                // 处理 Enter 键
+                // 滚动到位置 0（第一条）
+                shopTypeLinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
+                category_ids="";
+                if (TextUtils.isEmpty(sousuo_tv.getText().toString())){
+                    shopAdapter.setNewData(allGrouponGoodsModelList);
+                    return true;
+                }
+                shopAdapter.setNewData(allGrouponGoodsModelList.stream()
+                        .filter(grouponGoodsModel -> grouponGoodsModel.getTitle().contains(sousuo_tv.getText().toString())||(!TextUtils.isEmpty(grouponGoodsModel.getSn())&&grouponGoodsModel.getSn().equals(sousuo_tv.getText().toString())))
+                        .collect(Collectors.toCollection(ArrayList::new)));
+                sousuo_tv.setText("");
+                return true; // 消费事件
+            }
+            return false; // 允许事件传递
+        });
+
         popupView.findViewById(R.id.sousuo_btn).setOnClickListener(v -> {
             // 滚动到位置 0（第一条）
             shopTypeLinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
@@ -122,8 +145,9 @@ public class ShopPopupWindow {
                 return;
             }
             shopAdapter.setNewData(allGrouponGoodsModelList.stream()
-                    .filter(grouponGoodsModel -> grouponGoodsModel.getTitle().contains(sousuo_tv.getText().toString())||grouponGoodsModel.getGoods_sn().contains(sousuo_tv.getText().toString()))
+                    .filter(grouponGoodsModel -> grouponGoodsModel.getTitle().contains(sousuo_tv.getText().toString())||(!TextUtils.isEmpty(grouponGoodsModel.getSn())&&grouponGoodsModel.getSn().equals(sousuo_tv.getText().toString())))
                     .collect(Collectors.toCollection(ArrayList::new)));
+            sousuo_tv.setText("");
 
         });
         popupView.findViewById(R.id.add_btn).setOnClickListener(v -> {

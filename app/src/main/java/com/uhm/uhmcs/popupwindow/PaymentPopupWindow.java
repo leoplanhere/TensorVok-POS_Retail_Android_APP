@@ -97,9 +97,12 @@ public class PaymentPopupWindow {
         paymentAdapter.setNewData(paymentlogBeanArrayList);
         paymentAdapter.setOnItemChildClickListener((adapter, view, position) -> {
             if (view.getId()==R.id.tuikuan_btn){
-                new DeleteShopPopupWindow(true, context, "请输入退款密码", new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                new RefundPassWordPopupWindow(context, new PopupWindowOnClickListener.DiscountOnClickListener() {
                     @Override
-                    public void onClick(String text) {
+                    public void onClick(String discount) {
+                        if (!discount.equals("1234")){
+                            return;
+                        }
                         new DeleteShopPopupWindow(context, "您确定退款吗？", new PopupWindowOnClickListener.DeleteShopOnClickListener() {
                             @Override
                             public void onClick(String text) {

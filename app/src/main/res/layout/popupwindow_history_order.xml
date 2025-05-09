@@ -30,6 +30,20 @@
             android:textStyle="bold"
             android:text="订单列表"
             android:layout_marginLeft="20dp"/>
+
+        <com.uhm.uhmcs.view.CustomInputTextView
+            android:id="@+id/order_sn_et"
+            android:layout_width="420dp"
+            android:layout_height="70dp"
+            android:background="@drawable/rounded_border"
+            android:layout_marginRight="20dp"
+            android:text=""
+            android:hint="请输入订单编号"
+            android:textColorHint="@color/black"
+            android:textColor="@color/black"
+            android:gravity="center_vertical"
+            android:paddingLeft="30dp"
+            android:textSize="25dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

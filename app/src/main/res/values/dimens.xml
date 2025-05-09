@@ -45,4 +45,9 @@
     <dimen name="text_size_big">40sp</dimen>
     <dimen name="text_size_large">85sp</dimen>
     <dimen name="text_size_port_large">60sp</dimen>
+
+    <dimen name="calendar_text_medium">20dp</dimen>
+    <dimen name="calendar_text_large">20dp</dimen>
+    <dimen name="calendar_text_small">20dp</dimen>
+    <dimen name="calendar_text_tiny">20dp</dimen>
 </resources>

@@ -51,6 +51,37 @@
                     android:layout_height="match_parent"
                     android:src="@drawable/add_no_code" />
                 <LinearLayout
+                    android:id="@+id/wangluo_view"
+                    android:visibility="gone"
+                    android:gravity="center_vertical"
+                    android:layout_marginLeft="150dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:paddingLeft="10dp"
+                        android:layout_width="70dp"
+                        android:paddingRight="10dp"
+                        android:layout_height="match_parent"
+                        android:src="@mipmap/wangluo"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="无网络连接"
+                        android:textColor="@color/mr_red_000"
+                        android:textSize="24dp"/>
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/bendin_view"
+                    android:visibility="gone"
+                    android:layout_marginLeft="150dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:text="你有本地账单需上传"
+                    android:textColor="@color/color_login_079752"
+                    android:textSize="24dp"/>
+                <LinearLayout
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:layout_alignParentRight="true"

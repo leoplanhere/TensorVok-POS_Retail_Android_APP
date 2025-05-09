@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+
 import com.uhm.uhmcs.activity.LoginActivity;
 import com.uhm.uhmcs.popupwindow.DeleteShopPopupWindow;
 import com.uhm.uhmcs.popupwindow.PopupWindowOnClickListener;
@@ -288,10 +289,11 @@ public class OkHttpUtil {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                callback.onFailure(e);
+
                 context.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        callback.onFailure(e);
                         new DeleteShopPopupWindow(context, "请检查网络",true).show();
                     }
                 });

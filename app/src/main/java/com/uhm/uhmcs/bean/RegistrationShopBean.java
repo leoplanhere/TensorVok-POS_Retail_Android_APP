@@ -7,6 +7,16 @@ public class RegistrationShopBean {
     private String time;
     private BigDecimal total_price;
 
+    private int allNum=0;
+
+    public int getAllNum() {
+        return allNum;
+    }
+
+    public void setAllNum(int allNum) {
+        this.allNum = allNum;
+    }
+
     private ArrayList<GrouponGoodsBean.GrouponGoodsModel> registrationShopList;
 
     private boolean isSelected=false;

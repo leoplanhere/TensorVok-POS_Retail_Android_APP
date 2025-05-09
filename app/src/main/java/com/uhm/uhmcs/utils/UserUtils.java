@@ -31,6 +31,9 @@ public class UserUtils {
     private String loginPassword;
 
 
+    private String orderListJson;
+
+
 
     /**
      * 获取单件实例
@@ -61,7 +64,23 @@ public class UserUtils {
         LABEKS_PRODUCT_ID=prefUserInfo.getInt("LABEKS_PRODUCT_ID",8214);
         loginPassword=prefUserInfo.getString("loginPassword","");
         loginPhone=prefUserInfo.getString("loginPhone","");
+        orderListJson=prefUserInfo.getString("orderListJson","");
 
+    }
+
+    public String getOrderListJson() {
+        return orderListJson;
+    }
+
+    public void setOrderListJson(Context context,String orderListJson) {
+
+        SharedPreferences prefUserInfo = context.getSharedPreferences(
+                USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefUserInfo.edit();
+        this.orderListJson = orderListJson;
+        editor.putString("orderListJson",orderListJson);
+        editor.apply();
+        editor=null;
     }
 
     public String getLoginPassword() {

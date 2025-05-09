@@ -1,7 +1,10 @@
 [versions]
 agp = "8.9.0"
+apm = "2.0.2"
 appupdate = "1.0.0"
+asms = "1.8.7.1"
 baserecyclerviewadapterhelper = "2.9.30"
+common = "9.8.2"
 convenientbanner = "2.0.5"
 core = "3.4.1"
 cosmoCalendar = "1.0.2"
@@ -13,6 +16,7 @@ junit = "4.14-SNAPSHOT"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
+library = "2.7.2"
 loggingInterceptor = "4.9.3"
 material = "1.12.0"
 activity = "1.8.0"
@@ -23,12 +27,16 @@ rangepicker = "1.3.0"
 recyclerview = "1.3.0"
 updateapp = "1.0.4-SNAPSHOT"
 updateapputilsx = "2.3.0"
+xpopup = "2.10.0"
 zxingAndroidEmbedded = "4.3.0"
 
 
 [libraries]
+apm = { module = "com.umeng.umsdk:apm", version.ref = "apm" }
 appupdate = { module = "com.github.gh_mirrors:AppUpdate", version.ref = "appupdate" }
+asms = { module = "com.umeng.umsdk:asms", version.ref = "asms" }
 baserecyclerviewadapterhelper = { module = "com.github.CymChad:BaseRecyclerViewAdapterHelper", version.ref = "baserecyclerviewadapterhelper" }
+common = { module = "com.umeng.umsdk:common", version.ref = "common" }
 convenientbanner = { module = "com.bigkoo:convenientbanner", version.ref = "convenientbanner" }
 core = { module = "com.google.zxing:core", version.ref = "core" }
 cosmo-calendar = { module = "com.github.applikeysolutions:cosmo-calendar", version.ref = "cosmoCalendar" }
@@ -40,6 +48,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+library = { module = "com.lxj.xpopup:library", version.ref = "library" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
@@ -50,6 +59,7 @@ rangepicker = { module = "com.savvi.datepicker:rangepicker", version.ref = "rang
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 updateapp = { module = "com.github.yaming116:UpdateApp", version.ref = "updateapp" }
 updateapputilsx = { module = "com.teprinciple:updateapputilsx", version.ref = "updateapputilsx" }
+xpopup = { module = "com.github.li-xiaojun:XPopup", version.ref = "xpopup" }
 zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
 
 

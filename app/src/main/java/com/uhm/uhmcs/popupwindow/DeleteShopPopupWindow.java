@@ -140,7 +140,7 @@ public class DeleteShopPopupWindow {
             btn_view.setVisibility(GONE);
         }
         popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
-            if (deleteShopOnClickListener!=null){
+            if (deleteShopOnClickListener!=null&&!is_edit){
                 deleteShopOnClickListener.onClick("");
             }
             popupWindow.dismiss();
@@ -185,6 +185,10 @@ public class DeleteShopPopupWindow {
     CustomInputTextView pay_code;
     LinearLayout btn_view;
     public void show() {
+        if (popupWindow.isShowing()){
+            return;
+        }
+
         View rootView = ((Activity) context).getWindow().getDecorView();
         popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
         if (is_edit){
