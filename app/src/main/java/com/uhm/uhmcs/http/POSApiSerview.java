@@ -9,6 +9,9 @@ public interface POSApiSerview {
     String POS_URL = "https://xlcc.uhimao.com/api/";
 //    String POS_URL = "https://shbs.uhimao.com/api/";
 
+    /**
+     * 测试分支
+     */
     //登录
     String login = "user/login";
     //登录
