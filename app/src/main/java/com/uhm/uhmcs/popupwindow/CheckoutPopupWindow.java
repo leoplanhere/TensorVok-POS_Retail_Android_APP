@@ -623,7 +623,7 @@ public class CheckoutPopupWindow {
                                                     out_trade_no=new JSONObject(jsonObject.getString("code")).getString("out_trade_no");
                                                 }else {
                                                     DialogUIUtils.dismiss(buildBean);
-                                                    new DeleteShopPopupWindow(context,"支付失败",true).show();
+                                                    new DeleteShopPopupWindow(context,"支付单号为空，支付失败",true).show();
                                                     return;
                                                 }
                                                 fwsgetOrderInformation();
@@ -726,7 +726,7 @@ public class CheckoutPopupWindow {
                                         order_sn="";
                                         out_trade_no="";
                                         DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(context, "支付失败", true).show();
+                                        new DeleteShopPopupWindow(context, "订单已撤销，支付失败", true).show();
                                     }
 
 
@@ -814,7 +814,7 @@ public class CheckoutPopupWindow {
                                         order_sn="";
                                         out_trade_no="";
                                         DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(context, "支付失败", true).show();
+                                        new DeleteShopPopupWindow(context, "订单已撤销，支付失败", true).show();
                                     }
 
 

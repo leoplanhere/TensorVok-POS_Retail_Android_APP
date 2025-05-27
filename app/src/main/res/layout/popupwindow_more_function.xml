@@ -127,6 +127,18 @@
                 android:text="标签打印机设置"
                 android:gravity="center"/>
             <TextView
+                android:id="@+id/dazhekaiguan_btn"
+                android:visibility="visible"
+                android:layout_marginRight="10dp"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:background="@drawable/blue_bg4"
+                android:textColor="@color/white"
+                android:textSize="23dp"
+                android:textStyle="bold"
+                android:text="打折开关\n(当前为关闭)"
+                android:gravity="center"/>
+            <TextView
                 android:visibility="invisible"
                 android:id="@+id/qianxiangshezhi_btn"
                 android:layout_marginRight="10dp"
@@ -152,17 +164,7 @@
                 android:gravity="center"/>
 
 
-            <TextView
-               android:visibility="invisible"
-                android:layout_marginRight="10dp"
-                android:layout_width="140dp"
-                android:layout_height="140dp"
-                android:background="@drawable/blue_bg4"
-                android:textColor="@color/white"
-                android:textSize="25dp"
-                android:textStyle="bold"
-                android:text="退出登录"
-                android:gravity="center"/>
+
         </LinearLayout>
     </LinearLayout>
 

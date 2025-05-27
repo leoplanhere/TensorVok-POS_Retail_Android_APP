@@ -13,6 +13,7 @@ import com.chad.library.adapter.base.BaseViewHolder;
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.bean.CategoryListBean;
 import com.uhm.uhmcs.bean.GrouponGoodsBean;
+import com.uhm.uhmcs.utils.UserUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -35,6 +36,7 @@ public class SelectedShopAdapter extends BaseQuickAdapter<GrouponGoodsBean.Group
 //            helper.setTextColor(R.id.shop_type,context.getResources().getColor(R.color.black));
 //            helper.setBackgroundRes(R.id.item_shop_type_view,R.drawable.menu_bg);
 //        }
+        helper.setGone(R.id.zengsong, UserUtils.getInstance().isDazhe());
         helper.setText(R.id.xuhao,(helper.getLayoutPosition()+1)+"");
         helper.setText(R.id.pinming,item.getTitle());
         helper.setText(R.id.guige,"暂无规格");
@@ -46,6 +48,7 @@ public class SelectedShopAdapter extends BaseQuickAdapter<GrouponGoodsBean.Group
         helper.addOnClickListener(R.id.shuliang_jia);
         helper.addOnClickListener(R.id.shuliang_jian);
         helper.addOnClickListener(R.id.zengsong);
+
         TextView zhekou_view=helper.getView(R.id.zhekou_view);
         if (TextUtils.isEmpty(item.getDiscount())||item.getDiscount().equals("100")){
             zhekou_view.setVisibility(GONE);

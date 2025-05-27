@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.activity.MainActivity;
+import com.uhm.uhmcs.utils.UserUtils;
 import com.uhm.uhmcs.view.CustomInputTextView;
 
 public class MorefunctionPopupWindow {
@@ -106,6 +107,13 @@ public class MorefunctionPopupWindow {
         popupView.findViewById(R.id.bianqiandayingji_btn).setOnClickListener(v -> {
             v.startAnimation(animation);
             morefunctionOnClickListener.onClick(9);
+            popupWindow.dismiss();
+        });
+        TextView textView=popupView.findViewById(R.id.dazhekaiguan_btn);
+        textView.setText(UserUtils.getInstance().isDazhe()?"打折开关\n(当前为打开)":"打折开关\n(当前为关闭)");
+        textView.setOnClickListener(v -> {
+            v.startAnimation(animation);
+            morefunctionOnClickListener.onClick(10);
             popupWindow.dismiss();
         });
 

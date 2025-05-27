@@ -21,6 +21,7 @@ import com.uhm.uhmcs.http.OkHttpUtil;
 import com.uhm.uhmcs.http.POSApiSerview;
 import com.uhm.uhmcs.popupwindow.DeleteShopPopupWindow;
 import com.uhm.uhmcs.utils.UserUtils;
+import com.uhm.uhmcs.utils.Utilis;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -59,6 +60,9 @@ public class LoginActivity extends Activity {
                 }
                 if(TextUtils.isEmpty(etUserPwd.getText().toString().trim())){
                     Toast.makeText(this,"请输入密码",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (Utilis.isFastClick()) {
                     return;
                 }
                 logon();

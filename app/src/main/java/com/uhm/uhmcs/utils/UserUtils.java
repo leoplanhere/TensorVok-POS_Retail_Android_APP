@@ -33,6 +33,8 @@ public class UserUtils {
 
     private String orderListJson;
 
+    private boolean isDazhe;
+
 
 
     /**
@@ -65,7 +67,7 @@ public class UserUtils {
         loginPassword=prefUserInfo.getString("loginPassword","");
         loginPhone=prefUserInfo.getString("loginPhone","");
         orderListJson=prefUserInfo.getString("orderListJson","");
-
+        isDazhe=prefUserInfo.getBoolean("isDazhe",false);
     }
 
     public String getOrderListJson() {
@@ -79,6 +81,21 @@ public class UserUtils {
         SharedPreferences.Editor editor = prefUserInfo.edit();
         this.orderListJson = orderListJson;
         editor.putString("orderListJson",orderListJson);
+        editor.apply();
+        editor=null;
+    }
+
+    public boolean isDazhe() {
+        return isDazhe;
+    }
+
+    public void setDazhe(Context context,boolean dazhe) {
+
+        SharedPreferences prefUserInfo = context.getSharedPreferences(
+                USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefUserInfo.edit();
+        isDazhe = dazhe;
+        editor.putBoolean("isDazhe",isDazhe);
         editor.apply();
         editor=null;
     }

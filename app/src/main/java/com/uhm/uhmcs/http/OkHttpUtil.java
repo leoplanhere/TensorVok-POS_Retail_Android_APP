@@ -310,9 +310,18 @@ public class OkHttpUtil {
                                 @Override
                                 public void run() {
                                     try {
+                                        if (context.isFinishing() || context.isDestroyed()){
+                                            return;
+                                        }
+                                        if (UserUtils.getInstance().getLoginBase()==null){
+                                            return;
+                                        }
                                         new DeleteShopPopupWindow(context, true, jsonObject.getString("msg"), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
                                             @Override
                                             public void onClick(String text) {
+
+                                                UserUtils.getInstance().setLoginBase(context,null);
+
                                                 Intent intent=new Intent(context, LoginActivity.class);
                                                 context.startActivity(intent);
                                             }

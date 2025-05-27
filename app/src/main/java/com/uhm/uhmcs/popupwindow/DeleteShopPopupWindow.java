@@ -26,6 +26,7 @@ import android.widget.Toast;
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.activity.LoginActivity;
 import com.uhm.uhmcs.activity.StartActivity;
+import com.uhm.uhmcs.utils.UserUtils;
 import com.uhm.uhmcs.view.CustomInputTextView;
 
 public class DeleteShopPopupWindow {
@@ -117,7 +118,7 @@ public class DeleteShopPopupWindow {
 
             if (deleteShopOnClickListener!=null){
                 if (is_edit){
-                    if (pay_password.getText().toString().equals("1234")){
+                    if (pay_password.getText().toString().equals(UserUtils.getInstance().getLoginPassword())){
                         deleteShopOnClickListener.onClick(pay_password.getText().toString());
                     }else {
                         hint_tv.setText("密码错误");
@@ -168,7 +169,7 @@ public class DeleteShopPopupWindow {
             Log.i("ttt",">>>>>>>支付码>"+text);
 //            popupWindow.dismiss();
             if (deleteShopOnClickListener!=null){
-                if (text.equals("1234")){
+                if (text.equals(UserUtils.getInstance().getLoginPassword())){
                     popupWindow.dismiss();
                     deleteShopOnClickListener.onClick(text);
                 }else {

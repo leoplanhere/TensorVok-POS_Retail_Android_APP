@@ -138,8 +138,8 @@ public class PaymentPopupWindow {
         }else if (paymentlogBean.getPay_type().equals("wechat")){
             params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
             params.put("transaction_id", paymentlogBean.getTransaction_id());
-            params.put("refund_fee",new BigDecimal(paymentlogBean.getReceivedmoney()).multiply(new BigDecimal("100")).intValue()+"");
-            params.put("total_fee",new BigDecimal(paymentlogBean.getReceivedmoney()).multiply(new BigDecimal("100")).intValue()+"");
+            params.put("refund_fee",new BigDecimal(paymentlogBean.getReceivedmoney()).multiply(new BigDecimal("100"))+"");
+            params.put("total_fee",new BigDecimal(paymentlogBean.getReceivedmoney()).multiply(new BigDecimal("100"))+"");
             url = POSApiSerview.POS_URL + POSApiSerview.wx_refund;
         }
         FormBody.Builder formBuilder = new FormBody.Builder();

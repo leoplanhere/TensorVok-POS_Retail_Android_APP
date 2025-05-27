@@ -144,6 +144,8 @@ public class MainActivity extends Activity {
     private LinearLayout have_paid_view, wangluo_view;
     private TextView bendin_view;
 
+    private TextView caozuo_view;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -653,6 +655,7 @@ public class MainActivity extends Activity {
                                  */
                                 case 1:
                                     is_tongbu = true;
+                                    grouponGoods_page=1;
                                     OverviewList();
                                     break;
                                 /**
@@ -691,7 +694,6 @@ public class MainActivity extends Activity {
                                     UserUtils.getInstance().setCategoryListBeanJson(MainActivity.this, "");
                                     UserUtils.getInstance().setGrouponGoodsBeanJson(MainActivity.this, "");
                                     UserUtils.getInstance().setLoginBase(MainActivity.this, null);
-                                    UserUtils.getInstance().setShopDataBean(MainActivity.this, null);
                                     startActivity(new Intent(MainActivity.this, LoginActivity.class));
                                     break;
                                 /**
@@ -731,6 +733,27 @@ public class MainActivity extends Activity {
                                             UserUtils.getInstance().setLABEKS_PRODUCT_ID(MainActivity.this, usbDevice.getProductId());
                                             MyUsbDeviceHelper.getInstance().requestUsbPermission(usbDevice);
                                             new DeleteShopPopupWindow(MainActivity.this, "设置成功", true).show();
+                                        }
+                                    }).show();
+                                    break;
+                                /**
+                                 * 打折开关
+                                 */
+                                case 10:
+                                    new DeleteShopPopupWindow(true,MainActivity.this, UserUtils.getInstance().isDazhe()?"您确定关闭打折功能吗？":"您确定打开打折功能吗？", new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                                        @Override
+                                        public void onClick(String text) {
+                                            UserUtils.getInstance().setDazhe(MainActivity.this,!UserUtils.getInstance().isDazhe());
+                                            if (UserUtils.getInstance().isDazhe()){
+                                                dazhe_all_btn.setVisibility(VISIBLE);
+                                                dazhe_one_btn.setVisibility(VISIBLE);
+                                                caozuo_view.setVisibility(VISIBLE);
+                                            }else {
+                                                caozuo_view.setVisibility(GONE);
+                                                dazhe_all_btn.setVisibility(GONE);
+                                                dazhe_one_btn.setVisibility(GONE);
+                                            }
+                                            selectedShopAdapter.notifyDataSetChanged();
                                         }
                                     }).show();
                                     break;
@@ -779,7 +802,7 @@ public class MainActivity extends Activity {
 
             }
         };
-
+        caozuo_view=findViewById(R.id.caozuo_view);
 
         bendin_view = findViewById(R.id.bendin_view);
         wangluo_view = findViewById(R.id.wangluo_view);
@@ -809,6 +832,16 @@ public class MainActivity extends Activity {
         findViewById(R.id.shanchuhuiyuan_btn).setOnClickListener(onClickListener);
         findViewById(R.id.more_function_btn).setOnClickListener(onClickListener);
         findViewById(R.id.add_no_code_btn).setOnClickListener(onClickListener);
+
+        if (UserUtils.getInstance().isDazhe()){
+            dazhe_all_btn.setVisibility(VISIBLE);
+            dazhe_one_btn.setVisibility(VISIBLE);
+            caozuo_view.setVisibility(VISIBLE);
+        }else {
+            caozuo_view.setVisibility(GONE);
+            dazhe_all_btn.setVisibility(GONE);
+            dazhe_one_btn.setVisibility(GONE);
+        }
 
 
         tv_zongjia = findViewById(R.id.tv_zongjia);
@@ -1126,7 +1159,7 @@ public class MainActivity extends Activity {
                 int totalItemCount = layoutManager.getItemCount();
                 int pastVisiblesItems = layoutManager.findFirstVisibleItemPosition();
 
-                if (!grouponGoodsAdapter.isLoading && !grouponGoodsAdapter.hasMore) { // 如果已经在加载或者没有更多数据，则不处理滚动事件
+                if (!grouponGoodsAdapter.hasMore) { // 如果已经在加载或者没有更多数据，则不处理滚动事件
                     return;
                 }
                 if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) { // 当滚动到列表底部时触发加载更多事件
@@ -1231,15 +1264,15 @@ public class MainActivity extends Activity {
     }
 
     CheckoutBean checkoutBean;
-    boolean hasMoreData = true;
+
 
     public void loadNextPage() {
-        if (!hasMoreData) return;
+        if (!grouponGoodsAdapter.hasMore) return;
         grouponGoods_page++;
         ArrayList<GrouponGoodsBean.GrouponGoodsModel> pageData = getPageData(grouponGoods_page, indexGrouponGoodsModelList);
         if (pageData.isEmpty()) {
             Log.i("ttt", ">>>>loadNextPage>>>>>>");
-            hasMoreData = false;
+
             grouponGoodsAdapter.hasMore = false;
             return;
         }
@@ -1369,7 +1402,7 @@ public class MainActivity extends Activity {
                                                 out_trade_no = new JSONObject(jsonObject.getString("code")).getString("out_trade_no");
                                             } else {
                                                 DialogUIUtils.dismiss(buildBean);
-                                                new DeleteShopPopupWindow(MainActivity.this, "支付失败", true).show();
+                                                new DeleteShopPopupWindow(MainActivity.this, "支付单号为空,支付失败", true).show();
                                                 return;
                                             }
 
@@ -1474,7 +1507,7 @@ public class MainActivity extends Activity {
                                         order_sn = "";
                                         out_trade_no = "";
                                         DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(MainActivity.this, "支付失败", true).show();
+                                        new DeleteShopPopupWindow(MainActivity.this, "订单已撤销，支付失败", true).show();
                                     }
 
 
@@ -1662,8 +1695,9 @@ public class MainActivity extends Activity {
                 .show();
 //        popupView.setTitle("");
         Map<String, String> params = new HashMap<>();
-        params.put("category_ids", TextUtils.isEmpty(category_ids) ? "" : category_ids);
-        params.put("goods_sn", goods_sn);
+//        params.put("category_ids", TextUtils.isEmpty(category_ids) ? "" : category_ids);
+        params.put("category_ids", "");
+        params.put("goods_sn", "");
         params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
 //        params.put("page", grouponGoods_page + "");
 //        params.put("strip", "20");
@@ -1902,7 +1936,7 @@ public class MainActivity extends Activity {
                                     String msg = jsonObject.getString("msg");
 
                                     String trade_state_desc = new JSONObject(jsonObject.getString("code")).getString("trade_state_desc");
-                                    if (trade_state_desc.contains("输入支付密码")) {
+                                    if (trade_state_desc.contains("密码")) {
                                         fwsgetOrderInformation(checkoutBean);
                                     } else if (trade_state_desc.contains("支付成功")) {
                                         transaction_id = new JSONObject(jsonObject.getString("code")).getString("transaction_id");
@@ -1915,7 +1949,7 @@ public class MainActivity extends Activity {
                                         order_sn = "";
                                         out_trade_no = "";
                                         DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(MainActivity.this, "支付失败", true).show();
+                                        new DeleteShopPopupWindow(MainActivity.this, "订单已撤销，支付失败", true).show();
                                     }
 
 
