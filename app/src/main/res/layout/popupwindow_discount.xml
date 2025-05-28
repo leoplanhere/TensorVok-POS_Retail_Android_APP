@@ -21,7 +21,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/black"
                 android:textSize="30dp"
-                android:text="打折/改价(F4)"
+                android:text="@string/item_discount"
                 android:textStyle="bold"
                 android:layout_centerInParent="true" />
             <ImageView
@@ -40,7 +40,7 @@
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="match_parent"
-                android:text="折扣"
+                android:text="@string/discount1"
                 android:textSize="20dp"
                 android:textColor="@color/black"
                 android:gravity="center"/>
@@ -50,7 +50,7 @@
                 android:background="@color/black"/>
             <TextView
                 android:id="@+id/zhekou_tv"
-                android:hint="请输入您的折扣（1-100）"
+                android:hint="@string/enter_discount"
                 android:paddingLeft="20dp"
                 android:gravity="center_vertical"
                 android:layout_width="match_parent"

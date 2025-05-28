@@ -48,7 +48,7 @@ public class GrouponGoodsAdapter extends BaseQuickAdapter <GrouponGoodsBean.Grou
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(imageView);
         }
-        helper.setText(R.id.price,item.getPrice()+"元");
+        helper.setText(R.id.price,"￥"+item.getPrice());
 
     }
     public void loadMoreData(List<GrouponGoodsBean.GrouponGoodsModel> newData) {

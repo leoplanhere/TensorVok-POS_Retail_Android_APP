@@ -59,7 +59,7 @@
                     android:layout_weight="1"
                     android:textSize="25dp"
                     android:textColor="@color/black"
-                    android:text="退款"
+                    android:text="@string/refund"
                     android:gravity="center"/>
             </LinearLayout>
 

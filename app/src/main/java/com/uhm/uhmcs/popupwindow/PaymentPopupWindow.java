@@ -92,7 +92,7 @@ public class PaymentPopupWindow {
         buildBean= DialogUIUtils.showLoading(context,"退款中...",true,false,false,false);
         payment_rv=popupView.findViewById(R.id.payment_rv);
         payment_rv.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL,false));
-        paymentAdapter=new PaymentAdapter();
+        paymentAdapter=new PaymentAdapter(context);
         payment_rv.setAdapter(paymentAdapter);
         paymentAdapter.setNewData(paymentlogBeanArrayList);
         paymentAdapter.setOnItemChildClickListener((adapter, view, position) -> {

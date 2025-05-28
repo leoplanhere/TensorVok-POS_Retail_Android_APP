@@ -21,7 +21,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/black"
                 android:textSize="30dp"
-                android:text="购物信息"
+                android:text="@string/purchased_goods"
                 android:textStyle="bold"
                 android:layout_centerInParent="true" />
             <ImageView
@@ -44,7 +44,7 @@
                 android:layout_weight="3"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="商品名称"
+                android:text="@string/product_name"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -52,7 +52,7 @@
                 android:layout_weight="1.5"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="单价"
+                android:text="@string/price"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -60,7 +60,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="数量"
+                android:text="@string/qty"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -68,7 +68,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="优惠金额"
+                android:text="@string/discount"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -76,7 +76,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="支付金额"
+                android:text="@string/payment_amount"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -84,7 +84,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="总额"
+                android:text="@string/total1"
                 android:gravity="center"/>
 
         </LinearLayout>

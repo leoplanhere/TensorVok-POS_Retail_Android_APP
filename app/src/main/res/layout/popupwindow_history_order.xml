@@ -16,7 +16,7 @@
             android:layout_marginLeft="20dp"
             android:layout_width="180dp"
             android:layout_height="70dp"
-            android:text="返回"
+            android:text="@string/back"
             android:textSize="25dp"
             android:textColor="@color/black"
             android:gravity="center"
@@ -28,17 +28,17 @@
             android:textColor="@color/black"
             android:textSize="30dp"
             android:textStyle="bold"
-            android:text="订单列表"
+            android:text="@string/order_list"
             android:layout_marginLeft="20dp"/>
 
         <com.uhm.uhmcs.view.CustomInputTextView
             android:id="@+id/order_sn_et"
-            android:layout_width="420dp"
+            android:layout_width="380dp"
             android:layout_height="70dp"
             android:background="@drawable/rounded_border"
             android:layout_marginRight="20dp"
             android:text=""
-            android:hint="请输入订单编号"
+            android:hint="@string/enter_order_no"
             android:textColorHint="@color/black"
             android:textColor="@color/black"
             android:gravity="center_vertical"
@@ -49,7 +49,7 @@
             android:layout_height="wrap_content"
             android:textColor="@color/black"
             android:textSize="25dp"
-            android:text="订单日期"
+            android:text="@string/order_date"
             android:layout_marginRight="20dp"/>
         <LinearLayout
             android:id="@+id/time_btn"
@@ -68,14 +68,15 @@
                 android:text=""
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:hint="开始日期"
+                android:hint="@string/start_date"
                 android:textColorHint="@color/mr_gray_888"
                 android:gravity="center"/>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="–"
                 android:textColor="@color/black"
-                android:text="至"
                 android:textSize="25dp" />
             <TextView
                 android:id="@+id/endtime_tv"
@@ -85,7 +86,7 @@
                 android:text=""
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:hint="结束日期"
+                android:hint="@string/end_date"
                 android:textColorHint="@color/mr_gray_888"
                 android:gravity="center"/>
 
@@ -112,7 +113,7 @@
                 android:layout_weight="1.2"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="收银员"
+                android:text="@string/cashier"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -120,7 +121,7 @@
                 android:layout_weight="2"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="订单编号"
+                android:text="@string/rrder_no"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -128,7 +129,7 @@
                 android:layout_weight="1.5"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="订单时间"
+                android:text="@string/order_time1"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -136,7 +137,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="购物信息"
+                android:text="@string/purchased_goods"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -144,7 +145,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="优惠金额"
+                android:text="@string/discount"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -152,7 +153,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="支付金额"
+                android:text="@string/payment_amount"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -160,7 +161,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="总额"
+                android:text="@string/total1"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -168,7 +169,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="支付信息"
+                android:text="@string/payment_info"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -176,7 +177,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="打印账单"
+                android:text="@string/print_receipt1"
                 android:gravity="center"/>
 
         </LinearLayout>

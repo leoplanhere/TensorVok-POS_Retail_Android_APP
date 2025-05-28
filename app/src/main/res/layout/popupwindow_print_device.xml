@@ -21,7 +21,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/black"
                 android:textSize="30dp"
-                android:text="打印机信息"
+                android:text="@string/printer_device_information"
                 android:textStyle="bold"
                 android:layout_centerInParent="true" />
             <ImageView
@@ -44,7 +44,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="设备名称"
+                android:text="@string/device_name"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -52,7 +52,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="厂商ID"
+                android:text="@string/vendor_id"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -60,7 +60,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="设备ID"
+                android:text="@string/product_id"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -68,7 +68,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="操作"
+                android:text="@string/action"
                 android:gravity="center"/>
 
         </LinearLayout>

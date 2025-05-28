@@ -21,7 +21,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/black"
                 android:textSize="30dp"
-                android:text="无码收银"
+                android:text="@string/no_barcode"
                 android:textStyle="bold"
                 android:layout_centerInParent="true" />
             <ImageView
@@ -42,7 +42,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="商品价格"
+                android:text="@string/product_price"
                 android:textSize="25dp"
                 android:textColor="@color/black"/>
             <com.uhm.uhmcs.view.CustomInputTextView

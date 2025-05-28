@@ -59,7 +59,7 @@
                     android:layout_weight="1"
                     android:textSize="25dp"
                     android:textColor="@color/black"
-                    android:text="选择"
+                    android:text="@string/selection"
                     android:gravity="center"/>
             </LinearLayout>
 

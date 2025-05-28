@@ -43,7 +43,7 @@ public class SelectedShopAdapter extends BaseQuickAdapter<GrouponGoodsBean.Group
 
         helper.setText(R.id.heji,item.getHeji()+"");
         helper.setText(R.id.shuliang,item.getShuliang()+"");
-        helper.setText(R.id.zengsong,item.isIs_zengsong()?"取消赠送":"赠送");
+        helper.setText(R.id.zengsong,item.isIs_zengsong()?context.getString(R.string.cancel_give_away):context.getString(R.string.give_away));
 
         helper.addOnClickListener(R.id.shuliang_jia);
         helper.addOnClickListener(R.id.shuliang_jian);
@@ -54,7 +54,7 @@ public class SelectedShopAdapter extends BaseQuickAdapter<GrouponGoodsBean.Group
             zhekou_view.setVisibility(GONE);
         }else {
             zhekou_view.setVisibility(VISIBLE);
-            zhekou_view.setText("折: "+item.getDiscount()+"%");
+            zhekou_view.setText(context.getString(R.string.fold)+item.getDiscount()+"%");
         }
 
         if (item.isSelected()){

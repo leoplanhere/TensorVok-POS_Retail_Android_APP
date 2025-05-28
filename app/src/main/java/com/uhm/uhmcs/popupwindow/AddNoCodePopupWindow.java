@@ -162,7 +162,7 @@ public class AddNoCodePopupWindow {
         params.put("price",shop_pice_et.getText().toString());
         params.put("cost_price","15");
         params.put("online_type","normal");
-        params.put("title","无码收银");
+        params.put("title",context.getString(R.string.no_barcode));
         String url = POSApiSerview.POS_URL + POSApiSerview.addNoCode;
         OkHttpUtil.postFormAsync(url, params, context,new OkHttpUtil.OkHttpCallback() {
             @Override

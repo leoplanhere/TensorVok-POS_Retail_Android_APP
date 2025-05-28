@@ -281,7 +281,7 @@ public class MainActivity extends Activity {
                 if (id == R.id.delete_shop) {
                     if (selectedShopIndex == null) {
                         if (selectedShopAdapter.getItemCount() > 0) {
-                            new DeleteShopPopupWindow(MainActivity.this, "请选择商品").show();
+                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.please_select_product)).show();
                         }
                         return;
                     }
@@ -406,11 +406,11 @@ public class MainActivity extends Activity {
                 if (id == R.id.dazhe_one_btn) {
                     if (selectedShopIndex == null) {
                         if (selectedShopAdapter.getItemCount() > 0) {
-                            new DeleteShopPopupWindow(MainActivity.this, "请选择商品").show();
+                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.please_select_product)).show();
                         }
                         return;
                     }
-                    new DiscountPopupWindow(MainActivity.this, "改价/打折", new PopupWindowOnClickListener.DiscountOnClickListener() {
+                    new DiscountPopupWindow(MainActivity.this, getString(R.string.item_discount), new PopupWindowOnClickListener.DiscountOnClickListener() {
                         @Override
                         public void onClick(String discount) {
                             GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = selectedShopAdapter.getData().get(selectedShopIndex);
@@ -445,7 +445,7 @@ public class MainActivity extends Activity {
                     if (selectedShopAdapter.getItemCount() <= 0) {
                         return;
                     }
-                    new DiscountPopupWindow(MainActivity.this, "整单打折", new PopupWindowOnClickListener.DiscountOnClickListener() {
+                    new DiscountPopupWindow(MainActivity.this, getString(R.string.order_discount), new PopupWindowOnClickListener.DiscountOnClickListener() {
                         @Override
                         public void onClick(String discount) {
                             for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopAdapter.getData()) {
@@ -611,7 +611,7 @@ public class MainActivity extends Activity {
                  * 删除会员
                  */
                 if (R.id.shanchuhuiyuan_btn == id) {
-                    huiyuan_name.setText("会员昵称(F10)");
+                    huiyuan_name.setText(getString(R.string.member_nickname));
                     memben_discount = "100";
 
                     if (selectedShopAdapter.getItemCount() <= 0) {
@@ -674,7 +674,7 @@ public class MainActivity extends Activity {
                                         public void onClick(int code, String msg) {
                                             Log.i("ttt", ">>>>>>wwww>>>" + msg);
                                             if (code == 1) {
-                                                new DeleteShopPopupWindow(MainActivity.this, "商品入库成功", true).show();
+                                                new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_stocked_successfully), true).show();
                                             } else {
                                                 new DeleteShopPopupWindow(MainActivity.this, msg, true).show();
                                             }
@@ -718,7 +718,7 @@ public class MainActivity extends Activity {
                                             UserUtils.getInstance().setVENDOR_ID(MainActivity.this, usbDevice.getVendorId());
                                             UserUtils.getInstance().setPRODUCT_ID(MainActivity.this, usbDevice.getProductId());
                                             MyUsbDeviceHelper.getInstance().requestUsbPermission(usbDevice);
-                                            new DeleteShopPopupWindow(MainActivity.this, "设置成功", true).show();
+                                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.setup_completed), true).show();
                                         }
                                     }).show();
                                     break;
@@ -732,7 +732,7 @@ public class MainActivity extends Activity {
                                             UserUtils.getInstance().setLABEKS_VENDOR_ID(MainActivity.this, usbDevice.getVendorId());
                                             UserUtils.getInstance().setLABEKS_PRODUCT_ID(MainActivity.this, usbDevice.getProductId());
                                             MyUsbDeviceHelper.getInstance().requestUsbPermission(usbDevice);
-                                            new DeleteShopPopupWindow(MainActivity.this, "设置成功", true).show();
+                                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.setup_completed), true).show();
                                         }
                                     }).show();
                                     break;
@@ -740,7 +740,7 @@ public class MainActivity extends Activity {
                                  * 打折开关
                                  */
                                 case 10:
-                                    new DeleteShopPopupWindow(true,MainActivity.this, UserUtils.getInstance().isDazhe()?"您确定关闭打折功能吗？":"您确定打开打折功能吗？", new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                                    new DeleteShopPopupWindow(true,MainActivity.this, UserUtils.getInstance().isDazhe()?getString(R.string.discounts_hint,getString(R.string.off)):getString(R.string.discounts_hint,getString(R.string.on)), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
                                         @Override
                                         public void onClick(String text) {
                                             UserUtils.getInstance().setDazhe(MainActivity.this,!UserUtils.getInstance().isDazhe());
@@ -851,7 +851,7 @@ public class MainActivity extends Activity {
 
         et_tiaoxingma = findViewById(R.id.et_tiaoxingma);
         et_tiaoxingma.setOnClickListener(v -> et_tiaoxingma.postDelayed(() -> et_tiaoxingma.requestFocus(), 100));
-        buildBean = DialogUIUtils.showLoading(this, "支付中..", true, false, false, false);
+        buildBean = DialogUIUtils.showLoading(this, getString(R.string.paying), true, false, false, false);
         // 设置输入完成监听
         et_tiaoxingma.setOnInputCompleteListener(text -> {
             Log.i("ttt", ">>>>>>>>>>>>>>" + text);
@@ -870,7 +870,7 @@ public class MainActivity extends Activity {
                         .filter(grouponGoodsModel -> !TextUtils.isEmpty(grouponGoodsModel.getSn()) && grouponGoodsModel.getSn().equals(text))
                         .collect(Collectors.toCollection(ArrayList::new));
                 if (grouponGoodsModelArrayList.isEmpty()) {
-                    new DeleteShopPopupWindow(MainActivity.this, "商品库中没有该商品", true).show();
+                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
                     return;
                 }
                 allNum++;
@@ -1353,7 +1353,7 @@ public class MainActivity extends Activity {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, "请检查网络", true).show();
+                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
                     }
                 });
             }
@@ -1379,7 +1379,7 @@ public class MainActivity extends Activity {
 
                                         DialogUIUtils.dismiss(buildBean);
                                         onClickListener.onClick(qingkong_btn);
-                                        new DeleteShopPopupWindow(MainActivity.this, "支付成功", true).show();
+                                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_succeeded), true).show();
                                         String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
                                         String zhifubao_pice = checkoutBean.getPay_type().equals("alipay") ? checkoutBean.getPay_fee() : "";
                                         MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, null, "", weixin_pice, zhifubao_pice, order_sn);
@@ -1405,7 +1405,7 @@ public class MainActivity extends Activity {
                                                 out_trade_no = new JSONObject(jsonObject.getString("code")).getString("out_trade_no");
                                             } else {
                                                 DialogUIUtils.dismiss(buildBean);
-                                                new DeleteShopPopupWindow(MainActivity.this, "支付单号为空,支付失败", true).show();
+                                                new DeleteShopPopupWindow(MainActivity.this, getString(R.string.No_transaction_ID_recorded), true).show();
                                                 return;
                                             }
 
@@ -1422,7 +1422,7 @@ public class MainActivity extends Activity {
 
                                     }
                                     DialogUIUtils.dismiss(buildBean);
-                                    new DeleteShopPopupWindow(MainActivity.this, "支付失败" + jsonObject.getString("msg"), true).show();
+                                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_failed) + jsonObject.getString("msg"), true).show();
 
 
                                 } catch (JSONException e) {
@@ -1476,7 +1476,7 @@ public class MainActivity extends Activity {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, "请检查网络", true).show();
+                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
                     }
                 });
             }
@@ -1510,7 +1510,7 @@ public class MainActivity extends Activity {
                                         order_sn = "";
                                         out_trade_no = "";
                                         DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(MainActivity.this, "订单已撤销，支付失败", true).show();
+                                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.order_canceled), true).show();
                                     }
 
 
@@ -1591,7 +1591,7 @@ public class MainActivity extends Activity {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, "请检查网络", true).show();
+                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
                     }
                 });
             }
@@ -1694,7 +1694,7 @@ public class MainActivity extends Activity {
 
     private void getGrouponGoods() {
         LoadingPopupView popupView = (LoadingPopupView) new XPopup.Builder(this)
-                .asLoading("数据加载中")
+                .asLoading(getString(R.string.loading_data))
                 .show();
 //        popupView.setTitle("");
         Map<String, String> params = new HashMap<>();
@@ -1719,7 +1719,7 @@ public class MainActivity extends Activity {
                             if (grouponGoodsBean.getCode() == 1) {
                                 popupView.dismiss();
                                 if (is_tongbu) {
-                                    new DeleteShopPopupWindow(MainActivity.this, "数据同步成功", true).show();
+                                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Sync_completed), true).show();
                                     is_tongbu = false;
                                 }
 
@@ -1920,7 +1920,7 @@ public class MainActivity extends Activity {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, "请检查网络", true).show();
+                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
                     }
                 });
             }
@@ -1952,7 +1952,7 @@ public class MainActivity extends Activity {
                                         order_sn = "";
                                         out_trade_no = "";
                                         DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(MainActivity.this, "订单已撤销，支付失败", true).show();
+                                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.order_canceled), true).show();
                                     }
 
 
@@ -2007,7 +2007,7 @@ public class MainActivity extends Activity {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, "请检查网络", true).show();
+                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
                     }
                 });
             }
@@ -2064,7 +2064,7 @@ public class MainActivity extends Activity {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, "请检查网络", true).show();
+                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
                     }
                 });
             }
@@ -2084,7 +2084,7 @@ public class MainActivity extends Activity {
 
                                         DialogUIUtils.dismiss(buildBean);
                                         onClickListener.onClick(qingkong_btn);
-                                        new DeleteShopPopupWindow(MainActivity.this, "支付成功", true).show();
+                                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_succeeded), true).show();
                                         String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
                                         String zhifubao_pice = checkoutBean.getPay_type().equals("alipay") ? checkoutBean.getPay_fee() : "";
                                         MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, null, "", weixin_pice, zhifubao_pice, order_sn);

@@ -39,14 +39,14 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:text="商品名称"
+                        android:text="@string/product_name"
                         android:textSize="16dp"
                         android:textColor="@color/black"
                         android:gravity="center_vertical" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:text="数量"
+                        android:text="@string/qty"
                         android:textSize="16dp"
                         android:textColor="@color/black"
                         android:gravity="center_vertical" />
@@ -54,7 +54,7 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:text="金额"
+                        android:text="@string/total"
                         android:textSize="16dp"
                         android:textColor="@color/black"
                         android:gravity="center_vertical|right" />
@@ -119,7 +119,7 @@
                                 android:layout_weight="1"
                                 android:textColor="@color/black"
                                 android:textSize="16dp"
-                                android:text="总件数："/>
+                                android:text="@string/total_items"/>
                             <TextView
                                 android:id="@+id/all_num"
                                 android:layout_width="wrap_content"
@@ -140,7 +140,7 @@
                                 android:layout_weight="1"
                                 android:textColor="@color/black"
                                 android:textSize="16dp"
-                                android:text="合计："/>
+                                android:text="@string/grand_total"/>
                             <TextView
                                 android:id="@+id/tv_zongjia"
                                 android:layout_width="wrap_content"
@@ -196,7 +196,7 @@
                                 android:layout_weight="1"
                                 android:textColor="@color/black"
                                 android:textSize="16dp"
-                                android:text="待支付："/>
+                                android:text="@string/pending_payment"/>
                             <TextView
                                 android:id="@+id/daizhifu_tv"
                                 android:layout_width="wrap_content"
@@ -236,7 +236,7 @@
             android:background="@color/white"
             android:gravity="center_vertical"
             android:paddingLeft="20dp"
-            android:text="欢迎光临维仆旗舰店，致电陈威哥15625809694陈威/师傅18322810352"
+            android:text=""
             android:textColor="@color/black"
             android:textSize="16dp" />
     </LinearLayout>

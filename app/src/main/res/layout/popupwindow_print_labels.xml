@@ -21,7 +21,7 @@
                android:layout_width="160dp"
                android:layout_height="match_parent"
                android:background="@drawable/black_line"
-               android:text="商品选择"
+               android:text="@string/product_selection"
                android:textColor="@color/black"
                android:textSize="25dp"
                android:gravity="center"/>
@@ -31,7 +31,7 @@
                android:layout_width="160dp"
                android:layout_height="match_parent"
                android:background="@drawable/black_line"
-               android:text="打印"
+               android:text="@string/print"
                android:textColor="@color/black"
                android:textSize="25dp"
                android:gravity="center"/>
@@ -41,7 +41,7 @@
                android:layout_width="160dp"
                android:layout_height="match_parent"
                android:background="@drawable/black_line"
-               android:text="删除"
+               android:text="@string/delete"
                android:textColor="@color/black"
                android:textSize="25dp"
                android:gravity="center"/>
@@ -51,7 +51,7 @@
                android:layout_width="160dp"
                android:layout_height="match_parent"
                android:background="@drawable/black_line"
-               android:text="全清"
+               android:text="@string/clear"
                android:textColor="@color/black"
                android:textSize="25dp"
                android:gravity="center"/>
@@ -60,7 +60,7 @@
                android:layout_width="160dp"
                android:layout_height="match_parent"
                android:background="@drawable/black_line"
-               android:text="返回"
+               android:text="@string/back"
                android:textColor="@color/black"
                android:textSize="25dp"
                android:gravity="center"/>
@@ -91,7 +91,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="序号" />
+                android:text="@string/No" />
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1.5"
@@ -99,7 +99,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="商品编码" />
+                android:text="@string/sku" />
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="2"
@@ -107,7 +107,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="商品名称" />
+                android:text="@string/product_name" />
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
@@ -115,7 +115,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="售价" />
+                android:text="@string/selling_price" />
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
@@ -123,7 +123,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="原价" />
+                android:text="@string/market_price" />
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
@@ -131,7 +131,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="成本价" />
+                android:text="@string/cost_price" />
         </LinearLayout>
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/shop_rv"

@@ -180,7 +180,7 @@
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:tag="d"
-            android:text="退格"
+            android:text="@string/delete"
             android:gravity="center"
             android:background="@drawable/rounded_border"
             android:textSize="20dp"
@@ -190,7 +190,7 @@
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:tag="c"
-            android:text="清空"
+            android:text="@string/clear"
             android:gravity="center"
             android:background="@drawable/rounded_border"
             android:textSize="20dp"
@@ -204,7 +204,7 @@
             android:gravity="center"
             android:textSize="20dp"
             android:tag="submit"
-            android:text="确认"
+            android:text="@string/confirm"
             android:background="@drawable/rounded_border1"/>
     </LinearLayout>
 

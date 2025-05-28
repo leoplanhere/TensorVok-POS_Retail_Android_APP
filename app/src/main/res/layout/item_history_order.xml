@@ -52,7 +52,7 @@
                 android:layout_weight="1"
                 android:textSize="23dp"
                 android:textColor="@color/black"
-                android:text="查看"
+                android:text="@string/check"
                 android:gravity="center"/>
         </LinearLayout>
         <TextView
@@ -97,7 +97,7 @@
                 android:layout_weight="1"
                 android:textSize="23dp"
                 android:textColor="@color/black"
-                android:text="查看"
+                android:text="@string/check"
                 android:gravity="center"/>
         </LinearLayout>
         <LinearLayout
@@ -114,7 +114,7 @@
                 android:layout_weight="1"
                 android:textSize="23dp"
                 android:textColor="@color/black"
-                android:text="打印"
+                android:text="@string/print"
                 android:gravity="center"/>
         </LinearLayout>
 

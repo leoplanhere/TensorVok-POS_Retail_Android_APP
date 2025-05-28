@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.util.Log;
 
 
+import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.activity.LoginActivity;
 import com.uhm.uhmcs.popupwindow.DeleteShopPopupWindow;
 import com.uhm.uhmcs.popupwindow.PopupWindowOnClickListener;
@@ -294,7 +295,7 @@ public class OkHttpUtil {
                     @Override
                     public void run() {
                         callback.onFailure(e);
-                        new DeleteShopPopupWindow(context, "请检查网络",true).show();
+                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
                     }
                 });
             }

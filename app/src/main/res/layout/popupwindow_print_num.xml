@@ -21,7 +21,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/black"
                 android:textSize="30dp"
-                android:text="打印数量设置"
+                android:text="@string/print_quantity"
                 android:textStyle="bold"
                 android:layout_centerInParent="true" />
             <ImageView
@@ -37,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/red_btn_bg_color"
-            android:text="每条商品打印次数"
+            android:text="@string/prints_per_item"
             android:textStyle="bold"
             android:textSize="28dp"
             android:layout_marginTop="20dp"
@@ -60,7 +60,7 @@
             android:gravity="center"
             android:textColor="@color/white"
             android:textSize="28dp"
-            android:text="开始打印"
+            android:text="@string/start_print"
             android:layout_height="70dp"
             android:background="@drawable/blue_bg1"/>
 

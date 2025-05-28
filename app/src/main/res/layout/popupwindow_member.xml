@@ -21,7 +21,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/black"
                 android:textSize="30dp"
-                android:text="会员输入"
+                android:text="@string/membership_query"
                 android:textStyle="bold"
                 android:layout_centerInParent="true" />
             <ImageView
@@ -40,7 +40,7 @@
             <com.uhm.uhmcs.view.CustomInputTextView
                 android:background="@drawable/rounded_border"
                 android:id="@+id/phone_tv"
-                android:hint="请输入手机号"
+                android:hint="@string/enter_phone_number"
                 android:paddingLeft="20dp"
                 android:gravity="center_vertical"
                 android:layout_width="0dp"
@@ -56,7 +56,7 @@
                 android:background="@drawable/blue_bg1"
                 android:layout_width="160dp"
                 android:layout_height="match_parent"
-                android:text="搜索"
+                android:text="@string/search"
                 android:textSize="20dp"
                 android:textColor="@color/white"
                 android:gravity="center"
@@ -75,7 +75,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:paddingLeft="20dp"
-                android:text="名字:"
+                android:text="@string/name"
                 android:textSize="20dp"
                 android:textColor="@color/black"
                 android:gravity="center_vertical"/>
@@ -85,7 +85,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:paddingLeft="20dp"
-                android:text="手机号:"
+                android:text="@string/phone_number"
                 android:textSize="20dp"
                 android:textColor="@color/black"
                 android:gravity="center_vertical"/>

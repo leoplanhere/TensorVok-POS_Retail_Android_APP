@@ -20,7 +20,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/black"
                 android:textSize="30dp"
-                android:text="商品入库"
+                android:text="@string/stock_in"
                 android:textStyle="bold"
                 android:layout_centerInParent="true" />
             <ImageView
@@ -31,7 +31,7 @@
                 android:src="@drawable/guanbi"
                 android:layout_alignParentRight="true"/>
         </RelativeLayout>
-        <LinearLayout
+        <RelativeLayout
             android:layout_marginStart="20dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -39,12 +39,14 @@
             android:layout_marginTop="20dp"
             android:gravity="center_vertical">
             <TextView
+                android:layout_centerVertical="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="商品条码"
+                android:text="@string/product_barcode"
                 android:textSize="25dp"
                 android:textColor="@color/black"/>
             <com.uhm.uhmcs.view.CustomInputTextView
+                android:layout_marginStart="200dp"
                 android:id="@+id/shangpintiaoma_tv"
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
@@ -55,8 +57,8 @@
                 android:gravity="center_vertical"
                 android:paddingLeft="30dp"
                 android:textSize="25dp"/>
-        </LinearLayout>
-        <LinearLayout
+        </RelativeLayout>
+        <RelativeLayout
             android:layout_marginStart="20dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -64,12 +66,15 @@
             android:layout_marginTop="20dp"
             android:gravity="center_vertical">
             <TextView
+                android:layout_centerVertical="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="\u3000\u3000商品"
+                android:text="@string/product"
                 android:textSize="25dp"
                 android:textColor="@color/black"/>
             <TextView
+                android:layout_centerVertical="true"
+                android:layout_marginStart="200dp"
                 android:id="@+id/shangpin_tv"
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
@@ -80,8 +85,8 @@
                 android:gravity="center_vertical"
                 android:paddingLeft="30dp"
                 android:textSize="25dp"/>
-        </LinearLayout>
-        <LinearLayout
+        </RelativeLayout>
+        <RelativeLayout
             android:layout_marginStart="20dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -89,12 +94,15 @@
             android:layout_marginTop="20dp"
             android:gravity="center_vertical">
             <TextView
+                android:layout_centerVertical="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="库存数量"
+                android:text="@string/stock_qty"
                 android:textSize="25dp"
                 android:textColor="@color/black"/>
             <com.uhm.uhmcs.view.CustomInputTextView
+                android:layout_centerVertical="true"
+                android:layout_marginStart="200dp"
                 android:id="@+id/kuchunshuliang_tv"
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
@@ -105,7 +113,7 @@
                 android:gravity="center_vertical"
                 android:paddingLeft="30dp"
                 android:textSize="25dp"/>
-        </LinearLayout>
+        </RelativeLayout>
         <LinearLayout
             android:layout_marginBottom="20dp"
             android:layout_marginStart="20dp"
@@ -129,7 +137,7 @@
                 android:layout_width="180dp"
                 android:textSize="25dp"
                 android:textColor="@color/white"
-                android:text="立即入库"
+                android:text="@string/stock_in_now"
                 android:gravity="center" />
         </LinearLayout>
 
