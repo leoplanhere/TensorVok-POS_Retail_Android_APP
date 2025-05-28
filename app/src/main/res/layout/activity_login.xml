@@ -54,7 +54,7 @@
                     android:paddingRight="15dp"
                     android:textColor="@color/black"
                     android:textSize="30sp"
-                    android:hint="USR"/>
+                    android:hint="@string/usr"/>
             </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -79,7 +79,7 @@
                     android:paddingLeft="15dp"
                     android:paddingRight="15dp"
                     android:textSize="30sp"
-                    android:hint="PWD"/>
+                    android:hint="@string/pwd"/>
             </LinearLayout>
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnLogin"
@@ -94,7 +94,7 @@
                 android:padding="15dp"
                 android:gravity="center"
                 android:layout_marginTop="20dp"
-                android:text="登录"/>
+                android:text="@string/login"/>
         </LinearLayout>
 
         <LinearLayout

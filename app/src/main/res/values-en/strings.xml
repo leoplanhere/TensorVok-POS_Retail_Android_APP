@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="qudan_num">Order pickup(F3)(%s)</string>
+    <string name="usr">Please enter your username</string>
+    <string name="pwd">Please enter your password</string>
+    <string name="app_name">UHM-Checkout</string>
+    <string name="qudan_null">Order Pickup(F3)</string>
+    <string name="login">Login</string>
+    <string name="clear">Clear</string>
+    <string name="delete">Delete</string>
+    <string name="barcode">Barcode</string>
+    <string name="grand_total">Grand Total</string>
+    <string name="total_items">Total Items</string>
+    <string name="delete_item">Delete Item</string>
+    <string name="clear_all"> Clear All(F5)</string>
+    <string name="hold_order">Hold Order(F2)</string>
+    <string name="item_discount">Item Discount(F4)</string>
+    <string name="order_discount">Order Discount(F6)</string>
+    <string name="print_receipt">Print Receipt(F7)</string>
+    <string name="No">No.</string>
+    <string name="product_name">Product Name</string>
+    <string name="qty">Qty</string>
+    <string name="total">Total</string>
+    <string name="action">Action</string>
+    <string name="checkout">Checkout(F8)</string>
+    <string name="member_nickname">Member Nickname(F10)</string>
+</resources>

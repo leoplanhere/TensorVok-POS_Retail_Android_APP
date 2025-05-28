@@ -184,7 +184,7 @@
             android:layout_marginRight="5dp"
             android:background="@drawable/pos_drawable_key_button_change_color_01"
             android:tag="c"
-            android:text="清空" />
+            android:text="@string/clear" />
         <androidx.appcompat.widget.AppCompatButton
             android:stateListAnimator="@null"
             android:id="@+id/btnNum_D"
@@ -197,6 +197,6 @@
             android:textStyle="bold"
             android:textSize="@dimen/pos_key_button_font_size_01"
             android:tag="D"
-            android:text="删除" />
+            android:text="@string/delete" />
     </LinearLayout>
 </LinearLayout>

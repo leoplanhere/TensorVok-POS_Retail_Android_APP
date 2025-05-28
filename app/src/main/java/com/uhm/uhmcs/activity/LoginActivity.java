@@ -55,11 +55,11 @@ public class LoginActivity extends Activity {
             });
             findViewById(R.id.btnLogin).setOnClickListener(v -> {
                 if(TextUtils.isEmpty(etUserName.getText().toString().trim())){
-                    Toast.makeText(this,"请输入账号",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this,getString(R.string.usr),Toast.LENGTH_SHORT).show();
                     return;
                 }
                 if(TextUtils.isEmpty(etUserPwd.getText().toString().trim())){
-                    Toast.makeText(this,"请输入密码",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this,getString(R.string.pwd),Toast.LENGTH_SHORT).show();
                     return;
                 }
                 if (Utilis.isFastClick()) {

@@ -62,6 +62,6 @@ public class StartActivity extends Activity {
                     finish();
                 }
             }
-        }, 3000);
+        }, 2000);
     }
 }
