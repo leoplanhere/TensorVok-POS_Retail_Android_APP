@@ -24,4 +24,5 @@
     <string name="action">操作</string>
     <string name="checkout">结账(F8)</string>
     <string name="member_nickname">会员昵称(F10)</string>
+    <string name="all">全部</string>
 </resources>

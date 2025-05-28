@@ -24,4 +24,5 @@
     <string name="action">Action</string>
     <string name="checkout">Checkout(F8)</string>
     <string name="member_nickname">Member Nickname(F10)</string>
+    <string name="all">All</string>
 </resources>

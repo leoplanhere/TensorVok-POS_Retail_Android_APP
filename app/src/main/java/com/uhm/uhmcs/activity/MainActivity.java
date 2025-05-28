@@ -1641,7 +1641,7 @@ public class MainActivity extends Activity {
 
                                 ArrayList<CategoryListBean.CategoryListModel> models = categoryListBean.getData();
                                 CategoryListBean.CategoryListModel categoryListModel = new CategoryListBean.CategoryListModel();
-                                categoryListModel.setName("全部");
+                                categoryListModel.setName(getString(R.string.all));
                                 categoryListModel.setId("");
 
 

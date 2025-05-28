@@ -29,6 +29,7 @@
             android:textColor="@color/black"
             android:text="品ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss名"/>
         <TextView
+            android:visibility="gone"
             android:id="@+id/guige"
             android:gravity="center"
             android:layout_width="0dp"
