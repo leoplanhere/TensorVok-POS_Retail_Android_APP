@@ -281,7 +281,7 @@ public class HistoryOrderPopupWindow {
 
                             }else {
                                 if (!TextUtils.isEmpty(order_sn_et.getText().toString())){
-                                    new DeleteShopPopupWindow(context,"没有查询到对应账单",true).show();
+                                    new DeleteShopPopupWindow(context,context.getString(R.string.No_matching_bill_found),true).show();
                                 }else {
                                     historyOrderAdapter.setNewData(new ArrayList<>());
                                 }

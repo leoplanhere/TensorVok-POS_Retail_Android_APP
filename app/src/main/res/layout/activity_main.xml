@@ -67,7 +67,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="无网络连接"
+                        android:text="@string/no_network_detected"
                         android:textColor="@color/mr_red_000"
                         android:textSize="24dp"/>
                 </LinearLayout>
@@ -78,7 +78,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerVertical="true"
-                    android:text="你有本地账单需上传"
+                    android:text="@string/Local_bill_upload_required"
                     android:textColor="@color/color_login_079752"
                     android:textSize="24dp"/>
                 <LinearLayout

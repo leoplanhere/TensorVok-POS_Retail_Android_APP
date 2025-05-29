@@ -110,7 +110,7 @@ public class MorefunctionPopupWindow {
             popupWindow.dismiss();
         });
         TextView textView=popupView.findViewById(R.id.dazhekaiguan_btn);
-        textView.setText(UserUtils.getInstance().isDazhe()?"打折开关\n(当前为打开)":"打折开关\n(当前为关闭)");
+        textView.setText(!UserUtils.getInstance().isDazhe()?context.getString(R.string.discount_toggle,context.getString(R.string.off)):context.getString(R.string.discount_toggle,context.getString(R.string.on)));
         textView.setOnClickListener(v -> {
             v.startAnimation(animation);
             morefunctionOnClickListener.onClick(10);

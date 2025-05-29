@@ -61,7 +61,7 @@ public class RefundPassWordPopupWindow {
         zhekou_tv=popupView.findViewById(R.id.zhekou_tv);
         zhekou_tv.setOnInputCompleteListener(text -> {
             if (TextUtils.isEmpty(zhekou_tv.getText().toString())||!zhekou_tv.getText().toString().equals("1234")){
-                new DeleteShopPopupWindow(context,"密码错误",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.Password_error),true).show();
                 return;
             }
             discountOnClickListener.onClick(zhekou_tv.getText().toString());
@@ -115,7 +115,7 @@ public class RefundPassWordPopupWindow {
                             }else if(v.getTag().toString().equals("submit")){
 
                                if (TextUtils.isEmpty(zhekou_tv.getText().toString())||!zhekou_tv.getText().toString().equals("1234")){
-                                   new DeleteShopPopupWindow(context,"密码错误",true).show();
+                                   new DeleteShopPopupWindow(context,context.getString(R.string.Password_error),true).show();
                                    return;
                                }
                                discountOnClickListener.onClick(zhekou_tv.getText().toString());

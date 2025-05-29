@@ -98,7 +98,7 @@ public class PrintDevicePopupWindow {
         printDeviceAdapter.setNewData(MyUsbDeviceHelper.getInstance().getDeviceList());
         printDeviceAdapter.setOnItemChildClickListener((adapter, view, position) -> {
             if (view.getId()==R.id.xuanze_btn){
-                new DeleteShopPopupWindow(context, "您确定选择该设备吗？", new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                new DeleteShopPopupWindow(context, context.getString(R.string.Confirm_this_device), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
                     @Override
                     public void onClick(String text) {
                         printDeviceOnClickListener.onClick(printDeviceAdapter.getItem(position));

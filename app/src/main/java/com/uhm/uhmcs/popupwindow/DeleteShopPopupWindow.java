@@ -121,7 +121,7 @@ public class DeleteShopPopupWindow {
                     if (pay_password.getText().toString().equals(UserUtils.getInstance().getLoginPassword())){
                         deleteShopOnClickListener.onClick(pay_password.getText().toString());
                     }else {
-                        hint_tv.setText("密码错误");
+                        hint_tv.setText(context.getString(R.string.Password_error));
                         hint_tv.setTextColor(Color.RED);
                         return;
                     }
@@ -173,7 +173,7 @@ public class DeleteShopPopupWindow {
                     popupWindow.dismiss();
                     deleteShopOnClickListener.onClick(text);
                 }else {
-                    hint_tv.setText("密码错误");
+                    hint_tv.setText(context.getString(R.string.Password_error));
                     hint_tv.setTextColor(Color.RED);
                 }
 

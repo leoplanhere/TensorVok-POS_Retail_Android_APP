@@ -63,7 +63,7 @@ public class PrintNumPopupWindow {
 
         popupView.findViewById(R.id.print_btn).setOnClickListener(v -> {
             if (!isInteger(pint_num.getText().toString())){
-                new DeleteShopPopupWindow(context,"请输入正确的数字",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.Enter_valid_number),true).show();
                 return;
             }
             discountOnClickListener.onClick(pint_num.getText().toString());
@@ -72,7 +72,7 @@ public class PrintNumPopupWindow {
         pint_num=popupView.findViewById(R.id.print_num);
         pint_num.setOnInputCompleteListener(text -> {
             if (!isInteger(text)){
-                new DeleteShopPopupWindow(context,"请输入正确的数字",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.Enter_valid_number),true).show();
                 return;
             }
             discountOnClickListener.onClick(text);

@@ -102,7 +102,7 @@ public class GoodsWarehousingPopupWindow {
                     .filter(grouponGoodsModel -> grouponGoodsModel.getSn().equals(text))
                     .collect(Collectors.toCollection(ArrayList::new));
             if (grouponGoodsModelArrayList.isEmpty()){
-                new DeleteShopPopupWindow(context,"商品库中无该商品",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.product_not_found_in_inventory),true).show();
             }else {
                 shangpin_tv.setText(grouponGoodsModelArrayList.get(0).getTitle());
                 shangpintiaoma_tv.removeCallbacks(shangpintiaomaRunnable);
@@ -138,7 +138,7 @@ public class GoodsWarehousingPopupWindow {
                         .filter(grouponGoodsModel -> grouponGoodsModel.getSn().equals(shangpintiaoma_tv.getText().toString()))
                         .collect(Collectors.toCollection(ArrayList::new));
                 if (grouponGoodsModelArrayList.isEmpty()){
-                    new DeleteShopPopupWindow(context,"商品库中无该商品",true).show();
+                    new DeleteShopPopupWindow(context,context.getString(R.string.product_not_found_in_inventory),true).show();
                 }else {
                     shangpin_tv.setText(grouponGoodsModelArrayList.get(0).getTitle());
                     shangpintiaoma_tv.removeCallbacks(shangpintiaomaRunnable);
@@ -147,7 +147,7 @@ public class GoodsWarehousingPopupWindow {
                 return;
             }
             if (TextUtils.isEmpty(kuchunshuliang_tv.getText().toString())){
-                new DeleteShopPopupWindow(context,"请输入库存数量",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.Quantity_in_stock),true).show();
                 return;
             }
             addStore();

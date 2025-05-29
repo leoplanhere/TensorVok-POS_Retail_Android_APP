@@ -175,15 +175,15 @@ public class CheckoutPopupWindow {
         shoukuan_tv.setOnInputCompleteListener(text -> {
 
             if (TextUtils.isEmpty(shoukuan_tv.getText().toString())){
-                new DeleteShopPopupWindow(context,"请输入收款金额",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.enter_payment_amount),true).show();
                 return;
             }
             if (!isValidNumber(shoukuan_tv.getText().toString())){
-                new DeleteShopPopupWindow(context,"请输入正确格式的收款金额",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.Please_input_in_correct_price_format),true).show();
                 return;
             }
             if (new BigDecimal(shoukuan_tv.getText().toString()).compareTo(BigDecimal.ZERO)<=0){
-                new DeleteShopPopupWindow(context,"收款金额必须大于0",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.Amount_must_0),true).show();
                 return;
             }
 
@@ -194,14 +194,14 @@ public class CheckoutPopupWindow {
                 checkoutBean.setCash_change(zhaolin_tv.getText().toString());
                 if (!NetworkUtils.getInstance().isNetworkConnected(context)){
                     if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).compareTo(BigDecimal.ZERO)<0){
-                        new DeleteShopPopupWindow(context,"收款金额不能小于需要支付的金额",true).show();
+                        new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_underpay),true).show();
                         return;
                     }
                 }
                 SubmitCheckout();
             }else {
                 if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO)>0){
-                    new DeleteShopPopupWindow(context,"收款金额不能大于需要支付的金额",true).show();
+                    new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_overpay),true).show();
                     return;
                 }
                 shoukuan_tv.removeCallbacks(shoukuan_tvRunnable);
@@ -211,8 +211,8 @@ public class CheckoutPopupWindow {
             }
         });
         shoukuan_tv.setOnFnListener(()->popupWindow.dismiss());
-        buildBean=DialogUIUtils.showLoading(context,"支付中..",true,false,false,false);
-        deleteShopPopupWindow=new DeleteShopPopupWindow(context, "请使用扫码枪完成支付",false, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+        buildBean=DialogUIUtils.showLoading(context,context.getString(R.string.paying),true,false,false,false);
+        deleteShopPopupWindow=new DeleteShopPopupWindow(context, context.getString(R.string.Scan_to_pay),false, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
             @Override
             public void onClick(String text) {
                 shoukuan_tv.postDelayed(shoukuan_tvRunnable, 100);
@@ -222,7 +222,7 @@ public class CheckoutPopupWindow {
                 }
                 String type=detectPaymentType(text);
                 if (type.equals("unknown")||!pay_type.equals(type)){
-                    new DeleteShopPopupWindow(context,"请扫描对应的支付码",true).show();
+                    new DeleteShopPopupWindow(context,context.getString(R.string.Scan_payment_QR_code),true).show();
                     return;
                 }
 
@@ -248,12 +248,12 @@ public class CheckoutPopupWindow {
         xianjin_btn=popupView.findViewById(R.id.xianjin_btn);
         weixin_btn.setOnClickListener(v -> {
             if (!NetworkUtils.getInstance().isNetworkConnected(context)){
-                new DeleteShopPopupWindow(context,"没有网络可用只能现金结账",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.Cash_only),true).show();
                 return;
             }
 
             if (weixin_type){
-                new DeleteShopPopupWindow(context,"微信已经支付过了",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.WeChat_paid_already),true).show();
                 return;
             }
             weixin_btn.setBackgroundResource(R.drawable.blue_bg3);
@@ -274,11 +274,11 @@ public class CheckoutPopupWindow {
         });
         zhifubao_btn.setOnClickListener(v -> {
             if (!NetworkUtils.getInstance().isNetworkConnected(context)){
-                new DeleteShopPopupWindow(context,"没有网络可用只能现金结账",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.Cash_only),true).show();
                 return;
             }
             if (zhifubao_type){
-                new DeleteShopPopupWindow(context,"支付宝已经支付过了",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.Alipay_paid_already),true).show();
                 return;
             }
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
@@ -406,11 +406,11 @@ public class CheckoutPopupWindow {
                             }else if(v.getTag().toString().equals("submit")){
 
                                 if (TextUtils.isEmpty(shoukuan_tv.getText().toString())){
-                                    new DeleteShopPopupWindow(context,"请输入收款金额",true).show();
+                                    new DeleteShopPopupWindow(context,context.getString(R.string.enter_payment_amount),true).show();
                                     return;
                                 }
                                 if (!isValidNumber(shoukuan_tv.getText().toString())){
-                                    new DeleteShopPopupWindow(context,"请输入正确格式的收款金额",true).show();
+                                    new DeleteShopPopupWindow(context,context.getString(R.string.Please_input_in_correct_price_format),true).show();
                                     return;
                                 }
 
@@ -423,14 +423,14 @@ public class CheckoutPopupWindow {
                                     checkoutBean.setCash_change(zhaolin_tv.getText().toString());
                                     if (!NetworkUtils.getInstance().isNetworkConnected(context)){
                                         if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).compareTo(BigDecimal.ZERO)<0){
-                                            new DeleteShopPopupWindow(context,"收款金额不能小于需要支付的金额",true).show();
+                                            new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_underpay),true).show();
                                             return;
                                         }
                                     }
                                     SubmitCheckout();
                                 }else {
                                     if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO)>0){
-                                        new DeleteShopPopupWindow(context,"收款金额不能大于需要支付的金额",true).show();
+                                        new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_overpay),true).show();
                                         return;
                                     }
                                     shoukuan_tv.removeCallbacks(shoukuan_tvRunnable);
@@ -539,7 +539,7 @@ public class CheckoutPopupWindow {
                         @Override
                         public void run() {
                             DialogUIUtils.dismiss(buildBean);
-                            new DeleteShopPopupWindow(context, "请检查网络",true).show();
+                            new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
                         }
                     });
                 }
@@ -593,7 +593,7 @@ public class CheckoutPopupWindow {
                                                 order_sn="";
                                                 out_trade_no="";
                                             }else {
-                                                new DeleteShopPopupWindow(context,"支付成功",true).show();
+                                                new DeleteShopPopupWindow(context,context.getString(R.string.Payment_succeeded),true).show();
                                                 deleteShopPopupWindow.dismiss();
                                                 xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
                                                 weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
@@ -623,7 +623,7 @@ public class CheckoutPopupWindow {
                                                     out_trade_no=new JSONObject(jsonObject.getString("code")).getString("out_trade_no");
                                                 }else {
                                                     DialogUIUtils.dismiss(buildBean);
-                                                    new DeleteShopPopupWindow(context,"支付单号为空，支付失败",true).show();
+                                                    new DeleteShopPopupWindow(context,context.getString(R.string.No_transaction_ID_recorded),true).show();
                                                     return;
                                                 }
                                                 fwsgetOrderInformation();
@@ -637,7 +637,7 @@ public class CheckoutPopupWindow {
                                             return;
                                         }
                                         DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(context,"支付失败"+jsonObject.getString("msg"),true).show();
+                                        new DeleteShopPopupWindow(context,context.getString(R.string.Payment_failed)+jsonObject.getString("msg"),true).show();
 
                                     } catch (JSONException e) {
                                         throw new RuntimeException(e);
@@ -695,7 +695,7 @@ public class CheckoutPopupWindow {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(context, "请检查网络",true).show();
+                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
                     }
                 });
             }
@@ -726,7 +726,7 @@ public class CheckoutPopupWindow {
                                         order_sn="";
                                         out_trade_no="";
                                         DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(context, "订单已撤销，支付失败", true).show();
+                                        new DeleteShopPopupWindow(context, context.getString(R.string.order_canceled), true).show();
                                     }
 
 
@@ -781,7 +781,7 @@ public class CheckoutPopupWindow {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(context, "请检查网络",true).show();
+                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
                     }
                 });
             }
@@ -814,7 +814,7 @@ public class CheckoutPopupWindow {
                                         order_sn="";
                                         out_trade_no="";
                                         DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(context, "订单已撤销，支付失败", true).show();
+                                        new DeleteShopPopupWindow(context, context.getString(R.string.order_canceled), true).show();
                                     }
 
 
@@ -868,7 +868,7 @@ public class CheckoutPopupWindow {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(context, "请检查网络",true).show();
+                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
                     }
                 });
             }
@@ -930,7 +930,7 @@ public class CheckoutPopupWindow {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(context, "请检查网络",true).show();
+                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
                     }
                 });
             }
@@ -985,7 +985,7 @@ public class CheckoutPopupWindow {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(context, "请检查网络",true).show();
+                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
                     }
                 });
             }
@@ -1024,7 +1024,7 @@ public class CheckoutPopupWindow {
                                             order_sn="";
                                             out_trade_no="";
                                         }else {
-                                            new DeleteShopPopupWindow(context,"支付成功",true).show();
+                                            new DeleteShopPopupWindow(context,context.getString(R.string.Payment_succeeded),true).show();
                                             deleteShopPopupWindow.dismiss();
                                             xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
                                             weixin_btn.setBackgroundResource(R.drawable.blue_bg2);

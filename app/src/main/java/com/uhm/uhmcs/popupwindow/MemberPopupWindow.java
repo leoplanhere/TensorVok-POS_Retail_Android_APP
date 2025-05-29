@@ -77,11 +77,11 @@ public class MemberPopupWindow {
         });
         popupView.findViewById(R.id.sousuo_btn).setOnClickListener(v -> {
             if (TextUtils.isEmpty(phone_tv.getText().toString())){
-                new DeleteShopPopupWindow(context,"请输入手机号",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.enter_phone_number),true).show();
                 return;
             }
             if (!isPhoneValid(phone_tv.getText().toString())){
-                new DeleteShopPopupWindow(context,"请输入正确的手机号",true).show();
+                new DeleteShopPopupWindow(context,context.getString(R.string.Valid_cellphone_number_required),true).show();
                 return;
             }
             getMember();
@@ -91,11 +91,11 @@ public class MemberPopupWindow {
         phone_tv.setOnInputCompleteListener(text -> {
             if (memberBean==null){
                 if (TextUtils.isEmpty(phone_tv.getText().toString())){
-                    new DeleteShopPopupWindow(context,"请输入手机号",true).show();
+                    new DeleteShopPopupWindow(context,context.getString(R.string.enter_phone_number),true).show();
                     return;
                 }
                 if (!isPhoneValid(phone_tv.getText().toString())){
-                    new DeleteShopPopupWindow(context,"请输入正确的手机号",true).show();
+                    new DeleteShopPopupWindow(context,context.getString(R.string.Valid_cellphone_number_required),true).show();
                     return;
                 }
                 getMember();
@@ -197,8 +197,8 @@ public class MemberPopupWindow {
                             if (code==1){
                                 ArrayList<MemberBean> memberBeanArrayList=new Gson().fromJson(jsonObject.getString("data"),new TypeToken<ArrayList<MemberBean>>(){}.getType());
                                 memberBean=memberBeanArrayList.get(0);
-                                mingzi_tv.setText("名字:"+memberBean.getNickname());
-                                shoujihao_tv.setText("手机号:"+memberBean.getMobile());
+                                mingzi_tv.setText(context.getString(R.string.name)+memberBean.getNickname());
+                                shoujihao_tv.setText(context.getString(R.string.phone_number)+memberBean.getMobile());
                             }else {
                                 new DeleteShopPopupWindow(context,jsonObject.getString("msg"),true).show();
                             }

@@ -89,7 +89,7 @@ public class PaymentPopupWindow {
         popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
             popupWindow.dismiss();
         });
-        buildBean= DialogUIUtils.showLoading(context,"退款中...",true,false,false,false);
+        buildBean= DialogUIUtils.showLoading(context,context.getString(R.string.Refunding),true,false,false,false);
         payment_rv=popupView.findViewById(R.id.payment_rv);
         payment_rv.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL,false));
         paymentAdapter=new PaymentAdapter(context);
@@ -103,7 +103,7 @@ public class PaymentPopupWindow {
                         if (!discount.equals("1234")){
                             return;
                         }
-                        new DeleteShopPopupWindow(context, "您确定退款吗？", new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                        new DeleteShopPopupWindow(context, context.getString(R.string.Confirm_refund), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
                             @Override
                             public void onClick(String text) {
                                 buildBean.show();
@@ -184,7 +184,7 @@ public class PaymentPopupWindow {
                                     DialogUIUtils.dismiss(buildBean);
                                     String msg=jsonObject.getString("msg");
                                     if (msg.contains("成功")||msg.contains("Success")){
-                                        new DeleteShopPopupWindow(context,"退款成功",true).show();
+                                        new DeleteShopPopupWindow(context,context.getString(R.string.Refund_successful),true).show();
                                         paymentAdapter.getData().get(position).setOrder_status(4);
                                         paymentAdapter.notifyItemChanged(position);
                                         return;
@@ -199,7 +199,7 @@ public class PaymentPopupWindow {
                                         }).show();
                                         return;
                                     }
-                                    new DeleteShopPopupWindow(context,"退款失败",true).show();
+                                    new DeleteShopPopupWindow(context,context.getString(R.string.Refund_failed),true).show();
 
 
                                 } catch (JSONException e) {

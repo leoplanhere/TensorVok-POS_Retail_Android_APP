@@ -116,13 +116,13 @@ public class DiscountPopupWindow {
                                                 discountOnClickListener.onClick(zhekou_tv.getText().toString());
                                                 popupWindow.dismiss();
                                             }else {
-                                                new DeleteShopPopupWindow(context,"请输入正确格式的折扣").show();
+                                                new DeleteShopPopupWindow(context,context.getString(R.string.Valid_discount_format_only)).show();
                                             }
                                         } catch (NumberFormatException e) {
 
                                         }
                                 }else {
-                                    new DeleteShopPopupWindow(context,"请输入正确格式的折扣").show();
+                                    new DeleteShopPopupWindow(context,context.getString(R.string.Valid_discount_format_only)).show();
                                 }
 
                             }

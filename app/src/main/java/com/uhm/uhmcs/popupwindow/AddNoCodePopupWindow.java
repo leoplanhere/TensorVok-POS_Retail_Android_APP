@@ -145,11 +145,11 @@ public class AddNoCodePopupWindow {
 
     private void addNoCode(){
         if (TextUtils.isEmpty(shop_pice_et.getText().toString())){
-            new DeleteShopPopupWindow(context,"请输入商品价格").show();
+            new DeleteShopPopupWindow(context,context.getString(R.string.Enter_item_price)).show();
             return;
         }
         if (!isValidNumber(shop_pice_et.getText().toString())){
-            new DeleteShopPopupWindow(context,"请输入正确格式的价格").show();
+            new DeleteShopPopupWindow(context,context.getString(R.string.Please_input_in_correct_price_format)).show();
             return;
         }
         getMember();

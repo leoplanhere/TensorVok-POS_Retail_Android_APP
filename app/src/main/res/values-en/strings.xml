@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="TypographyEllipsis">
     <string name="qudan_num">Order pickup(F3)(%s)</string>
     <string name="usr">Please enter your username</string>
     <string name="pwd">Please enter your password</string>
@@ -121,8 +122,30 @@
     <string name="No_transaction_ID_recorded">No transaction ID recorded</string>
     <string name="Payment_failed">Payment failed</string>
     <string name="order_canceled">Payment failed: Order canceled</string>
-    <string name="loading_data">Loading data...</string>
+    <string name="loading_data" >Loading data...</string>
     <string name="Sync_completed">Sync completed</string>
     <string name="Refunded">Refunded</string>
     <string name="fold">"fold: "</string>
+    <string name="Local_bill_upload_required">Local bill upload required</string>
+    <string name="Enter_item_price">Enter item price</string>
+    <string name="Please_input_in_correct_price_format">Please input in correct price format</string>
+    <string name="Amount_must_0">Amount must > 0</string>
+    <string name="Cannot_underpay">Cannot underpay</string>
+    <string name="Cannot_overpay">Cannot overpay</string>
+    <string name="Scan_to_pay">Scan to pay</string>
+    <string name="Scan_payment_QR_code">Scan payment QR code</string>
+    <string name="Cash_only">Cash only (No network)</string>
+    <string name="WeChat_paid_already">WeChat paid already</string>
+    <string name="Alipay_paid_already">Alipay paid already</string>
+    <string name="Password_error">Password error</string>
+    <string name="Valid_discount_format_only">Valid discount format only</string>
+    <string name="Quantity_in_stock">Quantity in stock</string>
+    <string name="No_matching_bill_found">No matching bill found</string>
+    <string name="Valid_cellphone_number_required">Valid cellphone number required</string>
+    <string name="Refunding">Refunding...</string>
+    <string name="Confirm_refund">Confirm refund?</string>
+    <string name="Refund_successful">Refund successful</string>
+    <string name="Refund_failed">Refund failed</string>
+    <string name="Confirm_this_device">Confirm this device?</string>
+    <string name="Enter_valid_number">Enter valid number</string>
 </resources>
