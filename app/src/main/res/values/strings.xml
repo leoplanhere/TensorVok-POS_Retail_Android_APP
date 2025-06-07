@@ -146,4 +146,6 @@
     <string name="Refund_failed">退款失败</string>
     <string name="Confirm_this_device">您确定选择该设备吗？</string>
     <string name="Enter_valid_number">请输入正确的数字</string>
+    <string name="dqxz">当前选择:</string>
+    <string name="pwd1">请输入登录密码</string>
 </resources>

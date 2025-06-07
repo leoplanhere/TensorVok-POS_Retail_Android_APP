@@ -154,7 +154,10 @@ public class GoodsWarehousingPopupWindow {
 
 
         });
+        popupView.findViewById(R.id.all_view).setOnClickListener(v -> {
 
+            popupWindow.dismiss();
+        });
 
     }
 

@@ -65,7 +65,10 @@ public class DiscountPopupWindow {
             popupWindow.dismiss();
         });
         initKey();
+        popupView.findViewById(R.id.all_view).setOnClickListener(v -> {
 
+            popupWindow.dismiss();
+        });
     }
 
     public void show() {
