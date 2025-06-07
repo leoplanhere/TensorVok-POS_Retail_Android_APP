@@ -182,7 +182,7 @@ public class MemberPopupWindow {
         Map<String, String> params = new HashMap<>();
         params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
         params.put("phone",phone_tv.getText().toString());
-        String url = POSApiSerview.POS_URL + POSApiSerview.getMember;
+        String url = POSApiSerview.POS_URL + POSApiSerview.getmemberDetails;
         OkHttpUtil.postFormAsync(url, params, context,new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {

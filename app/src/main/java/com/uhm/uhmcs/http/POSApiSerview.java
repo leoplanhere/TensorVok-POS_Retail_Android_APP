@@ -6,8 +6,8 @@ package com.uhm.uhmcs.http;
  */
 public interface POSApiSerview {
 
-    String POS_URL = "https://xlcc.uhimao.com/api/";
-//    String POS_URL = "https://shbs.uhimao.com/api/";
+//    String POS_URL = "https://xlcc.uhimao.com/api/";
+    String POS_URL = "https://uhimaosc.wiipoo.com/api/";
 
     /**
      * 测试分支
@@ -23,7 +23,7 @@ public interface POSApiSerview {
     //根据分类查询商品
     String getGrouponGoods = "Supermarket/getGrouponGoods";
     //根据分类查询商品
-    String getGrouponGoods2 = "Supermarket/getGrouponGoods2";
+    String getGrouponGoods2 = "Supermarket/getGrouponGoods1";
 
     //根据id查询商品
     String getGoods = "Supermarket/getGoodsMultiple";
@@ -37,6 +37,8 @@ public interface POSApiSerview {
     String operateDetails = "currency/operateDetails";
     //会员查询
     String getMember = "Custom/accordingPhone";
+
+    String getmemberDetails="supermarket/getmemberDetails";
     //尾单查询
     String getLastOder = "supermarket/printthefinalorder";
     //商品入库

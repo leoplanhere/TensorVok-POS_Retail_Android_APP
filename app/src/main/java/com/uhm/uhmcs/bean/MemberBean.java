@@ -14,6 +14,16 @@ public class MemberBean {
 
     private String mobile;
 
+    private String coupon_money;
+
+    public String getCoupon_money() {
+        return coupon_money;
+    }
+
+    public void setCoupon_money(String coupon_money) {
+        this.coupon_money = coupon_money;
+    }
+
     public int getId() {
         return id;
     }
