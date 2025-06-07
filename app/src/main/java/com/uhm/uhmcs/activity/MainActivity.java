@@ -712,7 +712,7 @@ public class MainActivity extends Activity {
                                  * 账单打印机设置
                                  */
                                 case 8:
-                                    new PrintDevicePopupWindow(MainActivity.this, new PopupWindowOnClickListener.PrintDeviceOnClickListener() {
+                                    new PrintDevicePopupWindow(MainActivity.this, 1,new PopupWindowOnClickListener.PrintDeviceOnClickListener() {
                                         @Override
                                         public void onClick(UsbDevice usbDevice) {
                                             UserUtils.getInstance().setVENDOR_ID(MainActivity.this, usbDevice.getVendorId());
@@ -726,7 +726,7 @@ public class MainActivity extends Activity {
                                  * 标签打印机设置
                                  */
                                 case 9:
-                                    new PrintDevicePopupWindow(MainActivity.this, new PopupWindowOnClickListener.PrintDeviceOnClickListener() {
+                                    new PrintDevicePopupWindow(MainActivity.this,2, new PopupWindowOnClickListener.PrintDeviceOnClickListener() {
                                         @Override
                                         public void onClick(UsbDevice usbDevice) {
                                             UserUtils.getInstance().setLABEKS_VENDOR_ID(MainActivity.this, usbDevice.getVendorId());

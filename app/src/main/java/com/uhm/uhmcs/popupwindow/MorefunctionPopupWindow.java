@@ -117,7 +117,10 @@ public class MorefunctionPopupWindow {
             popupWindow.dismiss();
         });
 
+        popupView.findViewById(R.id.all_view).setOnClickListener(v -> {
 
+            popupWindow.dismiss();
+        });
 
     }
 

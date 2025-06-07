@@ -148,4 +148,6 @@
     <string name="Refund_failed">Refund failed</string>
     <string name="Confirm_this_device">Confirm this device?</string>
     <string name="Enter_valid_number">Enter valid number</string>
+    <string name="dqxz">Current selection:</string>
+    <string name="pwd1">Please enter your login password.</string>
 </resources>

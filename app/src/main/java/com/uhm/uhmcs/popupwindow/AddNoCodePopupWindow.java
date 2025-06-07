@@ -79,7 +79,10 @@ public class AddNoCodePopupWindow {
         });
         shop_pice_et.postDelayed(() -> shop_pice_et.requestFocus(), 100);
         initKey();
+        popupView.findViewById(R.id.all_view).setOnClickListener(v -> {
 
+            popupWindow.dismiss();
+        });
     }
 
     public void show() {

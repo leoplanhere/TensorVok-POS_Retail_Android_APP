@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -54,19 +55,20 @@ public class PrintDevicePopupWindow {
     private PrintDeviceAdapter printDeviceAdapter;
     private PopupWindowOnClickListener.PrintDeviceOnClickListener printDeviceOnClickListener;
 
+    private int type;
 
 
-
-    public PrintDevicePopupWindow(Activity context,PopupWindowOnClickListener.PrintDeviceOnClickListener printDeviceOnClickListener){
+    public PrintDevicePopupWindow(Activity context,int type,PopupWindowOnClickListener.PrintDeviceOnClickListener printDeviceOnClickListener){
 
         this.context = context;
         this.printDeviceOnClickListener = printDeviceOnClickListener;
-
+        this.type = type;
 
         initPopup();
     }
 
     private void initPopup() {
+
         View popupView = LayoutInflater.from(context).inflate(R.layout.popupwindow_print_device, null);
         popupWindow = new PopupWindow(
                 popupView,
@@ -93,7 +95,7 @@ public class PrintDevicePopupWindow {
 
         print_device_rv=popupView.findViewById(R.id.print_device_rv);
         print_device_rv.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL,false));
-        printDeviceAdapter=new PrintDeviceAdapter();
+        printDeviceAdapter=new PrintDeviceAdapter(type);
         print_device_rv.setAdapter(printDeviceAdapter);
         printDeviceAdapter.setNewData(MyUsbDeviceHelper.getInstance().getDeviceList());
         printDeviceAdapter.setOnItemChildClickListener((adapter, view, position) -> {
@@ -108,6 +110,12 @@ public class PrintDevicePopupWindow {
 
             }
         });
+        TextView dqxz_tv=popupView.findViewById(R.id.dqxz_tv);
+        if (type==1){
+            dqxz_tv.setText(context.getString(R.string.vendor_id)+UserUtils.getInstance().getVENDOR_ID()+context.getString(R.string.product_id)+UserUtils.getInstance().getPRODUCT_ID());
+        }else if (type==2){
+            dqxz_tv.setText(context.getString(R.string.vendor_id)+UserUtils.getInstance().getLABEKS_VENDOR_ID()+context.getString(R.string.product_id)+UserUtils.getInstance().getLABEKS_PRODUCT_ID());
+        }
 
     }
 

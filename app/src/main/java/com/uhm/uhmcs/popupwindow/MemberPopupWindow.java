@@ -112,7 +112,10 @@ public class MemberPopupWindow {
         mingzi_tv=popupView.findViewById(R.id.mingzi_tv);
         shoujihao_tv=popupView.findViewById(R.id.shoujihao_tv);
         initKey();
+        popupView.findViewById(R.id.all_view).setOnClickListener(v -> {
 
+            popupWindow.dismiss();
+        });
     }
     public static boolean isPhoneValid(String phone) {
         Pattern pattern = Pattern.compile("^1[3-9]\\d{9}$");
