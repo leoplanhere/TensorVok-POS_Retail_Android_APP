@@ -180,8 +180,22 @@ public class HistoryOrderPopupWindow {
                     new OrderShopPopupWindow(context,historyOrderAdapter.getData().get(position).getOrder_item()).show();
                 }
                 if (id==R.id.zhifuxinxi_btn){
-
-                    new PaymentPopupWindow(context,historyOrderAdapter.getData().get(position).getPaymentlog()).show();
+                    new RefundPassWordPopupWindow(context, new PopupWindowOnClickListener.DiscountOnClickListener() {
+                        @Override
+                        public void onClick(String discount) {
+                            if (!discount.equals("1234")){
+                                return;
+                            }
+                            new DeleteShopPopupWindow(context, context.getString(R.string.Confirm_refund), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                                @Override
+                                public void onClick(String text) {
+                                    buildBean.show();
+                                    cash_refund(historyOrderAdapter.getData().get(position), position);
+                                }
+                            }).show();
+                        }
+                    }).show();
+//                    new PaymentPopupWindow(context,historyOrderAdapter.getData().get(position).getPaymentlog()).show();
                 }
                 if (id==R.id.daying_tv){
                     MyPrinterHelper.getInstance().asyncPrintLastOrder(context,historyOrderAdapter.getData().get(position),null);
@@ -192,7 +206,106 @@ public class HistoryOrderPopupWindow {
         getOrderList();
 
     }
+    public void cash_refund(LastOrderBean lastOrderBean, int position) {
+        Map<String, String> params = new HashMap<>();
+//        if (item.getPay_type().equals("cash")){
+//            xianjin="现金";
+//        }else if (item.getPay_type().equals("alipay")){
+//            xianjin="支付宝";
+//        }else if (item.getPay_type().equals("wechat")){
+//            xianjin="微信";
+//        }
+        String url = "";
+        if (lastOrderBean.getPay_type().equals("cash")){
+            params.put("order_sn", lastOrderBean.getOrder_sn());
+            params.put("refund_fee", lastOrderBean.getPay_fee());
+            url = POSApiSerview.POS_URL + POSApiSerview.cash_refund;
+        }else if (lastOrderBean.getPay_type().equals("alipay")){
+            params.put("refund_amount", lastOrderBean.getPay_fee());
+            params.put("trade_no", lastOrderBean.getTransaction_id());
+            url = POSApiSerview.POS_URL + POSApiSerview.order_refund;
+        }else if (lastOrderBean.getPay_type().equals("wechat")){
+            params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+            params.put("transaction_id", lastOrderBean.getTransaction_id());
+            params.put("refund_fee",new BigDecimal(lastOrderBean.getPay_fee()).multiply(new BigDecimal("100"))+"");
+            params.put("total_fee",new BigDecimal(lastOrderBean.getPay_fee()).multiply(new BigDecimal("100"))+"");
+            url = POSApiSerview.POS_URL + POSApiSerview.wx_refund;
+        }
+        FormBody.Builder formBuilder = new FormBody.Builder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            Log.i("ttt","??>>>"+entry.getKey()+">>>>"+entry.getValue());
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        RequestBody formBody = formBuilder.build();
+        Request.Builder builder = new Request.Builder()
+                .url(url);
 
+        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+
+
+        builder.post(formBody);
+
+        Request request = builder.build();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success=response.body().string();
+                        JSONObject jsonObject=new JSONObject(success);
+                        context.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    DialogUIUtils.dismiss(buildBean);
+                                    String msg=jsonObject.getString("msg");
+                                    if (msg.contains("成功")||msg.contains("Success")){
+                                        new DeleteShopPopupWindow(context,context.getString(R.string.Refund_successful),true).show();
+                                        historyOrderAdapter.getData().get(position).setRefund_type(2);
+                                        historyOrderAdapter.notifyItemChanged(position);
+                                        return;
+                                    }
+                                    if (msg.contains("失效")){
+                                        new DeleteShopPopupWindow(context, true, msg, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                                            @Override
+                                            public void onClick(String text) {
+                                                Intent intent=new Intent(context, LoginActivity.class);
+                                                context.startActivity(intent);
+                                            }
+                                        }).show();
+                                        return;
+                                    }
+                                    new DeleteShopPopupWindow(context,context.getString(R.string.Refund_failed),true).show();
+
+
+                                } catch (JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
+
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+
+                }
+            }
+        });
+    }
 
     public void operateDetails(LastOrderBean lastOrderBean) {
         Map<String, String> params = new HashMap<>();

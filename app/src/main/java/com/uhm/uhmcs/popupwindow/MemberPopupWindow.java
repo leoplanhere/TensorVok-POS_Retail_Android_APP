@@ -33,6 +33,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,8 +46,9 @@ public class MemberPopupWindow {
     private TextView mingzi_tv,shoujihao_tv;
     private PopupWindowOnClickListener.MemberOnClickListener memberOnClickListener;
 
-    public MemberPopupWindow(Activity context, PopupWindowOnClickListener.MemberOnClickListener memberOnClickListener) {
+    public MemberPopupWindow(Activity context,MemberBean memberBean, PopupWindowOnClickListener.MemberOnClickListener memberOnClickListener) {
         this.context = context;
+        this.memberBean = memberBean;
         this.memberOnClickListener=memberOnClickListener;
         initPopup();
     }
@@ -89,20 +91,21 @@ public class MemberPopupWindow {
 
         // 设置输入完成监听
         phone_tv.setOnInputCompleteListener(text -> {
-            if (memberBean==null){
-                if (TextUtils.isEmpty(phone_tv.getText().toString())){
-                    new DeleteShopPopupWindow(context,context.getString(R.string.enter_phone_number),true).show();
-                    return;
-                }
-                if (!isPhoneValid(phone_tv.getText().toString())){
-                    new DeleteShopPopupWindow(context,context.getString(R.string.Valid_cellphone_number_required),true).show();
-                    return;
-                }
-                getMember();
-            }else {
-                popupWindow.dismiss();
-                memberOnClickListener.onClick(memberBean);
+            if (TextUtils.isEmpty(phone_tv.getText().toString())){
+                new DeleteShopPopupWindow(context,context.getString(R.string.enter_phone_number),true).show();
+                return;
             }
+            if (!isPhoneValid(phone_tv.getText().toString())){
+                new DeleteShopPopupWindow(context,context.getString(R.string.Valid_cellphone_number_required),true).show();
+                return;
+            }
+            getMember();
+//            if (memberBean==null){
+//
+//            }else {
+//                popupWindow.dismiss();
+//                memberOnClickListener.onClick(memberBean);
+//            }
 
 
 
@@ -116,6 +119,10 @@ public class MemberPopupWindow {
 
             popupWindow.dismiss();
         });
+        if (memberBean!=null){
+            mingzi_tv.setText(context.getString(R.string.name)+memberBean.getNickname());
+            shoujihao_tv.setText(context.getString(R.string.phone_number)+memberBean.getMobile());
+        }
     }
     public static boolean isPhoneValid(String phone) {
         Pattern pattern = Pattern.compile("^1[3-9]\\d{9}$");
@@ -162,12 +169,20 @@ public class MemberPopupWindow {
                                 }
 
                             }else if(v.getTag().toString().equals("submit")){
-                                if (memberBean==null){
+//                                if (memberBean==null){
+//                                    return;
+//                                }
+//                                popupWindow.dismiss();
+//                                memberOnClickListener.onClick(memberBean);
+                                if (TextUtils.isEmpty(phone_tv.getText().toString())){
+                                    new DeleteShopPopupWindow(context,context.getString(R.string.enter_phone_number),true).show();
                                     return;
                                 }
-                                popupWindow.dismiss();
-                                memberOnClickListener.onClick(memberBean);
-
+                                if (!isPhoneValid(phone_tv.getText().toString())){
+                                    new DeleteShopPopupWindow(context,context.getString(R.string.Valid_cellphone_number_required),true).show();
+                                    return;
+                                }
+                                getMember();
 
 
                             }
@@ -177,14 +192,14 @@ public class MemberPopupWindow {
             }
 
         }catch (Exception ex){
-            Log.i("错误返回",ex.getMessage()+"");
+            Log.i("错误返回", Objects.requireNonNull(ex.getMessage()));
         }
     }
     private MemberBean memberBean;
     public void getMember(){
         Map<String, String> params = new HashMap<>();
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
-        params.put("phone",phone_tv.getText().toString());
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+        params.put("cardnumber",phone_tv.getText().toString());
         String url = POSApiSerview.POS_URL + POSApiSerview.getmemberDetails;
         OkHttpUtil.postFormAsync(url, params, context,new OkHttpUtil.OkHttpCallback() {
             @Override
@@ -198,10 +213,12 @@ public class MemberPopupWindow {
                             JSONObject jsonObject=new JSONObject(response);
                             int code=jsonObject.getInt("code");
                             if (code==1){
-                                ArrayList<MemberBean> memberBeanArrayList=new Gson().fromJson(jsonObject.getString("data"),new TypeToken<ArrayList<MemberBean>>(){}.getType());
-                                memberBean=memberBeanArrayList.get(0);
+//                                ArrayList<MemberBean> memberBeanArrayList=new Gson().fromJson(jsonObject.getString("data"),new TypeToken<ArrayList<MemberBean>>(){}.getType());
+                                memberBean=new Gson().fromJson(jsonObject.getString("data"),MemberBean.class);
                                 mingzi_tv.setText(context.getString(R.string.name)+memberBean.getNickname());
                                 shoujihao_tv.setText(context.getString(R.string.phone_number)+memberBean.getMobile());
+                                popupWindow.dismiss();
+                                memberOnClickListener.onClick(memberBean);
                             }else {
                                 new DeleteShopPopupWindow(context,jsonObject.getString("msg"),true).show();
                             }

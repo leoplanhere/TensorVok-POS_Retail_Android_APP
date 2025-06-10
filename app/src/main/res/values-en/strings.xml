@@ -33,6 +33,7 @@
     <string name="product_price">Product price</string>
     <string name="cash">Cash</string>
     <string name="wechat_pay">WeChat Pay</string>
+    <string name="yidongzhifu">Mobile payment</string>
     <string name="alipay">Alipay</string>
     <string name="due">Due</string>
     <string name="discount">Discount</string>

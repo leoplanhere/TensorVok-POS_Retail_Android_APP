@@ -30,10 +30,17 @@ public class HistoryOrderAdapter extends BaseQuickAdapter<LastOrderBean, BaseVie
         String formattedDate = sdf.format(date);
         helper.setText(R.id.dingdanshijian_tv, formattedDate);
         helper.setText(R.id.youhuijine_tv, item.getDiscount_fee()+"");
-        helper.setText(R.id.zhifujine_tv, item.getTotal_fee()+"");
+        helper.setText(R.id.zhifujine_tv, item.getPay_fee()+"");
         helper.setText(R.id.zonge_tv, item.getTotal_amount()+"");
-        helper.addOnClickListener(R.id.zhifuxinxi_btn);
+        helper.setText(R.id.youhuiquan_tv, item.getCoupon_fee()+"");
+
         helper.addOnClickListener(R.id.gouwuxinxi_tv);
         helper.addOnClickListener(R.id.daying_tv);
+        if (item.getRefund_type()==2){
+            helper.setText(R.id.zhifuxinxi_btn, "已退款");
+        } else {
+            helper.addOnClickListener(R.id.zhifuxinxi_btn);
+            helper.setText(R.id.zhifuxinxi_btn, "退款");
+        }
     }
 }

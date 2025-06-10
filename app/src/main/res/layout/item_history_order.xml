@@ -65,6 +65,15 @@
             android:text=""
             android:gravity="center"/>
         <TextView
+            android:id="@+id/youhuiquan_tv"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="23dp"
+            android:textColor="@color/black"
+            android:text=""
+            android:gravity="center"/>
+        <TextView
             android:id="@+id/zhifujine_tv"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

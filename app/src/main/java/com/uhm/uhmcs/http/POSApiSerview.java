@@ -23,7 +23,7 @@ public interface POSApiSerview {
     //根据分类查询商品
     String getGrouponGoods = "Supermarket/getGrouponGoods";
     //根据分类查询商品
-    String getGrouponGoods2 = "Supermarket/getGrouponGoods1";
+    String getGrouponGoods2 = "Supermarket/getGrouponGoods3";
 
     //根据id查询商品
     String getGoods = "Supermarket/getGoodsMultiple";
@@ -32,13 +32,14 @@ public interface POSApiSerview {
     String getGoodsLists = "Supermarket/getGoodsLists";
 
     //结账
-    String addOrder = "Supermarket/addOrder1";
+    String addOrder = "Supermarket/addOrder";
     //打印信息
     String operateDetails = "currency/operateDetails";
     //会员查询
     String getMember = "Custom/accordingPhone";
 
     String getmemberDetails="supermarket/getmemberDetails";
+    String availableAmount="supermarket/availableAmount";
     //尾单查询
     String getLastOder = "supermarket/printthefinalorder";
     //商品入库
