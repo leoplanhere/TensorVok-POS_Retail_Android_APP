@@ -6,9 +6,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 
+import com.bumptech.glide.Glide;
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.utils.UserUtils;
 
@@ -44,6 +46,10 @@ public class StartActivity extends Activity {
 //                .updateTitle("发现新版本"+"1.0.1")
 //                .updateContent("版本更新优化")
 //                .update();
+        ImageView ivLogo=findViewById(R.id.ivLogo);
+        Glide.with(this)
+                .load(R.drawable.qidongtu)
+                .into(ivLogo);
     }
 
     public void delaymillinon(){
