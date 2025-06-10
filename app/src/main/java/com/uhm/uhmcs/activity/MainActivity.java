@@ -574,6 +574,7 @@ public class MainActivity extends Activity {
                         public void onClick(MemberBean memberBean) {
                             memberBean1=memberBean;
                             huiyuan_name.setText(memberBean.getNickname());
+                            availableAmount();
 //                            if (memberBean.getVip() == 0) {
 //                                memben_discount = "";
 //                            }
@@ -627,6 +628,7 @@ public class MainActivity extends Activity {
                 if (R.id.shanchuhuiyuan_btn == id) {
                     memberBean1=null;
                     huiyuan_name.setText(getString(R.string.member_nickname));
+                    Coupon_fee="";
 //                    memben_discount = "100";
 //
 //                    if (selectedShopAdapter.getItemCount() <= 0) {

@@ -639,17 +639,17 @@ public class CheckoutPopupWindow {
                                                     xinjin_pice=new BigDecimal(xinjin_pice).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
                                                 }
 
-                                                order_sn=jsonObject.getString("data");
+//                                                order_sn=jsonObject.getString("data");
 
                                             }else if (pay_type.equals("wechat")){
 
                                                 weixin_pice=shoukuan_tv.getText().toString();
                                                 weixin_type=true;
-                                                order_sn=new JSONObject(jsonObject.getString("code")).getString("order_sn");
+//                                                order_sn=new JSONObject(jsonObject.getString("code")).getString("order_sn");
                                             }else if (pay_type.equals("alipay")){
                                                 zhifubao_pice=shoukuan_tv.getText().toString();
                                                 zhifubao_type=true;
-                                                order_sn=jsonObject.getString("order_sn");
+//                                                order_sn=jsonObject.getString("order_sn");
                                                 out_trade_no=jsonObject.getString("out_trade_no");
                                             }
                                             yinshou=new BigDecimal(yinshou).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();

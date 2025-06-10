@@ -42,5 +42,6 @@ public class HistoryOrderAdapter extends BaseQuickAdapter<LastOrderBean, BaseVie
             helper.addOnClickListener(R.id.zhifuxinxi_btn);
             helper.setText(R.id.zhifuxinxi_btn, "退款");
         }
+        helper.addOnClickListener(R.id.zhifuxinxi_btn);
     }
 }
