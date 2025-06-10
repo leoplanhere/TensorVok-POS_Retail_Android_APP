@@ -51,7 +51,7 @@
                 android:layout_height="80dp"
                 android:textColor="@color/black"
                 android:textSize="20dp"
-                android:text="13953626846"
+                android:text=""
                 android:textColorHint="@color/mr_gray_80"/>
             <TextView
                 android:layout_marginLeft="10dp"
