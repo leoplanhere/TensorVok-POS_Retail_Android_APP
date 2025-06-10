@@ -7,7 +7,6 @@
     android:layout_gravity="center"
     android:layout_marginTop="5dp"
     android:background="@drawable/shop_btn_bg"
-    android:gravity="center"
     android:minHeight="300dp">
 
 
@@ -17,10 +16,10 @@
         android:layout_width="match_parent"
         android:layout_height="180dp"
         android:background="@drawable/imageview_round_corner"
-        android:scaleType="fitXY"
-        android:visibility="visible"
+        android:visibility="gone"
         android:layout_gravity="center_horizontal"/>
     <LinearLayout
+        android:layout_gravity="center_vertical"
         android:gravity="center_horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

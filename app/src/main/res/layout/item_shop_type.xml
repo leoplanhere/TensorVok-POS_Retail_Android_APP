@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:layout_width="150dp"
+    android:layout_width="wrap_content"
     android:layout_height="match_parent"
     android:layout_margin="5dp"
+    android:minWidth="150dp"
     android:background="@drawable/menu_bg"
     android:gravity="center"
-    android:id="@+id/item_shop_type_view">
+    android:id="@+id/item_shop_type_view"
+    android:padding="@dimen/dp_10">
     <TextView
         android:id="@+id/shop_type"
         android:layout_width="wrap_content"
