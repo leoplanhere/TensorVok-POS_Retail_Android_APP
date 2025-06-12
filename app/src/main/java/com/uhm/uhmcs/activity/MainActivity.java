@@ -734,6 +734,10 @@ public class MainActivity extends Activity {
                                         public void onClick(UsbDevice usbDevice) {
                                             UserUtils.getInstance().setVENDOR_ID(MainActivity.this, usbDevice.getVendorId());
                                             UserUtils.getInstance().setPRODUCT_ID(MainActivity.this, usbDevice.getProductId());
+                                            if (usbDevice.getVendorId() ==  UserUtils.getInstance().getLABEKS_VENDOR_ID() && usbDevice.getProductId() ==  UserUtils.getInstance().getLABEKS_PRODUCT_ID()) { // 替换为实际 VID/PID
+                                                UserUtils.getInstance().setLABEKS_VENDOR_ID(MainActivity.this, 0);
+                                                UserUtils.getInstance().setLABEKS_PRODUCT_ID(MainActivity.this, 0);
+                                            }
                                             MyUsbDeviceHelper.getInstance().requestUsbPermission(usbDevice);
                                             new DeleteShopPopupWindow(MainActivity.this, getString(R.string.setup_completed), true).show();
                                         }
@@ -748,6 +752,10 @@ public class MainActivity extends Activity {
                                         public void onClick(UsbDevice usbDevice) {
                                             UserUtils.getInstance().setLABEKS_VENDOR_ID(MainActivity.this, usbDevice.getVendorId());
                                             UserUtils.getInstance().setLABEKS_PRODUCT_ID(MainActivity.this, usbDevice.getProductId());
+                                            if (usbDevice.getVendorId() == UserUtils.getInstance().getVENDOR_ID() && usbDevice.getProductId() ==  UserUtils.getInstance().getPRODUCT_ID()) { // 替换为实际 VID/PID
+                                                UserUtils.getInstance().setVENDOR_ID(MainActivity.this, 0);
+                                                UserUtils.getInstance().setPRODUCT_ID(MainActivity.this, 0);
+                                            }
                                             MyUsbDeviceHelper.getInstance().requestUsbPermission(usbDevice);
                                             new DeleteShopPopupWindow(MainActivity.this, getString(R.string.setup_completed), true).show();
                                         }
