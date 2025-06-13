@@ -297,6 +297,233 @@ public class MyPrinterHelper {
         }
     }
 
+    public  void asyncPrintLastOrder(Activity context,boolean isHistory, LastOrderBean bean, PrintDataBean printDataBean) {
+        printExecutor.execute(() -> {
+            try {
+                LastOrderBean lastOrderBean;
+                ArrayList<LastOrderBean.GoodsJsonBean> goodsJsonBeans;
+                lastOrderBean=bean;
+                // 关键：通过 TypeToken 保留泛型信息
+                goodsJsonBeans = lastOrderBean.getOrder_item();
+                output = new ByteArrayOutputStream();
+                // ESC POS初始化
+                output.write(new byte[] { 0x1B, 0x40 });
+                // 设置居中对齐
+                output.write(new byte[]{0x1B, 0x61, 0x01});
+//                String LogimageUrl="https://ww3.sinaimg.cn/mw690/008emNaGgy1heup6a9g6jj30j60j6my8.jpg";
+                if (printDataBean!=null&&!TextUtils.isEmpty(printDataBean.getLogo())){
+                    Bitmap Logbitmap=  Glide.with(context)
+                            .asBitmap()
+                            .load(printDataBean.getLogo())
+                            .submit(200, 200) // 控制内存使用
+                            .get();
+                    Bitmap processed = ImagePrinter.toMonochrome(Logbitmap);
+                    output.write(ImagePrinter.convertBitmapToEscPos(processed));
+                }
+                if (printDataBean!=null&&!TextUtils.isEmpty(printDataBean.getTitle())){
+                    output.write((printDataBean.getTitle()+"\n").getBytes(Charset.forName("GBK")));
+                }
+                if (printDataBean!=null&&!TextUtils.isEmpty(printDataBean.getDescribe())){
+                    output.write((printDataBean.getDescribe()+"\n").getBytes(Charset.forName("GBK")));
+                }
+                if (printDataBean!=null&&!TextUtils.isEmpty(printDataBean.getImage())){
+//                    String biaoqingimageUrl="https://ww3.sinaimg.cn/mw690/008emNaGgy1heup6a9g6jj30j60j6my8.jpg";
+
+                    Bitmap biaoqingbitmap=  Glide.with(context)
+                            .asBitmap()
+                            .load(printDataBean.getImage())
+                            .submit(200, 200) // 控制内存使用
+                            .get();
+                    Bitmap biaoqingprocessed = ImagePrinter.toMonochrome(biaoqingbitmap);
+                    output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
+                }
+
+
+
+                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getName()+"(重打)"+"\n").getBytes(Charset.forName("GBK")));
+                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getAddress()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("全国客服热线:"+UserUtils.getInstance().getShopDataBean().getData().get(0).getPhone()+"\n").getBytes(Charset.forName("GBK")));
+//                output.write("潮享三句半\n".getBytes(Charset.forName("GBK")));
+//                output.write("上海市静安区大悦城s516\n".getBytes(Charset.forName("GBK")));
+//                output.write("全国客服热线:021-37631329\n".getBytes(Charset.forName("GBK")));
+                // 左对齐
+                output.write(new byte[]{0x1B, 0x61, 0x00});
+                // 定义日期格式模板
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                // 获取当前时间（基于系统时区）
+                String formattedTime = sdf.format(new Date(lastOrderBean.getPaytime()* 1000L));
+                output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
+                output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
+                String title="商品名称";
+                title+=(new String(new char[18-8]).replace('\0', ' '));
+                title+="数量";
+                title+=(new String(new char[12-4]).replace('\0', ' '));
+                title+=("单价");
+                title+=(new String(new char[8-4]).replace('\0', ' '));
+                title+=(new String(new char[10-4]).replace('\0', ' '));
+                title+="金额";
+                output.write(title.getBytes("GBK"));
+                output.write(0x0A); // 换行
+                output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
+                int allNum=0;
+                for (int j=0;j<goodsJsonBeans.size();j++){
+                    LastOrderBean.GoodsJsonBean goodsJsonBean=goodsJsonBeans.get(j);
+                    allNum+=goodsJsonBean.getGoods_num();
+                    if (calculateDisplayWidth((j+1)+" "+goodsJsonBean.getTitle())>14){
+                        List<String>  strings=splitByGbkUnits((j+1)+" "+goodsJsonBean.getTitle(),14);
+                        for (int i=0;i<strings.size();i++){
+                            if (i==strings.size()-1){
+                                buildLastOrderLine(goodsJsonBean,strings.get(i));
+                            }else {
+                                output.write((strings.get(i)+"\n").getBytes(Charset.forName("GBK")));
+                            }
+
+                        }
+                    }else {
+                        buildLastOrderLine(goodsJsonBean,"");
+                    }
+                }
+                output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
+                String goumaishangpinshulian="购买商品数量:";
+                goumaishangpinshulian+=(new String(new char[48-13-calculateDisplayWidth(allNum+"件")]).replace('\0', ' '));
+                Log.i("ttt","购买商品数量"+allNum);
+                goumaishangpinshulian+=(allNum+"件");
+                output.write(goumaishangpinshulian.getBytes("GBK"));
+                output.write(0x0A); // 换行
+
+                String yingfuzongji="应付总计:";
+                yingfuzongji+=(new String(new char[48-9-calculateDisplayWidth(lastOrderBean.getTotal_amount()+"")]).replace('\0', ' '));
+                yingfuzongji+=(lastOrderBean.getTotal_amount()+"");
+                output.write(yingfuzongji.getBytes("GBK"));
+                output.write(0x0A); // 换行
+
+                String youhuizongji="优惠总计:";
+                youhuizongji+=(new String(new char[48-9-calculateDisplayWidth(lastOrderBean.getDiscount_fee()+"")]).replace('\0', ' '));
+                youhuizongji+=(lastOrderBean.getDiscount_fee()+"");
+                output.write(youhuizongji.getBytes("GBK"));
+                output.write(0x0A); // 换行
+
+
+                BigDecimal shifujine_pice=new BigDecimal("0.00");
+                String xianjin="";
+                String weixin="";
+                String zhifubao="";
+                if (lastOrderBean.getPayment()!=null&&!lastOrderBean.getPayment().isEmpty()){
+                    for (LastOrderBean.PaymentlogBean paymentlogBean:lastOrderBean.getPayment()){
+                        if (paymentlogBean.getPay_type().equals("cash")){
+                            xianjin="现金:";
+
+                            xianjin+=(new String(new char[48-calculateDisplayWidth(xianjin)-calculateDisplayWidth(paymentlogBean.getReceivedmoney()+"")]).replace('\0', ' '));
+                            xianjin+=(paymentlogBean.getReceivedmoney()+"");
+                        }else if (paymentlogBean.getPay_type().equals("alipay")){
+                            zhifubao="支付宝:";
+                            zhifubao+=(new String(new char[48-calculateDisplayWidth(zhifubao)-calculateDisplayWidth(paymentlogBean.getReceivedmoney()+"")]).replace('\0', ' '));
+                            zhifubao+=(paymentlogBean.getReceivedmoney()+"");
+                        }else if (paymentlogBean.getPay_type().equals("wechat")){
+                            weixin="微信:";
+                            weixin+=(new String(new char[48-calculateDisplayWidth(weixin)-calculateDisplayWidth(paymentlogBean.getReceivedmoney()+"")]).replace('\0', ' '));
+                            weixin+=(paymentlogBean.getReceivedmoney()+"");
+                        }
+                        shifujine_pice=shifujine_pice.add(new BigDecimal(paymentlogBean.getReceivedmoney()));
+                    }
+                }
+                if (lastOrderBean.getPaymentlog()!=null&&!lastOrderBean.getPaymentlog().isEmpty()){
+                    for (LastOrderBean.PaymentlogBean paymentlogBean:lastOrderBean.getPaymentlog()){
+                        if (paymentlogBean.getPay_type().equals("cash")){
+                            xianjin="现金:";
+                            xianjin+=(new String(new char[48-calculateDisplayWidth(xianjin)-calculateDisplayWidth(paymentlogBean.getReceivedmoney()+"")]).replace('\0', ' '));
+                            xianjin+=(paymentlogBean.getReceivedmoney()+"");
+                        }else if (paymentlogBean.getPay_type().equals("alipay")){
+                            zhifubao="支付宝:";
+                            zhifubao+=(new String(new char[48-calculateDisplayWidth(zhifubao)-calculateDisplayWidth(paymentlogBean.getReceivedmoney()+"")]).replace('\0', ' '));
+                            zhifubao+=(paymentlogBean.getReceivedmoney()+"");
+                        }else if (paymentlogBean.getPay_type().equals("wechat")){
+                            weixin="微信:";
+                            weixin+=(new String(new char[48-calculateDisplayWidth(weixin)-calculateDisplayWidth(paymentlogBean.getReceivedmoney()+"")]).replace('\0', ' '));
+                            weixin+=(paymentlogBean.getReceivedmoney()+"");
+                        }
+                        shifujine_pice=shifujine_pice.add(new BigDecimal(paymentlogBean.getReceivedmoney()));
+
+                    }
+                }
+                String shifujine="实付金额:";
+                shifujine+=(new String(new char[48-9-calculateDisplayWidth(shifujine_pice.toString()+"")]).replace('\0', ' '));
+                shifujine+=(shifujine_pice.toString()+"");
+                output.write(shifujine.getBytes("GBK"));
+                output.write(0x0A); // 换行
+
+                if (!TextUtils.isEmpty(xianjin)){
+                    output.write(xianjin.getBytes("GBK"));
+                    output.write(0x0A); // 换行
+                }
+                if (!TextUtils.isEmpty(weixin)){
+                    output.write(weixin.getBytes("GBK"));
+                    output.write(0x0A); // 换行
+                }
+                if (!TextUtils.isEmpty(zhifubao)){
+                    output.write(zhifubao.getBytes("GBK"));
+                    output.write(0x0A); // 换行
+                }
+
+                if (shifujine_pice.subtract(new BigDecimal(lastOrderBean.getTotal_fee())).compareTo(BigDecimal.ZERO)>0){
+                    String zhaolin="找零:";
+                    zhaolin+=(new String(new char[48-5-calculateDisplayWidth((shifujine_pice.subtract(new BigDecimal(lastOrderBean.getTotal_fee()))).toString())]).replace('\0', ' '));
+                    zhaolin+=(shifujine_pice.subtract(new BigDecimal(lastOrderBean.getTotal_fee()))).toString();
+                    output.write(zhaolin.getBytes("GBK"));
+                    output.write(0x0A); // 换行
+                }
+//                // 设置居中对齐
+//                output.write(new byte[]{0x1B, 0x61, 0x01});
+//                String erweimaimageUrl="https://img1.baidu.com/it/u=1999126764,447372295&fm=253&fmt=auto&app=138&f=GIF?w=500&h=500";
+//
+//                Bitmap erweimabitmap=  Glide.with(context)
+//                        .asBitmap()
+//                        .load(erweimaimageUrl)
+//                        .submit(160, 160) // 控制内存使用
+//                        .get();
+//                Bitmap erweimaprocessed = ImagePrinter.toMonochrome(erweimabitmap);
+//                output.write(ImagePrinter.convertBitmapToEscPos(erweimaprocessed));
+
+                // 设置居中对齐
+                output.write(new byte[]{0x1B, 0x61, 0x01});
+                output.write(0x0A); // 换行
+                if(!TextUtils.isEmpty(lastOrderBean.getOrder_sn())){
+                    Bitmap biaoqingbitmap= generateBarcode(lastOrderBean.getOrder_sn(),BarcodeFormat.CODE_128,360,80);
+                    Bitmap biaoqingprocessed = ImagePrinter.toMonochrome(biaoqingbitmap);
+                    output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
+                }
+                output.write((lastOrderBean.getOrder_sn()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(0x0A); // 换行
+                // 左对齐
+                output.write(new byte[]{0x1B, 0x61, 0x00});
+                output.write("此单据二维码为开具增值税普通发票\n".getBytes(Charset.forName("GBK")));
+                output.write("的唯一凭证，请妥善保管。\n".getBytes(Charset.forName("GBK")));
+                output.write("请保留此单据，作为退丶换货凭证。\n".getBytes(Charset.forName("GBK")));
+                // 设置居中对齐
+                output.write(new byte[]{0x1B, 0x61, 0x01});
+                if (printDataBean!=null&&!TextUtils.isEmpty(printDataBean.getBottom_remarks())){
+                    output.write((printDataBean.getBottom_remarks()+"\n").getBytes(Charset.forName("GBK")));
+                }
+
+                // 走纸和切纸
+                output.write(new byte[] { 0x1D, 0x56, 0x42, 0x30 });
+                int transfer = usbConnection.bulkTransfer(
+                        endpointOut,
+                        output.toByteArray(),
+                        output.toByteArray().length,
+                        5000
+                );
+                if (transfer >= 0) {
+                    sendPrintStatus(context, true);
+                } else {
+                    throw new IOException("打印数据传输失败");
+                }
+            } catch (Exception e) {
+                Log.e("PrintError", "打印失败", e);
+                sendPrintStatus(context, false);
+            }
+        });
+    }
     public  void asyncPrintLastOrder(Activity context, LastOrderBean bean, PrintDataBean printDataBean) {
         printExecutor.execute(() -> {
             try {
