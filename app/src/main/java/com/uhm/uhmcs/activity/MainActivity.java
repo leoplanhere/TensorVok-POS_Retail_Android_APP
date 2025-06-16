@@ -92,6 +92,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -1141,7 +1142,7 @@ public class MainActivity extends Activity {
                 }
                 ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = new ArrayList<>();
                 grouponGoodsModelArrayList = allGrouponGoodsModelList.stream()
-                        .filter(grouponGoodsModel -> grouponGoodsModel.getCategory_ids().equals(category_ids))
+                        .filter(grouponGoodsModel -> !Arrays.asList(grouponGoodsModel.getCategory_ids().split(",")).stream().filter(s ->s .equals(category_ids)) .collect(Collectors.toCollection(ArrayList::new)).isEmpty())
                         .collect(Collectors.toCollection(ArrayList::new));
                 indexGrouponGoodsModelList = grouponGoodsModelArrayList;
                 grouponGoods_page = 1;
