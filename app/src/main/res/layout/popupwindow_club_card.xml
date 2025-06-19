@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:id="@+id/all_view">
+   <LinearLayout
+       android:clickable="true"
+       android:focusable="true"
+       android:background="@drawable/white_bg"
+       android:layout_width="460dp"
+       android:layout_height="wrap_content"
+       android:padding="20dp"
+       android:orientation="vertical">
+       <RelativeLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal">
+           <TextView
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:textColor="@color/black"
+               android:textSize="40dp"
+               android:text="@string/tips"
+               android:layout_marginLeft="@dimen/dp_10"/>
+           <ImageView
+               android:id="@+id/guanbi_btn"
+               android:layout_centerVertical="true"
+               android:layout_width="40dp"
+               android:layout_height="40dp"
+               android:src="@drawable/guanbi"
+               android:layout_alignParentRight="true"/>
+       </RelativeLayout>
+
+       <LinearLayout
+
+           android:layout_gravity="center"
+           android:gravity="center_vertical"
+           android:layout_marginTop="30dp"
+           android:layout_marginStart="@dimen/dp_10"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal">
+           <ImageView
+               android:layout_width="30dp"
+               android:layout_height="30dp"
+               android:src="@mipmap/tishi"/>
+           <TextView
+               android:id="@+id/hint_tv"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:textColor="@color/black"
+               android:textSize="30dp"
+               android:text="请输入会员卡号"
+               android:layout_marginLeft="@dimen/dp_10"/>
+       </LinearLayout>
+       <com.uhm.uhmcs.view.CustomInputTextView
+           android:layout_marginTop="20dp"
+           android:layout_marginBottom="20dp"
+           android:layout_width="match_parent"
+           android:hint="请输入会员卡"
+           android:textColorHint="@color/text_gray"
+           android:textSize="20dp"
+           android:gravity="center_vertical"
+           android:paddingStart="@dimen/dp_10"
+           android:layout_height="50dp"
+           android:textColor="@color/black"
+           android:background="@drawable/rounded_border"
+           android:id="@+id/pay_code" />
+
+       <TextView
+           android:layout_marginTop="20dp"
+           android:layout_marginBottom="30dp"
+           android:layout_width="match_parent"
+           android:layout_height="50dp"
+           android:textSize="20dp"
+           android:textColor="@color/white"
+           android:text="查询会员"
+           android:gravity="center"
+           android:background="@drawable/blue_bg1"/>
+
+
+   </LinearLayout>
+
+</LinearLayout>
