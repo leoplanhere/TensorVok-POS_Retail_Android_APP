@@ -248,18 +248,14 @@ public class CheckoutPopupWindow {
                 checkoutBean.setCash_price(shoukuan_tv.getText().toString());
                 checkoutBean.setCash_change(zhaolin_tv.getText().toString());
                 if (!NetworkUtils.getInstance().isNetworkConnected(context)){
+                    if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).compareTo(BigDecimal.ZERO)<0){
+                        new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_underpay),true).show();
+                        return;
+                    }
+                }
 
-                }
-                if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).compareTo(BigDecimal.ZERO)<0){
-                    new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_underpay),true).show();
-                    return;
-                }
                 SubmitCheckout();
             }else {
-                if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).compareTo(BigDecimal.ZERO)<0){
-                    new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_underpay),true).show();
-                    return;
-                }
                 if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO)>0){
                     new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_overpay),true).show();
                     return;
@@ -281,7 +277,7 @@ public class CheckoutPopupWindow {
                     return;
                 }
                 String type=detectPaymentType(text);
-                if (type.equals("unknown")){
+                if (type.equals("unknown")||!pay_type.equals(type)){
                     new DeleteShopPopupWindow(context,context.getString(R.string.Scan_payment_QR_code),true).show();
                     return;
                 }
@@ -319,7 +315,7 @@ public class CheckoutPopupWindow {
             weixin_btn.setBackgroundResource(R.drawable.blue_bg3);
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
             zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
-            pay_type="";
+            pay_type="wechat";
             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
             zhaolin_tv.setText("0.00");
 
@@ -409,9 +405,9 @@ public class CheckoutPopupWindow {
             weixin_btn.setBackgroundResource(R.drawable.blue_bg3);
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
             zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
-            pay_type="";
+            pay_type="wechat";
             shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
-            deleteShopPopupWindow.show();
+
 
         }
     }
@@ -484,18 +480,14 @@ public class CheckoutPopupWindow {
                                     checkoutBean.setCash_price(shoukuan_tv.getText().toString());
                                     checkoutBean.setCash_change(zhaolin_tv.getText().toString());
                                     if (!NetworkUtils.getInstance().isNetworkConnected(context)){
+                                        if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).compareTo(BigDecimal.ZERO)<0){
+                                            new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_underpay),true).show();
+                                            return;
+                                        }
+                                    }
 
-                                    }
-                                    if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).compareTo(BigDecimal.ZERO)<0){
-                                        new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_underpay),true).show();
-                                        return;
-                                    }
                                     SubmitCheckout();
                                 }else {
-                                    if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).compareTo(BigDecimal.ZERO)<0){
-                                        new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_underpay),true).show();
-                                        return;
-                                    }
                                     if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO)>0){
                                         new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_overpay),true).show();
                                         return;

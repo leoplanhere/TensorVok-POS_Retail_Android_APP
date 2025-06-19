@@ -58,10 +58,9 @@
                 android:background="@drawable/blue_bg3"
                 android:textSize="30dp"
                 android:textColor="@color/white"
-                android:text="@string/yidongzhifu"
+                android:text="@string/wechat_pay"
                 android:gravity="center" />
             <TextView
-                android:visibility="gone"
                 android:id="@+id/zhifubao_btn"
                 android:layout_marginLeft="20dp"
                 android:layout_width="170dp"
@@ -169,7 +168,6 @@
                     android:textStyle="bold"/>
             </LinearLayout>
             <LinearLayout
-                android:visibility="gone"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"

@@ -36,11 +36,12 @@ public class HistoryOrderAdapter extends BaseQuickAdapter<LastOrderBean, BaseVie
 
         helper.addOnClickListener(R.id.gouwuxinxi_tv);
         helper.addOnClickListener(R.id.daying_tv);
-        if (item.getRefund_type()==2){
-            helper.setText(R.id.zhifuxinxi_btn, "已退款");
-        } else {
-            helper.addOnClickListener(R.id.zhifuxinxi_btn);
-            helper.setText(R.id.zhifuxinxi_btn, "退款");
-        }
+        helper.addOnClickListener(R.id.zhifuxinxi_btn);
+//        if (item.getRefund_type()==2){
+//            helper.setText(R.id.zhifuxinxi_btn, "已退款");
+//        } else {
+//
+//            helper.setText(R.id.zhifuxinxi_btn, "退款");
+//        }
     }
 }

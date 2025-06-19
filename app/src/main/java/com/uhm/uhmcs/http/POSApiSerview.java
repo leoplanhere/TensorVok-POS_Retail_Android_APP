@@ -32,7 +32,7 @@ public interface POSApiSerview {
     String getGoodsLists = "Supermarket/getGoodsLists";
 
     //结账
-    String addOrder = "Supermarket/addOrder";
+    String addOrder = "Supermarket/addOrder1";
     //打印信息
     String operateDetails = "currency/operateDetails";
     //会员查询

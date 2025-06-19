@@ -181,22 +181,22 @@ public class HistoryOrderPopupWindow {
                     new OrderShopPopupWindow(context,historyOrderAdapter.getData().get(position).getOrder_item()).show();
                 }
                 if (id==R.id.zhifuxinxi_btn){
-                    new RefundPassWordPopupWindow(context, new PopupWindowOnClickListener.DiscountOnClickListener() {
-                        @Override
-                        public void onClick(String discount) {
-                            if (!discount.equals("1234")){
-                                return;
-                            }
-                            new DeleteShopPopupWindow(context, context.getString(R.string.Confirm_refund), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
-                                @Override
-                                public void onClick(String text) {
-                                    buildBean.show();
-                                    cash_refund(historyOrderAdapter.getData().get(position), position);
-                                }
-                            }).show();
-                        }
-                    }).show();
-//                    new PaymentPopupWindow(context,historyOrderAdapter.getData().get(position).getPaymentlog()).show();
+//                    new RefundPassWordPopupWindow(context, new PopupWindowOnClickListener.DiscountOnClickListener() {
+//                        @Override
+//                        public void onClick(String discount) {
+//                            if (!discount.equals("1234")){
+//                                return;
+//                            }
+//                            new DeleteShopPopupWindow(context, context.getString(R.string.Confirm_refund), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+//                                @Override
+//                                public void onClick(String text) {
+//                                    buildBean.show();
+//                                    cash_refund(historyOrderAdapter.getData().get(position), position);
+//                                }
+//                            }).show();
+//                        }
+//                    }).show();
+                    new PaymentPopupWindow(context,historyOrderAdapter.getData().get(position).getPaymentlog()).show();
                 }
                 if (id==R.id.daying_tv){
                     MyPrinterHelper.getInstance().asyncPrintLastOrder(context,true,historyOrderAdapter.getData().get(position),null);
