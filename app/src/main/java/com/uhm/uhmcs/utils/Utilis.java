@@ -2,7 +2,7 @@ package com.uhm.uhmcs.utils;
 
 public class Utilis {
     private static long lastClickTime = 0;
-    private static final int MIN_CLICK_DELAY = 1000; // 2秒
+    private static final int MIN_CLICK_DELAY = 1000; // 1秒
 
     public static boolean isFastClick() {
         long currentTime = System.currentTimeMillis();

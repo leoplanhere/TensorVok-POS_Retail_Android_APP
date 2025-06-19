@@ -22,6 +22,7 @@ import com.uhm.uhmcs.bean.MemberBean;
 import com.uhm.uhmcs.http.OkHttpUtil;
 import com.uhm.uhmcs.http.POSApiSerview;
 import com.uhm.uhmcs.utils.UserUtils;
+import com.uhm.uhmcs.utils.Utilis;
 import com.uhm.uhmcs.view.CustomInputTextView;
 
 import org.json.JSONException;
@@ -147,6 +148,9 @@ public class AddNoCodePopupWindow {
     }
 
     private void addNoCode(){
+        if ( Utilis.isFastClick()) {
+            return;
+        }
         if (TextUtils.isEmpty(shop_pice_et.getText().toString())){
             new DeleteShopPopupWindow(context,context.getString(R.string.Enter_item_price)).show();
             return;

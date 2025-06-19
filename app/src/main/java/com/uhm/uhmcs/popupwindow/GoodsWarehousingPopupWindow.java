@@ -135,7 +135,7 @@ public class GoodsWarehousingPopupWindow {
         warehousing_btn.setOnClickListener(v -> {
             if (grouponGoodsModelArrayList==null||grouponGoodsModelArrayList.isEmpty()){
                 grouponGoodsModelArrayList= allGrouponGoodsModelList.stream()
-                        .filter(grouponGoodsModel -> grouponGoodsModel.getSn().equals(shangpintiaoma_tv.getText().toString()))
+                        .filter(grouponGoodsModel -> !TextUtils.isEmpty(grouponGoodsModel.getSn()) &&grouponGoodsModel.getSn().equals(shangpintiaoma_tv.getText().toString()))
                         .collect(Collectors.toCollection(ArrayList::new));
                 if (grouponGoodsModelArrayList.isEmpty()){
                     new DeleteShopPopupWindow(context,context.getString(R.string.product_not_found_in_inventory),true).show();

@@ -777,6 +777,31 @@ public class MainActivity extends Activity {
                                                 caozuo_view.setVisibility(GONE);
                                                 dazhe_all_btn.setVisibility(GONE);
                                                 dazhe_one_btn.setVisibility(GONE);
+                                                if (selectedShopAdapter.getItemCount()>0){
+                                                    for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopAdapter.getData()) {
+
+                                                        grouponGoodsModel.setDiscount("100");
+
+                                                        zongjia = zongjia.subtract(grouponGoodsModel.getHeji());
+                                                        Log.i("ttt", ">>>>>>" + zongjia);
+
+                                                        BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
+
+                                                        BigDecimal zhehoujia = yuanjia.multiply(new BigDecimal("100")).divide(new BigDecimal("100"));
+
+                                                        grouponGoodsModel.setDiscounted_price(yuanjia.subtract(zhehoujia));
+
+                                                        grouponGoodsModel.setHeji(zhehoujia);
+
+                                                        zongjia = zongjia.add(zhehoujia);
+                                                        tv_zongjia.setText(zongjia + "");
+                                                        selectedShopAdapter.notifyDataSetChanged();
+                                                        MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
+                                                        MyPresentation.setZongjia(zongjia.toString());
+
+                                                    }
+                                                }
+
                                             }
                                             selectedShopAdapter.notifyDataSetChanged();
                                         }
@@ -1909,7 +1934,10 @@ public class MainActivity extends Activity {
                 return true;
             }
             if (keyCode == KeyEvent.KEYCODE_F4) {
-                onClickListener.onClick(dazhe_one_btn);
+
+                if (UserUtils.getInstance().isDazhe()){
+                    onClickListener.onClick(dazhe_one_btn);
+                }
                 // 监听外接键盘的返回键
                 return true;
             }
@@ -1919,7 +1947,10 @@ public class MainActivity extends Activity {
                 return true;
             }
             if (keyCode == KeyEvent.KEYCODE_F6) {
-                onClickListener.onClick(dazhe_all_btn);
+                if (UserUtils.getInstance().isDazhe()){
+                    onClickListener.onClick(dazhe_all_btn);
+                }
+
                 // 监听外接键盘的返回键
                 return true;
             }
