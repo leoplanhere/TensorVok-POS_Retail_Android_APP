@@ -150,4 +150,5 @@
     <string name="Enter_valid_number">Enter valid number</string>
     <string name="dqxz">Current selection:</string>
     <string name="pwd1">Please enter your login password.</string>
+    <string name="Reprint">(Reprint)</string>
 </resources>

@@ -148,4 +148,5 @@
     <string name="Enter_valid_number">请输入正确的数字</string>
     <string name="dqxz">当前选择:</string>
     <string name="pwd1">请输入登录密码</string>
+    <string name="Reprint">(重打)</string>
 </resources>
