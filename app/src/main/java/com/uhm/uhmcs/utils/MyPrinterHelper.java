@@ -18,6 +18,7 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
+import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.bean.CheckoutBean;
 import com.uhm.uhmcs.bean.LastOrderBean;
 import com.uhm.uhmcs.bean.PrintDataBean;
@@ -340,7 +341,7 @@ public class MyPrinterHelper {
 
 
 
-                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getName()+"(重打)"+"\n").getBytes(Charset.forName("GBK")));
+                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getName()+context.getString(R.string.Reprint)+"\n").getBytes(Charset.forName("GBK")));
                 output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getAddress()+"\n").getBytes(Charset.forName("GBK")));
                 output.write(("全国客服热线:"+UserUtils.getInstance().getShopDataBean().getData().get(0).getPhone()+"\n").getBytes(Charset.forName("GBK")));
 //                output.write("潮享三句半\n".getBytes(Charset.forName("GBK")));
