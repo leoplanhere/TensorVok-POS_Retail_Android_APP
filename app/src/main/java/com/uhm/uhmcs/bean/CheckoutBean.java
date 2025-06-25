@@ -36,6 +36,15 @@ public class CheckoutBean {
 
     public String pay_time;
 
+    public String xf_type;
+
+    public String getXf_type() {
+        return xf_type;
+    }
+
+    public void setXf_type(String xf_type) {
+        this.xf_type = xf_type;
+    }
 
     public String getPay_time() {
         return pay_time;

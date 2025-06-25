@@ -26,6 +26,8 @@ public class PaymentAdapter extends BaseQuickAdapter<LastOrderBean.PaymentlogBea
             lexing=context.getString(R.string.alipay);
         }else if (item.getPay_type().equals("wechat")){
             lexing=context.getString(R.string.wechat_pay);
+        }else if (item.getPay_type().equals("wallet")){
+            lexing="会员卡支付";
         }
         helper.setText(R.id.liushuihao_tv, TextUtils.isEmpty(item.getTransaction_id())?"":item.getTransaction_id());
         helper.setText(R.id.zhifuleixing_tv, lexing);

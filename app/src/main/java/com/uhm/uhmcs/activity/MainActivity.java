@@ -68,6 +68,7 @@ import com.uhm.uhmcs.popupwindow.GetRegistrationShopPopupWindow;
 import com.uhm.uhmcs.popupwindow.GoodsWarehousingPopupWindow;
 import com.uhm.uhmcs.popupwindow.HistoryOrderPopupWindow;
 import com.uhm.uhmcs.popupwindow.MemberPopupWindow;
+import com.uhm.uhmcs.popupwindow.MemberRechargePopupWindow;
 import com.uhm.uhmcs.popupwindow.MoneyBoxPopupWindow;
 import com.uhm.uhmcs.popupwindow.MorefunctionPopupWindow;
 import com.uhm.uhmcs.popupwindow.PopupWindowOnClickListener;
@@ -539,7 +540,7 @@ public class MainActivity extends Activity {
                     if (memberBean1!=null){
                         checkoutBean.setMember_name(memberBean1.getNickname());
                         checkoutBean.setMember_phone(memberBean1.getMobile());
-                        checkoutBean.setCardnumber(memberBean1.getMobile());
+//                        checkoutBean.setCardnumber(memberBean1.getMobile());
                         checkoutBean.setCoupon_fee(Coupon_fee);
                     }
 
@@ -807,6 +808,17 @@ public class MainActivity extends Activity {
                                         }
                                     }).show();
                                     break;
+                                    /*
+                                     * 会员充值
+                                     */
+                                case 11:
+                                    new MemberRechargePopupWindow(MainActivity.this, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                                        @Override
+                                        public void onClick(String text) {
+
+                                        }
+                                    }).show();
+                                    break;
 
                                 default:
                                     throw new IllegalStateException("Unexpected value: " + btnType);
@@ -850,6 +862,7 @@ public class MainActivity extends Activity {
                         }
                     }).show();
                 }
+
 
 
             }
@@ -1032,12 +1045,15 @@ public class MainActivity extends Activity {
                 checkoutBean.setCash_price(zongjia.toString());
                 checkoutBean.setCash_change("0.00");
                 checkoutBean.setType(1);
+                checkoutBean.setXf_type("1");
                 checkoutBean.setOrder_status(2);
                 if (memberBean1!=null){
                     checkoutBean.setMember_name(memberBean1.getNickname());
                     checkoutBean.setMember_phone(memberBean1.getMobile());
-                    checkoutBean.setCardnumber(memberBean1.getMobile());
+//                    checkoutBean.setCardnumber(memberBean1.getMobile());
                     checkoutBean.setCoupon_fee(Coupon_fee);
+                    checkoutBean.setPay_fee(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
+                    checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
                 }
 
                 SubmitCheckout(checkoutBean);

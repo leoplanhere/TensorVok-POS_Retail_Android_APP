@@ -3,6 +3,7 @@ package com.uhm.uhmcs.popupwindow;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
@@ -20,23 +21,35 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.uhm.uhmcs.R;
+import com.uhm.uhmcs.bean.ClubCardBean;
+import com.uhm.uhmcs.bean.MemberBean;
+import com.uhm.uhmcs.http.OkHttpUtil;
+import com.uhm.uhmcs.http.POSApiSerview;
 import com.uhm.uhmcs.utils.UserUtils;
 import com.uhm.uhmcs.view.CustomInputTextView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 public class ClubCardPopupWindow {
     private PopupWindow popupWindow;
-    private Context context;
-    private PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener;
+    private Activity context;
+    private PopupWindowOnClickListener.ClubCardOnClickListener clubCardOnClickListener;
 
 
 
 
 
 
-    public ClubCardPopupWindow(Context context, PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
+    public ClubCardPopupWindow(Activity context, PopupWindowOnClickListener.ClubCardOnClickListener clubCardOnClickListener) {
         this.context = context;
-        this.deleteShopOnClickListener=deleteShopOnClickListener;
+        this.clubCardOnClickListener=clubCardOnClickListener;
         initPopup();
     }
 
@@ -71,9 +84,20 @@ public class ClubCardPopupWindow {
         pay_code=popupView.findViewById(R.id.pay_code);
 
         pay_code.setOnInputCompleteListener(text -> {
-            pay_code.setText("");
             Log.i("ttt",">>>>>>>支付码>"+text);
+            if (TextUtils.isEmpty(pay_code.getText().toString())){
+                new DeleteShopPopupWindow(context,"请输入会员卡号",true).show();
+                return;
+            }
+            getCustomBlock();
 
+        });
+        popupView.findViewById(R.id.chaxunhuiyuan_btn).setOnClickListener(v -> {
+            if (TextUtils.isEmpty(pay_code.getText().toString())){
+                new DeleteShopPopupWindow(context,"请输入会员卡号",true).show();
+                return;
+            }
+            getCustomBlock();
         });
 
 
@@ -93,5 +117,43 @@ public class ClubCardPopupWindow {
     }
     public void dismiss(){
         popupWindow.dismiss();
+    }
+
+    public void getCustomBlock(){
+        Map<String, String> params = new HashMap<>();
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+        params.put("cardnumber",pay_code.getText().toString());
+        String url = POSApiSerview.POS_URL + POSApiSerview.getCustomBlock;
+        OkHttpUtil.postFormAsync(url, params, context,new OkHttpUtil.OkHttpCallback() {
+            @Override
+            public void onSuccess(String response) {
+                Log.i("ttt",">>>>>>>>>>>>>");
+                context.runOnUiThread(new Runnable() {
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void run() {
+                        try {
+                            JSONObject jsonObject=new JSONObject(response);
+                            int code=jsonObject.getInt("code");
+
+                            if (code==1){
+                                ClubCardBean clubCardBean=new Gson().fromJson(response,ClubCardBean.class);
+                                clubCardOnClickListener.onClick(clubCardBean);
+                                dismiss();
+                            }else {
+                                new DeleteShopPopupWindow(context,jsonObject.getString("msg"),true).show();
+                            }
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(IOException e) {
+
+            }
+        });
     }
 }

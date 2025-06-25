@@ -2,6 +2,7 @@ package com.uhm.uhmcs.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.text.TextUtils;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
@@ -34,9 +35,17 @@ public class HistoryOrderAdapter extends BaseQuickAdapter<LastOrderBean, BaseVie
         helper.setText(R.id.zonge_tv, item.getTotal_amount()+"");
         helper.setText(R.id.youhuiquan_tv, item.getCoupon_fee()+"");
 
-        helper.addOnClickListener(R.id.gouwuxinxi_tv);
+
         helper.addOnClickListener(R.id.daying_tv);
         helper.addOnClickListener(R.id.zhifuxinxi_btn);
+        if (item.getXf_type()==2){
+            helper.setText(R.id.gouwuxinxi_tv, "会员充值");
+            helper.setText(R.id.huiyuanshoujihao_tv, TextUtils.isEmpty(item.getNumber())? "":item.getNumber());
+        }else {
+            helper.setText(R.id.huiyuanshoujihao_tv, TextUtils.isEmpty(item.getPhone())? "":item.getPhone());
+            helper.setText(R.id.gouwuxinxi_tv, "查看");
+            helper.addOnClickListener(R.id.gouwuxinxi_tv);
+        }
 //        if (item.getRefund_type()==2){
 //            helper.setText(R.id.zhifuxinxi_btn, "已退款");
 //        } else {

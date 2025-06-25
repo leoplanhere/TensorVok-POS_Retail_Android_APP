@@ -3,6 +3,7 @@ package com.uhm.uhmcs.popupwindow;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -56,7 +57,8 @@ public class PaymentPopupWindow {
     private  ArrayList<LastOrderBean.PaymentlogBean> paymentlogBeanArrayList;
     private BuildBean buildBean;
 
-
+    int xfType=1;
+    String number="";
     public PaymentPopupWindow(Activity context, ArrayList<LastOrderBean.PaymentlogBean> paymentlogBeanArrayList){
 
         this.context = context;
@@ -64,6 +66,15 @@ public class PaymentPopupWindow {
 
         initPopup();
     }
+
+    public PaymentPopupWindow(Activity context, int xfType, String number, ArrayList<LastOrderBean.PaymentlogBean> paymentlog) {
+        this.context = context;
+        this.paymentlogBeanArrayList = paymentlog;
+        this.xfType = xfType;
+        this.number = number;
+        initPopup();
+    }
+
 
     private void initPopup() {
         View popupView = LayoutInflater.from(context).inflate(R.layout.popupwindow_payment, null);
@@ -130,17 +141,33 @@ public class PaymentPopupWindow {
         if (paymentlogBean.getPay_type().equals("cash")){
             params.put("order_sn", paymentlogBean.getOrder_sn());
             params.put("refund_fee", paymentlogBean.getReceivedmoney());
+            params.put("xf_type", xfType+"");
+            params.put("pay_type",paymentlogBean.getPay_type());
+            params.put("cardnumber", TextUtils.isEmpty(number)?"":number);
             url = POSApiSerview.POS_URL + POSApiSerview.cash_refund;
         }else if (paymentlogBean.getPay_type().equals("alipay")){
             params.put("refund_amount", paymentlogBean.getReceivedmoney());
             params.put("trade_no", paymentlogBean.getTransaction_id());
+            params.put("xf_type", xfType+"");
+            params.put("pay_type",paymentlogBean.getPay_type());
+            params.put("cardnumber", TextUtils.isEmpty(number)?"":number);
             url = POSApiSerview.POS_URL + POSApiSerview.order_refund;
         }else if (paymentlogBean.getPay_type().equals("wechat")){
             params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
             params.put("transaction_id", paymentlogBean.getTransaction_id());
             params.put("refund_fee",new BigDecimal(paymentlogBean.getReceivedmoney()).multiply(new BigDecimal("100"))+"");
             params.put("total_fee",new BigDecimal(paymentlogBean.getReceivedmoney()).multiply(new BigDecimal("100"))+"");
+            params.put("xf_type", xfType+"");
+            params.put("pay_type",paymentlogBean.getPay_type());
+            params.put("cardnumber", TextUtils.isEmpty(number)?"":number);
             url = POSApiSerview.POS_URL + POSApiSerview.wx_refund;
+        }else if (paymentlogBean.getPay_type().equals("wallet")){
+            params.put("order_sn", paymentlogBean.getOrder_sn());
+            params.put("refund_fee", paymentlogBean.getReceivedmoney());
+            params.put("xf_type", xfType+"");
+            params.put("pay_type",paymentlogBean.getPay_type());
+            params.put("cardnumber", paymentlogBean.getCode());
+            url = POSApiSerview.POS_URL + POSApiSerview.wallet_refund;
         }
         FormBody.Builder formBuilder = new FormBody.Builder();
         for (Map.Entry<String, String> entry : params.entrySet()) {

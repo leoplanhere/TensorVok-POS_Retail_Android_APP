@@ -3,6 +3,7 @@ package com.uhm.uhmcs.popupwindow;
 import android.hardware.usb.UsbDevice;
 import android.view.View;
 
+import com.uhm.uhmcs.bean.ClubCardBean;
 import com.uhm.uhmcs.bean.GrouponGoodsBean;
 import com.uhm.uhmcs.bean.MemberBean;
 
@@ -22,6 +23,9 @@ public class PopupWindowOnClickListener {
          *
          */
         void onClick(int btnType);
+    }
+    public interface ClubCardOnClickListener{
+        void onClick(ClubCardBean clubCardBean);
     }
     public interface GoodsWarehousingOnClickListener {
         /**

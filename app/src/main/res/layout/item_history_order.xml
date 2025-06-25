@@ -15,7 +15,7 @@
             android:id="@+id/shouyinyuan_tv"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1.2"
+            android:layout_weight="1"
             android:textSize="23dp"
             android:textColor="@color/black"
             android:text=""
@@ -24,7 +24,7 @@
             android:id="@+id/dingdanbianhao_tv"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
+            android:layout_weight="1.5"
             android:textSize="23dp"
             android:textColor="@color/black"
             android:text=""
@@ -33,7 +33,7 @@
             android:id="@+id/dingdanshijian_tv"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1.5"
+            android:layout_weight="1"
             android:textSize="23dp"
             android:textColor="@color/black"
             android:text=""
@@ -56,6 +56,15 @@
                 android:gravity="center"/>
         </LinearLayout>
         <TextView
+            android:id="@+id/huiyuanshoujihao_tv"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="23dp"
+            android:textColor="@color/black"
+            android:text=""
+            android:gravity="center"/>
+        <TextView
             android:id="@+id/youhuijine_tv"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -74,6 +83,7 @@
             android:text=""
             android:gravity="center"/>
         <TextView
+            android:visibility="gone"
             android:id="@+id/zhifujine_tv"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

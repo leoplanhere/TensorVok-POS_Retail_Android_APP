@@ -70,6 +70,7 @@
            android:id="@+id/pay_code" />
 
        <TextView
+           android:id="@+id/chaxunhuiyuan_btn"
            android:layout_marginTop="20dp"
            android:layout_marginBottom="30dp"
            android:layout_width="match_parent"

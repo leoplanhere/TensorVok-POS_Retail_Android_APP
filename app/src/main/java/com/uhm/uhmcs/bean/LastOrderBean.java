@@ -25,6 +25,37 @@ public class LastOrderBean {
     public String goods_original_amount;
     public String authCode;
     public String shop_id;
+
+    public int xf_type;
+
+    private String number;
+
+    private String phone;
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getNumber() {
+        return number;
+    }
+
+    public void setNumber(String number) {
+        this.number = number;
+    }
+
+    public int getXf_type() {
+        return xf_type;
+    }
+
+    public void setXf_type(int xf_type) {
+        this.xf_type = xf_type;
+    }
+
     public int refund_type;
 
     public String cash_change;
@@ -370,6 +401,16 @@ public class LastOrderBean {
          private String receivedmoney;
          private String transaction_id;
          private int order_status;
+
+         private String code;
+
+         public String getCode() {
+             return code;
+         }
+
+         public void setCode(String code) {
+             this.code = code;
+         }
 
          public String getOrder_sn() {
              return order_sn;

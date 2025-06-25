@@ -196,7 +196,7 @@ public class HistoryOrderPopupWindow {
 //                            }).show();
 //                        }
 //                    }).show();
-                    new PaymentPopupWindow(context,historyOrderAdapter.getData().get(position).getPaymentlog()).show();
+                    new PaymentPopupWindow(context,historyOrderAdapter.getData().get(position).getXf_type(),historyOrderAdapter.getData().get(position).getNumber(),historyOrderAdapter.getData().get(position).getPaymentlog()).show();
                 }
                 if (id==R.id.daying_tv){
                     MyPrinterHelper.getInstance().asyncPrintLastOrder(context,true,historyOrderAdapter.getData().get(position),null);

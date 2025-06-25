@@ -32,13 +32,16 @@ public interface POSApiSerview {
     String getGoodsLists = "Supermarket/getGoodsLists";
 
     //结账
-    String addOrder = "Supermarket/addOrder1";
+    String addOrder = "Supermarket/addOrderzh";
     //打印信息
     String operateDetails = "currency/operateDetails";
     //会员查询
     String getMember = "Custom/accordingPhone";
 
     String getmemberDetails="supermarket/getmemberDetails";
+
+    //查询会员卡信息
+    String getCustomBlock ="Supermarket/getCustomBlock";
     String availableAmount="supermarket/availableAmount";
     //尾单查询
     String getLastOder = "supermarket/printthefinalorder";
@@ -48,6 +51,8 @@ public interface POSApiSerview {
     String orderList = "Supermarket/orderList";
     //现金退款
     String cash_refund = "supermarket/cash_refund";
+    //会员卡退款
+    String wallet_refund = "Supermarket/memberRefund";
     //支付宝退款
     String order_refund = "supermarket/order_refund";
     //微信退款
@@ -70,5 +75,12 @@ public interface POSApiSerview {
 
     //推送订单
     String pushorders = "supermarket/pushorders";
+    //充值推送订单
+    String pushOrderszh = "Supermarket/pushOrderszh";
+
+    //会员充值
+    String customRecharge = "Supermarket/customRecharge";
+
+
 
 }
