@@ -30,6 +30,7 @@ import com.uhm.uhmcs.bean.GrouponGoodsBean;
 import com.uhm.uhmcs.utils.UserUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class ShopPopupWindow {
@@ -215,7 +216,7 @@ public class ShopPopupWindow {
                 }
                 ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = new ArrayList<>();
                 grouponGoodsModelArrayList = allGrouponGoodsModelList.stream()
-                        .filter(grouponGoodsModel -> grouponGoodsModel.getCategory_ids().equals(category_ids))
+                        .filter(grouponGoodsModel -> !Arrays.asList(grouponGoodsModel.getCategory_ids().split(",")).stream().filter(s ->s .equals(category_ids)) .collect(Collectors.toCollection(ArrayList::new)).isEmpty())
                         .collect(Collectors.toCollection(ArrayList::new));
 
                 shopAdapter.setNewData(grouponGoodsModelArrayList);
