@@ -68,4 +68,7 @@ public interface POSApiSerview {
     //推送订单
     String pushorders = "supermarket/pushorders";
 
+    //支付配置列表
+    String listPaymentMethod = "shop/listPaymentMethod";
+
 }

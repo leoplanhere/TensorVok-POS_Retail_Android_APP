@@ -149,4 +149,5 @@
     <string name="dqxz">当前选择:</string>
     <string name="pwd1">请输入登录密码</string>
     <string name="Reprint">(重打)</string>
+    <string name="add_pay">添加支付配置</string>
 </resources>

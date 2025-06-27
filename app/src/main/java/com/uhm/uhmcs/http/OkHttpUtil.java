@@ -306,7 +306,7 @@ public class OkHttpUtil {
                     try {
                         String success=response.body().string();
                         JSONObject jsonObject=new JSONObject(success);
-                        if (jsonObject.getString("msg").contains("失效")){
+                        if (jsonObject.getString("msg").contains("失效")||jsonObject.getString("msg").contains("无效")){
                             context.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {

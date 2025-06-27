@@ -70,6 +70,7 @@ import com.uhm.uhmcs.popupwindow.HistoryOrderPopupWindow;
 import com.uhm.uhmcs.popupwindow.MemberPopupWindow;
 import com.uhm.uhmcs.popupwindow.MoneyBoxPopupWindow;
 import com.uhm.uhmcs.popupwindow.MorefunctionPopupWindow;
+import com.uhm.uhmcs.popupwindow.PaymentListPopupWindow;
 import com.uhm.uhmcs.popupwindow.PopupWindowOnClickListener;
 import com.uhm.uhmcs.popupwindow.PrintDevicePopupWindow;
 import com.uhm.uhmcs.popupwindow.PrintLabelsPopupWindow;
@@ -790,6 +791,12 @@ public class MainActivity extends Activity {
                                             selectedShopAdapter.notifyDataSetChanged();
                                         }
                                     }).show();
+                                    break;
+                                /**
+                                 * 支付设置
+                                 */
+                                case 11:
+                                    new PaymentListPopupWindow(MainActivity.this).show();
                                     break;
 
                                 default:
