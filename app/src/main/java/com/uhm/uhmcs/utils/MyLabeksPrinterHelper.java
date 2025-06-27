@@ -74,8 +74,12 @@ public class MyLabeksPrinterHelper {
                 StringBuilder cmd = new StringBuilder();
 
                 // 标签初始化
-                cmd.append("SIZE 40 mm,30 mm\r\n");   // 标签尺寸
-                cmd.append("GAP 2 mm,0 mm\r\n");      // 标签间隙
+                cmd.append("SIZE 100 mm,40 mm \n");   // 标签尺寸
+                cmd.append("BELINE 1 mm,1 mm \n");      // 标签间隙
+                cmd.append("SET RESPONSE NO \n");
+
+                cmd.append("DIRECTION 1 \n");
+                cmd.append("SENSOR BLACKMARK \n");
 
 
 //        // 添加图片（需转换为单色位图）
@@ -88,18 +92,16 @@ public class MyLabeksPrinterHelper {
 
                 for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : grouponGoodsModelArrayList) {
                     for (int j=0;j<num;j++){
-                        cmd.append("CLS\r\n");                // 清空缓冲区
-                        List<String> lines = splitByGbkUnits(grouponGoodsModel.getTitle(), 24);
-                        int currentY = 0;
-                        for (int i = 0; i < lines.size(); i++) {
-                            currentY = 10+ (i * 30);
-
-                            cmd.append("TEXT " + 40 + ",").append(currentY).append(",\"TSS24.BF2\",0,1,1,\"").append(lines.get(i)).append("\"\r\n");
-                        }
-                        // 添加文本
-
-                        cmd.append("TEXT " + 40 + "," + (currentY+30) + ",\"TSS24.BF2\",0,1,1,\"" + "￥").append(grouponGoodsModel.getPrice()).append("\"\r\n");
-                        cmd.append("BARCODE "+40+","+(currentY+60)+",\"128\",80,1,0,2,2,\"").append(grouponGoodsModel.getSn()).append("\"\r\n");
+                        // 清空缓冲区
+                        cmd.append("CLS \n");                // 清空缓冲区
+                        cmd.append("TEXT " + 125 + "," + 70+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getTitle()).append("\"\r\n");
+                        cmd.append("TEXT " + 80 + "," + 120+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getSn()).append("\"\r\n");
+                        cmd.append("TEXT " + 80 + "," + 165+ ",\"FONT001\",0,1,1,\"").append("编号").append("\"\r\n");
+                        cmd.append("TEXT " + 250 + "," + 165+ ",\"FONT001\",0,1,1,\"").append("规格").append("\"\r\n");
+                        cmd.append("TEXT " + 120 + "," + 215+ ",\"FONT001\",0,1,1,\"").append("kg").append("\"\r\n");
+                        cmd.append("TEXT " + 80 + "," + 260+ ",\"FONT001\",0,1,1,\"").append("合格品").append("\"\r\n");
+                        cmd.append("TEXT " + 270 + "," + 215+ ",\"FONT001\",0,1,1,\"").append("物价员").append("\"\r\n");
+                        cmd.append("TEXT " + 495 + "," + 130+ ",\"FONT001\",0,2,2,\"").append(grouponGoodsModel.getPrice()+"元").append("\"\r\n");
                         cmd.append("PRINT 1\r\n");
                     }
 
