@@ -935,8 +935,51 @@ public class MainActivity extends Activity {
                         .filter(grouponGoodsModel -> !TextUtils.isEmpty(grouponGoodsModel.getSn()) && grouponGoodsModel.getSn().equals(text))
                         .collect(Collectors.toCollection(ArrayList::new));
                 if (grouponGoodsModelArrayList.isEmpty()) {
-                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
-                    return;
+                    if (text.contains("001")&&text.contains("002")){
+
+                        int index = text.indexOf("001");
+                        String before = text.substring(0, index); // "abc"
+                        String after = text.substring(index + 3); // "def"
+                        String replaced = after.replace("002", "."); // "abc.def"
+                        ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelList = allGrouponGoodsModelList.stream()
+                                .filter(grouponGoodsModel -> grouponGoodsModel.getId().equals(before))
+                                .collect(Collectors.toCollection(ArrayList::new));
+                        if (grouponGoodsModelList.isEmpty()){
+                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
+                            return;
+                        }else {
+                            GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = SerializableUtils.deepCopy(grouponGoodsModelList.get(0));
+                            allNum++;
+                            BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice()).divide(new BigDecimal(500)).multiply(new BigDecimal(replaced)).multiply(new BigDecimal(1000)).setScale(2, RoundingMode.UP);
+                            grouponGoodsModel.setPrice(price.toString());
+                            if (!TextUtils.isEmpty(memben_discount)) {
+                                price = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
+                                grouponGoodsModel.setDiscounted_price(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price));
+                                grouponGoodsModel.setDiscount(memben_discount);
+                            }
+
+                            BigDecimal heji = price.setScale(2, RoundingMode.UP);
+                            grouponGoodsModel.setHeji(heji);
+                            grouponGoodsModel.setShuliang(1);
+                            selectedShopList.add(0, grouponGoodsModel);
+                            have_paid_view.setVisibility(GONE);
+                            selectedShopAdapter.setNewData(selectedShopList);
+                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
+
+                            // 滚动到位置 0（第一条）
+                            selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
+                            tv_zongjian.setText(allNum + "");
+                            zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
+                            tv_zongjia.setText(zongjia + "");
+                            MyPresentation.setZongjia(zongjia.toString());
+                            availableAmount();
+                            return;
+                        }
+                    }else {
+                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
+                        return;
+                    }
+
                 }
                 allNum++;
                 GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = grouponGoodsModelArrayList.get(0);

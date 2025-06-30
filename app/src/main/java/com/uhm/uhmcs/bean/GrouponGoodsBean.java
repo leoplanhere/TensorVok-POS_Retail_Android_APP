@@ -1,10 +1,6 @@
 package com.uhm.uhmcs.bean;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.text.TextUtils;
-
-import androidx.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -70,7 +66,7 @@ public class GrouponGoodsBean implements Serializable{
     public static class GrouponGoodsModel implements Serializable  {
 
 
-        private int id;
+        private String id;
 
 
         private String goods_id;
@@ -78,7 +74,7 @@ public class GrouponGoodsBean implements Serializable{
 
         private String sn;
 
-        private int ggspid;
+        private String ggspid;
 
         private int goods_sku_price_id;
 
@@ -191,15 +187,15 @@ public class GrouponGoodsBean implements Serializable{
             this.sn = sn;
         }
 
-        public int getGgspid() {
+        public String getGgspid() {
             return ggspid;
         }
 
-        public void setGgspid(int ggspid) {
+        public void setGgspid(String ggspid) {
             this.ggspid = ggspid;
         }
 
-        public int getGoods_sku_price_id() {
+        public String getGoods_sku_price_id() {
             return ggspid;
         }
 
@@ -274,8 +270,8 @@ public class GrouponGoodsBean implements Serializable{
             this.flname = flname;
         }
 
-        public int getGoods_id() {
-            return id;
+        public String getGoods_id() {
+            return goods_id;
         }
 
         public String getPrice() {
@@ -288,14 +284,24 @@ public class GrouponGoodsBean implements Serializable{
         }
 
         public void setPrice(String price) {
-            this.price = price;
+            if (!TextUtils.isEmpty(ggprice)){
+                this.ggprice = price;
+            }else {
+                this.price = price;
+            }
+
         }
 
-        public int getId() {
-            return id;
+        public String getId() {
+            if (TextUtils.isEmpty(ggspid)){
+                return id;
+            }else {
+                return ggspid;
+            }
+
         }
 
-        public void setId(int id) {
+        public void setId(String id) {
             this.id = id;
         }
 

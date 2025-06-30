@@ -232,7 +232,7 @@ public class CheckoutBean {
     }
 
      public static class GoodsJsonBean{
-        public int goods_id;
+        public String goods_id;
         public String title;
         public String goods_sn;
         public String sn;
@@ -252,11 +252,11 @@ public class CheckoutBean {
 
 
 
-        public int getGoods_id() {
+        public String getGoods_id() {
             return goods_id;
         }
 
-        public void setGoods_id(int goods_id) {
+        public void setGoods_id(String goods_id) {
             this.goods_id = goods_id;
         }
 
