@@ -71,4 +71,12 @@ public interface POSApiSerview {
     //支付配置列表
     String listPaymentMethod = "shop/listPaymentMethod";
 
+    //支付配置添加
+    String addPaymentMethod = "shop/addPaymentMethod";
+
+    //支付配置编辑
+    String updatePaymentMethod = "shop/updatePaymentMethod";
+    //支付配置删除
+    String deletePaymentMethod = "shop/deletePaymentMethod";
+
 }

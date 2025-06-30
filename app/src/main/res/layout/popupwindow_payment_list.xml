@@ -54,7 +54,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="服务商微信支付appid"
+                android:text="微信子商户公众号的app_id"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -63,6 +63,14 @@
                 android:textSize="25dp"
                 android:textColor="@color/black"
                 android:text="支付宝授权token"
+                android:gravity="center"/>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:textSize="25dp"
+                android:textColor="@color/black"
+                android:text="是否默认"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
@@ -91,6 +99,17 @@
             android:scrollbars="vertical"
             android:visibility="visible" />
 
-
+        <TextView
+            android:id="@+id/add_payment_btn"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="20dp"
+            android:layout_width="500dp"
+            android:layout_height="80dp"
+            android:background="@drawable/blue_bg1"
+            android:textSize="30dp"
+            android:textColor="@color/white"
+            android:text="添加支付配置"
+            android:gravity="center" />
     </LinearLayout>
 </LinearLayout>

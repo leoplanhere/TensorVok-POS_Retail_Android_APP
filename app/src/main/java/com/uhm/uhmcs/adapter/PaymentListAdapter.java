@@ -5,45 +5,22 @@ import android.graphics.Color;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.uhm.uhmcs.R;
+import com.uhm.uhmcs.bean.PaymentBean;
 import com.uhm.uhmcs.bean.RegistrationShopBean;
 
-public class PaymentListAdapter extends BaseQuickAdapter<RegistrationShopBean, BaseViewHolder> {
+public class PaymentListAdapter extends BaseQuickAdapter<PaymentBean.DataBean, BaseViewHolder> {
 
     public PaymentListAdapter() {
-        super(R.layout.item_guadan);
+        super(R.layout.item_payment_list);
 
     }
-    private int index=0;
-
-    public int getIndex() {
-        return index;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
-        notifyDataSetChanged();
-    }
-
     @Override
-    protected void convert(BaseViewHolder helper, RegistrationShopBean item) {
-//        helper.setText(R.id.shop_type,item.getName());
-//        if (item.isSelected()){
-//            helper.setBackgroundRes(R.id.item_shop_type_view,R.drawable.shop_bg);
-//            helper.setTextColor(R.id.shop_type,context.getResources().getColor(R.color.white));
-//        }else {
-//            helper.setTextColor(R.id.shop_type,context.getResources().getColor(R.color.black));
-//            helper.setBackgroundRes(R.id.item_shop_type_view,R.drawable.menu_bg);
-//        }
-        helper.setText(R.id.xuhao,(helper.getLayoutPosition()+1)+"");
-        helper.setText(R.id.guadan_time,item.getTime());
-        helper.setText(R.id.guadan_jine,item.getTotal_price().toString());
-
-        if (helper.getLayoutPosition()==index){
-            helper.setBackgroundColor(R.id.all_view,Color.parseColor("#65755a"));
-        }else {
-            helper.getView(R.id.all_view).setBackgroundColor(Color.TRANSPARENT);
-        }
-
-
+    protected void convert(BaseViewHolder helper, PaymentBean.DataBean item) {
+        helper.setText(R.id.wx_shanghuhao, item.getMerchant());
+        helper.setText(R.id.wx_app_id, item.getSub_app_id());
+        helper.setText(R.id.zfb_token, item.getApp_auth_token());
+        helper.setText(R.id.is_moren, item.getZh_default()==1?"是":"否");
+        helper.addOnClickListener(R.id.edit_btn);
+        helper.addOnClickListener(R.id.delete_btn);
     }
 }
