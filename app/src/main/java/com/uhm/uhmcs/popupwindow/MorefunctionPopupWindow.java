@@ -122,6 +122,11 @@ public class MorefunctionPopupWindow {
             morefunctionOnClickListener.onClick(11);
             popupWindow.dismiss();
         });
+        popupView.findViewById(R.id.zhifushengzhi_btn).setOnClickListener(v -> {
+            v.startAnimation(animation);
+            morefunctionOnClickListener.onClick(12);
+            popupWindow.dismiss();
+        });
         popupView.findViewById(R.id.all_view).setOnClickListener(v -> {
 
             popupWindow.dismiss();

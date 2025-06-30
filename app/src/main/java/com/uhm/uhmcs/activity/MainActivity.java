@@ -71,6 +71,7 @@ import com.uhm.uhmcs.popupwindow.MemberPopupWindow;
 import com.uhm.uhmcs.popupwindow.MemberRechargePopupWindow;
 import com.uhm.uhmcs.popupwindow.MoneyBoxPopupWindow;
 import com.uhm.uhmcs.popupwindow.MorefunctionPopupWindow;
+import com.uhm.uhmcs.popupwindow.PaymentListPopupWindow;
 import com.uhm.uhmcs.popupwindow.PopupWindowOnClickListener;
 import com.uhm.uhmcs.popupwindow.PrintDevicePopupWindow;
 import com.uhm.uhmcs.popupwindow.PrintLabelsPopupWindow;
@@ -274,7 +275,7 @@ public class MainActivity extends Activity {
 
 
         onClickListener = new View.OnClickListener() {
-           
+
             @Override
             public void onClick(View v) {
                 int id = v.getId();
@@ -818,6 +819,12 @@ public class MainActivity extends Activity {
 
                                         }
                                     }).show();
+                                    break;
+                                /**
+                                 * 支付设置
+                                 */
+                                case 12:
+                                    new PaymentListPopupWindow(MainActivity.this).show();
                                     break;
 
                                 default:

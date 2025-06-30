@@ -99,7 +99,7 @@ public class GoodsWarehousingPopupWindow {
         shangpintiaoma_tv.postDelayed(shangpintiaomaRunnable,100);
         shangpintiaoma_tv.setOnInputCompleteListener(text -> {
             grouponGoodsModelArrayList= allGrouponGoodsModelList.stream()
-                    .filter(grouponGoodsModel -> grouponGoodsModel.getSn().equals(text))
+                    .filter(grouponGoodsModel -> !TextUtils.isEmpty(grouponGoodsModel.getSn())&&grouponGoodsModel.getSn().equals(text))
                     .collect(Collectors.toCollection(ArrayList::new));
             if (grouponGoodsModelArrayList.isEmpty()){
                 new DeleteShopPopupWindow(context,context.getString(R.string.product_not_found_in_inventory),true).show();
