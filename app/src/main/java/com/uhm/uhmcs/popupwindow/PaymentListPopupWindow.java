@@ -19,6 +19,7 @@ import com.google.gson.reflect.TypeToken;
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.adapter.PrintDeviceAdapter;
 import com.uhm.uhmcs.bean.LastOrderBean;
+import com.uhm.uhmcs.bean.PaymentBean;
 import com.uhm.uhmcs.http.OkHttpUtil;
 import com.uhm.uhmcs.http.POSApiSerview;
 import com.uhm.uhmcs.utils.MyUsbDeviceHelper;
@@ -100,19 +101,13 @@ public class PaymentListPopupWindow {
                 context.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            int code = jsonObject.getInt("code");
-                            if (code == 1 && !TextUtils.isEmpty(jsonObject.getString("data"))) {
+                        PaymentBean paymentBean=new Gson().fromJson(response,PaymentBean.class);
+                        if (paymentBean.getCode() == 1 ) {
 
 
-                            }else {
+                        }else {
 
 
-                            }
-
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
                         }
 
                     }
