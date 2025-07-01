@@ -54,7 +54,7 @@
                 android:layout_weight="1"
                 android:textSize="25dp"
                 android:textColor="@color/black"
-                android:text="微信子商户公众号的app_id"
+                android:text="微信子商户商户号ID"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"

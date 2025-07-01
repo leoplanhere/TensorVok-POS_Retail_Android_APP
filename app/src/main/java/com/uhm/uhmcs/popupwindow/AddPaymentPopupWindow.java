@@ -140,6 +140,14 @@ public class AddPaymentPopupWindow implements View.OnClickListener {
         }
 
         pay_submit.setOnClickListener(v -> {
+            if (TextUtils.isEmpty(zfb_gongyao.getText().toString())){
+                new DeleteShopPopupWindow(context,"请输入支付宝服务商公钥",true).show();
+                return;
+            }
+            if (TextUtils.isEmpty(zfb_token.getText().toString())){
+                new DeleteShopPopupWindow(context,"请输入支付宝授权token",true).show();
+                return;
+            }
             if (TextUtils.isEmpty(wx_shanghuhao.getText().toString())){
                 new DeleteShopPopupWindow(context,"请输入微信服务商商户号",true).show();
                 return;

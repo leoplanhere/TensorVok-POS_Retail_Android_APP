@@ -17,7 +17,7 @@ public class PaymentListAdapter extends BaseQuickAdapter<PaymentBean.DataBean, B
     @Override
     protected void convert(BaseViewHolder helper, PaymentBean.DataBean item) {
         helper.setText(R.id.wx_shanghuhao, item.getMerchant());
-        helper.setText(R.id.wx_app_id, item.getSub_app_id());
+        helper.setText(R.id.wx_app_id, item.getSub_mch_id());
         helper.setText(R.id.zfb_token, item.getApp_auth_token());
         helper.setText(R.id.is_moren, item.getZh_default()==1?"是":"否");
         helper.addOnClickListener(R.id.edit_btn);
