@@ -1,6 +1,5 @@
-<resources xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="TypographyEllipsis">
-    <string name="app_name" >优海猫-收银</string>
+<resources>
+    <string name="app_name" >优海猫-零售</string>
     <string name="qudan_null">取单(F3)</string>
     <string name="qudan_null1">取单</string>
     <string name="qudan_num">取单(F3)(%s)</string>
