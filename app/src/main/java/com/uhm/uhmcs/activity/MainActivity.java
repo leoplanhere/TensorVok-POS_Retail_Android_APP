@@ -822,12 +822,12 @@ public class MainActivity extends Activity {
                                         }
                                     }).show();
                                     break;
-                                /**
-                                 * 支付设置
-                                 */
-                                case 12:
-                                    new PaymentListPopupWindow(MainActivity.this).show();
-                                    break;
+//                                /**
+//                                 * 支付设置
+//                                 */
+//                                case 12:
+//                                    new PaymentListPopupWindow(MainActivity.this).show();
+//                                    break;
                                 /**
                                  * 商品点击设置
                                  */
