@@ -148,6 +148,8 @@ public class MainActivity extends Activity {
 
     private TextView caozuo_view;
 
+    private View shop_mocheng;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -798,6 +800,19 @@ public class MainActivity extends Activity {
                                 case 11:
                                     new PaymentListPopupWindow(MainActivity.this).show();
                                     break;
+                                /**
+                                 * 商品点击设置
+                                 */
+                                case 12:
+                                    new DeleteShopPopupWindow(true,MainActivity.this, UserUtils.getInstance().isDianji()?getString(R.string.shangpinkaiguan_hint,getString(R.string.off)):getString(R.string.shangpinkaiguan_hint,getString(R.string.on)), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                                        @Override
+                                        public void onClick(String text) {
+                                            UserUtils.getInstance().setDianji(MainActivity.this,!UserUtils.getInstance().isDianji());
+                                            shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji()?VISIBLE:GONE);
+
+                                        }
+                                    }).show();
+                                    break;
 
                                 default:
                                     throw new IllegalStateException("Unexpected value: " + btnType);
@@ -844,7 +859,11 @@ public class MainActivity extends Activity {
             }
         };
         caozuo_view=findViewById(R.id.caozuo_view);
+        shop_mocheng=findViewById(R.id.shop_mocheng);
+        shop_mocheng.setOnClickListener(v -> {
 
+        });
+        shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji()?VISIBLE:GONE);
         bendin_view = findViewById(R.id.bendin_view);
         wangluo_view = findViewById(R.id.wangluo_view);
         ImageView imageView = findViewById(R.id.image);

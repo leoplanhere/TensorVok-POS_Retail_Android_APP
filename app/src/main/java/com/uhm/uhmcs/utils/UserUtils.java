@@ -35,6 +35,8 @@ public class UserUtils {
 
     private boolean isDazhe;
 
+    private boolean isDianji;
+
 
 
     /**
@@ -68,6 +70,7 @@ public class UserUtils {
         loginPhone=prefUserInfo.getString("loginPhone","");
         orderListJson=prefUserInfo.getString("orderListJson","");
         isDazhe=prefUserInfo.getBoolean("isDazhe",false);
+        isDianji=prefUserInfo.getBoolean("isDianji",true);
     }
 
     public String getOrderListJson() {
@@ -81,6 +84,21 @@ public class UserUtils {
         SharedPreferences.Editor editor = prefUserInfo.edit();
         this.orderListJson = orderListJson;
         editor.putString("orderListJson",orderListJson);
+        editor.apply();
+        editor=null;
+    }
+
+
+    public boolean isDianji() {
+        return isDianji;
+    }
+
+    public void setDianji(Context context,boolean dianji) {
+        SharedPreferences prefUserInfo = context.getSharedPreferences(
+                USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefUserInfo.edit();
+        isDianji = dianji;
+        editor.putBoolean("isDianji",dianji);
         editor.apply();
         editor=null;
     }

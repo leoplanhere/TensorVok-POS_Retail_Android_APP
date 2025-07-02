@@ -18,18 +18,28 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:background="@drawable/white_bg">
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/shop_rv"
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1"
-                android:background="@color/white"
-                android:fadeScrollbars="false"
-                android:gravity="center"
-                android:scrollbarFadeDuration="0"
-                android:scrollbarThumbVertical="@drawable/scrollbar_vertical_thumb"
-                android:scrollbars="vertical"
-                android:visibility="visible" />
+                android:layout_weight="1">
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/shop_rv"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/white"
+                    android:fadeScrollbars="false"
+                    android:gravity="center"
+                    android:scrollbarFadeDuration="0"
+                    android:scrollbarThumbVertical="@drawable/scrollbar_vertical_thumb"
+                    android:scrollbars="vertical"
+                    android:visibility="visible" />
+                <View
+                    android:visibility="gone"
+                    android:id="@+id/shop_mocheng"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+            </RelativeLayout>
+
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="80dp">

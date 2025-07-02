@@ -143,6 +143,18 @@
                 android:gravity="center"/>
             <TextView
                 android:visibility="visible"
+                android:id="@+id/shangpindianji_btn"
+                android:layout_marginRight="10dp"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:background="@drawable/blue_bg4"
+                android:textColor="@color/white"
+                android:textSize="20dp"
+                android:textStyle="bold"
+                android:text="@string/shangpinkaiguan"
+                android:gravity="center"/>
+            <TextView
+                android:visibility="gone"
                 android:id="@+id/zhifushengzhi_btn"
                 android:layout_marginRight="10dp"
                 android:layout_width="140dp"
@@ -154,7 +166,7 @@
                 android:text="支付设置"
                 android:gravity="center"/>
             <TextView
-                android:visibility="gone"
+                android:visibility="invisible"
                 android:id="@+id/qianxiangshezhi_btn"
                 android:layout_marginRight="10dp"
                 android:layout_width="140dp"
@@ -166,7 +178,7 @@
                 android:text="钱箱设置"
                 android:gravity="center"/>
             <TextView
-                android:visibility="invisible"
+                android:visibility="gone"
                 android:id="@+id/jiaojieban_btn"
                 android:layout_marginRight="10dp"
                 android:layout_width="140dp"
@@ -177,6 +189,7 @@
                 android:textStyle="bold"
                 android:text="交接班"
                 android:gravity="center"/>
+
 
 
 

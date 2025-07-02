@@ -116,11 +116,20 @@ public class MorefunctionPopupWindow {
             morefunctionOnClickListener.onClick(10);
             popupWindow.dismiss();
         });
-        popupView.findViewById(R.id.zhifushengzhi_btn).setOnClickListener(v -> {
+//        popupView.findViewById(R.id.zhifushengzhi_btn).setOnClickListener(v -> {
+//            v.startAnimation(animation);
+//            morefunctionOnClickListener.onClick(11);
+//            popupWindow.dismiss();
+//        });
+
+        TextView shangpindianji_btn=popupView.findViewById(R.id.shangpindianji_btn);
+        shangpindianji_btn.setText(!UserUtils.getInstance().isDianji()?context.getString(R.string.shangpinkaiguan,context.getString(R.string.off)):context.getString(R.string.shangpinkaiguan,context.getString(R.string.on)));
+        shangpindianji_btn.setOnClickListener(v -> {
             v.startAnimation(animation);
-            morefunctionOnClickListener.onClick(11);
+            morefunctionOnClickListener.onClick(12);
             popupWindow.dismiss();
         });
+
         popupView.findViewById(R.id.all_view).setOnClickListener(v -> {
 
             popupWindow.dismiss();

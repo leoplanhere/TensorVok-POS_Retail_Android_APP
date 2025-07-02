@@ -5,15 +5,20 @@ package com.uhm.uhmcs.http;
  * api接口存放
  */
 public interface POSApiSerview {
+//    String POS_URL1 = "https://xlcc.uhimao.com/";
+    String POS_URL1 = "https://shbs.uhimao.com/";
 
-    String POS_URL = "https://xlcc.uhimao.com/api/";
+    String POS_URL = POS_URL1+"api/";
 //    String POS_URL = "https://shbs.uhimao.com/api/";
+
 
     /**
      * 测试分支
      */
     //登录
     String login = "user/login";
+
+    String version = "version.txt";
     //登录
     String GrouponGoods = "Supermarket/getGrouponGoods";
     //获取店铺列表
