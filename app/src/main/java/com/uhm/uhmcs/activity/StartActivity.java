@@ -20,6 +20,7 @@ import com.uhm.uhmcs.bean.PrintDataBean;
 import com.uhm.uhmcs.bean.VersionBean;
 import com.uhm.uhmcs.http.NetworkErrorInterceptor;
 import com.uhm.uhmcs.http.OkHttpUtil;
+import com.uhm.uhmcs.http.POSApiSerview;
 import com.uhm.uhmcs.popupwindow.DeleteShopPopupWindow;
 import com.uhm.uhmcs.popupwindow.PopupWindowOnClickListener;
 import com.uhm.uhmcs.utils.MyPrinterHelper;
@@ -52,13 +53,14 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import update.UpdateAppUtils;
 
 public class StartActivity extends Activity {
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
 
-        String url="https://xlcc.uhimao.com/version.txt";
+        String url= POSApiSerview.POS_URL1+POSApiSerview.version;
         Request.Builder builder = new Request.Builder()
                 .url(url);
         Request request = builder.build();
@@ -104,7 +106,7 @@ public class StartActivity extends Activity {
                                 uiConfig.setUiType(UiType.PLENTIFUL);
                                 UpdateAppUtils
                                         .getInstance()
-                                        .apkUrl("https://xlcc.uhimao.com/app.apk")
+                                        .apkUrl(versionBean.getApkUrl())
                                         .updateConfig(updateConfig)
                                         .uiConfig(uiConfig)
                                         .updateTitle("发现新版本"+versionBean.getVersionName())

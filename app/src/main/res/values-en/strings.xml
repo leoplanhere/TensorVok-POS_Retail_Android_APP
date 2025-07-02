@@ -152,4 +152,6 @@
     <string name="pwd1">Please enter your login password.</string>
     <string name="Reprint">(Reprint)</string>
     <string name="add_pay">Add payment configuration</string>
+    <string name="shangpinkaiguan">商品点击开关\n(当前:打开)</string>
+    <string name="shangpinkaiguan_hint">您确定%s商品点击吗?</string>
 </resources>

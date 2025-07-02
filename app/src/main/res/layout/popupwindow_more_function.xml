@@ -142,6 +142,18 @@
                 android:text="@string/discount_toggle"
                 android:gravity="center"/>
             <TextView
+                android:visibility="visible"
+                android:id="@+id/shangpindianji_btn"
+                android:layout_marginRight="10dp"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:background="@drawable/blue_bg4"
+                android:textColor="@color/white"
+                android:textSize="20dp"
+                android:textStyle="bold"
+                android:text="@string/shangpinkaiguan"
+                android:gravity="center"/>
+            <TextView
                 android:visibility="gone"
                 android:id="@+id/zhifushengzhi_btn"
                 android:layout_marginRight="10dp"
@@ -178,7 +190,7 @@
                 android:text="钱箱设置"
                 android:gravity="center"/>
             <TextView
-                android:visibility="invisible"
+                android:visibility="gone"
                 android:id="@+id/jiaojieban_btn"
                 android:layout_marginRight="10dp"
                 android:layout_width="140dp"
