@@ -1015,7 +1015,7 @@ public class MainActivity extends Activity {
                         GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
 //                        Log.i("ttt", ">>>>>>>>>>>>>>" + model.getId() + "<<<<<" + grouponGoodsModel.getId());
                         Log.i("ttt", ">>>>>>>>Ggspid>>>>>>" + model.getGgspid() + "<<<<<" + grouponGoodsModel.getGgspid());
-                        if (model.getId() == grouponGoodsModel.getId()&&model.getGgspid() == grouponGoodsModel.getGgspid()) {
+                        if (model.getId() .equals(grouponGoodsModel.getId()) &&model.getGgspid() .equals(grouponGoodsModel.getGgspid()) ) {
 //                            if (model.getGgspid()==0||model.getGgspid()==grouponGoodsModel.getGgspid())
                             model.setShuliang(model.getShuliang() + 1);
                             BigDecimal price = new BigDecimal(model.getPrice());
