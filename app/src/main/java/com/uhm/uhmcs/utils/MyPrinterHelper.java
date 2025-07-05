@@ -126,9 +126,9 @@ public class MyPrinterHelper {
                     output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
                 }
 
-                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getName()+"\n").getBytes(Charset.forName("GBK")));
-                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getAddress()+"\n").getBytes(Charset.forName("GBK")));
-                output.write(("全国客服热线:"+UserUtils.getInstance().getShopDataBean().getData().get(0).getPhone()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("优道佳家福玄武街店"+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("全国客服热线:"+"17560635652"+"\n").getBytes(Charset.forName("GBK")));
 
 
 //                output.write("潮享三句半\n".getBytes(Charset.forName("GBK")));
@@ -308,9 +308,9 @@ public class MyPrinterHelper {
 
 
 
-                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getName()+"\n").getBytes(Charset.forName("GBK")));
-                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getAddress()+"\n").getBytes(Charset.forName("GBK")));
-                output.write(("全国客服热线:"+UserUtils.getInstance().getShopDataBean().getData().get(0).getPhone()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("优道佳家福玄武街店"+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("全国客服热线:"+"17560635652"+"\n").getBytes(Charset.forName("GBK")));
 
 
 //                output.write("潮享三句半\n".getBytes(Charset.forName("GBK")));
@@ -455,9 +455,9 @@ public class MyPrinterHelper {
                     output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
                 }
 
-                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getName()+"\n").getBytes(Charset.forName("GBK")));
-                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getAddress()+"\n").getBytes(Charset.forName("GBK")));
-                output.write(("全国客服热线:"+UserUtils.getInstance().getShopDataBean().getData().get(0).getPhone()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("优道佳家福玄武街店"+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("全国客服热线:"+"17560635652"+"\n").getBytes(Charset.forName("GBK")));
 
 
 //                output.write("潮享三句半\n".getBytes(Charset.forName("GBK")));
@@ -677,9 +677,9 @@ public class MyPrinterHelper {
 
 
 
-                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getName()+context.getString(R.string.Reprint)+"\n").getBytes(Charset.forName("GBK")));
-                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getAddress()+"\n").getBytes(Charset.forName("GBK")));
-                output.write(("全国客服热线:"+UserUtils.getInstance().getShopDataBean().getData().get(0).getPhone()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("优道佳家福玄武街店"+context.getString(R.string.Reprint)+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("全国客服热线:"+"17560635652"+"\n").getBytes(Charset.forName("GBK")));
 //                output.write("潮享三句半\n".getBytes(Charset.forName("GBK")));
 //                output.write("上海市静安区大悦城s516\n".getBytes(Charset.forName("GBK")));
 //                output.write("全国客服热线:021-37631329\n".getBytes(Charset.forName("GBK")));
@@ -904,9 +904,9 @@ public class MyPrinterHelper {
 
 
 
-                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getName()+"\n").getBytes(Charset.forName("GBK")));
-                output.write((UserUtils.getInstance().getShopDataBean().getData().get(0).getAddress()+"\n").getBytes(Charset.forName("GBK")));
-                output.write(("全国客服热线:"+UserUtils.getInstance().getShopDataBean().getData().get(0).getPhone()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("优道佳家福玄武街店"+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("全国客服热线:"+"17560635652"+"\n").getBytes(Charset.forName("GBK")));
 //                output.write("潮享三句半\n".getBytes(Charset.forName("GBK")));
 //                output.write("上海市静安区大悦城s516\n".getBytes(Charset.forName("GBK")));
 //                output.write("全国客服热线:021-37631329\n".getBytes(Charset.forName("GBK")));
@@ -1139,7 +1139,7 @@ public class MyPrinterHelper {
                 // 获取当前时间（基于系统时区）
                 String formattedTime = sdf.format(System.currentTimeMillis());
                 output.write(("交班时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
-                output.write(("营业门店:"+UserUtils.getInstance().getShopDataBean().getData().get(0).getName()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("营业门店:"+"优道佳家福玄武街店"+"\n").getBytes(Charset.forName("GBK")));
                 output.write(("收银员:"+UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUsername()+"\n").getBytes(Charset.forName("GBK")));
                 output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
 
