@@ -7,7 +7,18 @@ package com.uhm.uhmcs.http;
 public interface POSApiSerview {
 
 //    String POS_URL = "https://xlcc.uhimao.com/api/";
-    String POS_URL = "https://shbs.uhimao.com/api/";
+    String POS_URL1 = "https://shbs.uhimao.com/";
+
+    String POS_URL = POS_URL1+"api/";
+//    String POS_URL = "https://shbs.uhimao.com/api/";
+
+
+    /**
+     * 测试分支
+     */
+    //登录
+
+    String version = "version.txt";
 
     /**
      * 测试分支

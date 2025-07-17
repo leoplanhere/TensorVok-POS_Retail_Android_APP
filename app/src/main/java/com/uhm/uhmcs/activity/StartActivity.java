@@ -20,6 +20,7 @@ import com.uhm.uhmcs.bean.PrintDataBean;
 import com.uhm.uhmcs.bean.VersionBean;
 import com.uhm.uhmcs.http.NetworkErrorInterceptor;
 import com.uhm.uhmcs.http.OkHttpUtil;
+import com.uhm.uhmcs.http.POSApiSerview;
 import com.uhm.uhmcs.popupwindow.DeleteShopPopupWindow;
 import com.uhm.uhmcs.popupwindow.PopupWindowOnClickListener;
 import com.uhm.uhmcs.utils.MyPrinterHelper;
@@ -58,23 +59,28 @@ public class StartActivity extends Activity {
         setContentView(R.layout.activity_start);
 
 
-        String url="https://xlcc.uhimao.com/version.txt";
+        String url= POSApiSerview.POS_URL1+POSApiSerview.version;
         Request.Builder builder = new Request.Builder()
                 .url(url);
         Request request = builder.build();
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
         OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
                 .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        delaymillinon();
+                    }
+                });
             }
 
             @Override
@@ -104,7 +110,7 @@ public class StartActivity extends Activity {
                                 uiConfig.setUiType(UiType.PLENTIFUL);
                                 UpdateAppUtils
                                         .getInstance()
-                                        .apkUrl("https://xlcc.uhimao.com/app.apk")
+                                        .apkUrl(versionBean.getApkUrl())
                                         .updateConfig(updateConfig)
                                         .uiConfig(uiConfig)
                                         .updateTitle("发现新版本"+versionBean.getVersionName())
