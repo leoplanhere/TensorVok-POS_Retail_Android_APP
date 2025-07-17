@@ -9,7 +9,12 @@ public interface POSApiSerview {
     String POS_URL1 = "https://shbs.uhimao.com/";
 
     String POS_URL = POS_URL1+"api/";
+//    String POS_URL = "https://xlcc.uhimao.com/api/";
+
 //    String POS_URL = "https://shbs.uhimao.com/api/";
+
+
+
 
 
     /**

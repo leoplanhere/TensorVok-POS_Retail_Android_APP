@@ -8,6 +8,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
+import android.icu.math.BigDecimal;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -17,6 +18,7 @@ import com.uhm.uhmcs.popupwindow.DeleteShopPopupWindow;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -86,20 +88,39 @@ public class MyLabeksPrinterHelper {
 //                .append(bitmap.getHeight()).append(",0,");
                 // 此处需添加位图数据（简化示例，实际需遍历像素生成二进制数据）
 
+//                for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : grouponGoodsModelArrayList) {
+//                    for (int j=0;j<num;j++){
+//                        cmd.append("CLS\r\n");                // 清空缓冲区
+//                        List<String> lines = splitByGbkUnits(grouponGoodsModel.getTitle(), 24);
+//                        int currentY = 0;
+//                        for (int i = 0; i < lines.size(); i++) {
+//                            currentY = 10+ (i * 30);
+//
+//                            cmd.append("TEXT " + 20 + ",").append(currentY).append(",\"TSS24.BF2\",0,1,1,\"").append(lines.get(i)).append("\"\r\n");
+//                        }
+//                        // 添加文本
+//
+//                        cmd.append("TEXT " + 20 + "," + (currentY+30) + ",\"TSS24.BF2\",0,2,2,\"" + "￥").append(grouponGoodsModel.getPrice()).append("\"\r\n");
+//                        cmd.append("BARCODE "+20+","+(currentY+90)+",\"128\",80,1,0,2,2,\"").append(grouponGoodsModel.getSn()).append("\"\r\n");
+//                        cmd.append("PRINT 1\r\n");
+//                    }
+//
+//
+//                }
                 for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : grouponGoodsModelArrayList) {
                     for (int j=0;j<num;j++){
                         cmd.append("CLS\r\n");                // 清空缓冲区
-                        List<String> lines = splitByGbkUnits(grouponGoodsModel.getTitle(), 24);
+                        List<String> lines = splitByGbkUnitsWithRule(grouponGoodsModel.getTitle());
                         int currentY = 0;
                         for (int i = 0; i < lines.size(); i++) {
-                            currentY = 10+ (i * 30);
+                            currentY = 6+ (i * 30);
 
-                            cmd.append("TEXT " + 40 + ",").append(currentY).append(",\"TSS24.BF2\",0,1,1,\"").append(lines.get(i)).append("\"\r\n");
+                            cmd.append("TEXT " + 20 + ",").append(currentY).append(",\"TSS24.BF2\",0,1,1,\"").append(lines.get(i)).append("\"\r\n");
                         }
                         // 添加文本
 
-                        cmd.append("TEXT " + 40 + "," + (currentY+30) + ",\"TSS24.BF2\",0,1,1,\"" + "￥").append(grouponGoodsModel.getPrice()).append("\"\r\n");
-                        cmd.append("BARCODE "+40+","+(currentY+60)+",\"128\",80,1,0,2,2,\"").append(grouponGoodsModel.getSn()).append("\"\r\n");
+                        cmd.append("TEXT " + 150 + "," + 10 + ",\"TSS24.BF2\",0,2,2,\"" + "￥").append(new BigDecimal(grouponGoodsModel.getPrice()).setScale(1, BigDecimal.ROUND_DOWN).toString()).append("\"\r\n");
+                        cmd.append("BARCODE "+20+","+(currentY+30)+",\"128\",80,1,0,2,2,\"").append(grouponGoodsModel.getSn()).append("\"\r\n");
                         cmd.append("PRINT 1\r\n");
                     }
 
@@ -157,6 +178,52 @@ public class MyLabeksPrinterHelper {
 
         return result;
     }
+    /**
+     * 差异化截取：前两列10单位，第三列起24单位
+     * @param input 输入字符串
+     * @return 分块后的字符串列表
+     */
+    public List<String> splitByGbkUnitsWithRule(String input) {
+        List<String> result = new ArrayList<>();
+        if (input == null || input.isEmpty()) return result;
+
+        try {
+            int[] maxUnits = {12, 12, 24}; // 各列单位限制
+            int currentCol = 0;            // 当前列索引
+            int currentUnits = 0;          // 当前列累计单位
+            int startIndex = 0;            // 当前块起始位置
+
+            for (int i = 0; i < input.length(); i++) {
+                char c = input.charAt(i);
+                int unit = getGbkCharUnit(c);
+
+                // 列切换逻辑：前两列完成后进入第三列
+                if (currentCol < 2 && currentUnits + unit > maxUnits[currentCol]) {
+                    result.add(input.substring(startIndex, i));
+                    startIndex = i;
+                    currentCol++;
+                    currentUnits = unit;
+                }
+                // 第三列超限处理
+                else if (currentCol >= 2 && currentUnits + unit > maxUnits[2]) {
+                    result.add(input.substring(startIndex, i));
+                    startIndex = i;
+                    currentUnits = unit;
+                } else {
+                    currentUnits += unit;
+                }
+            }
+
+            // 添加剩余内容
+            if (startIndex < input.length()) {
+                result.add(input.substring(startIndex));
+            }
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("GBK encoding not supported", e);
+        }
+        return result;
+    }
+
 
     /**
      * 获取字符的GBK单位（中文2，英文1）

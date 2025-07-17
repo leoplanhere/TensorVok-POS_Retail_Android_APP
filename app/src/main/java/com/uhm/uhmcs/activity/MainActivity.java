@@ -1400,9 +1400,9 @@ public class MainActivity extends Activity {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
         OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
                 .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
@@ -1523,9 +1523,9 @@ public class MainActivity extends Activity {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
         OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
                 .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
@@ -1638,9 +1638,9 @@ public class MainActivity extends Activity {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
         OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
                 .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
@@ -1973,9 +1973,9 @@ public class MainActivity extends Activity {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
         OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
                 .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
@@ -2060,9 +2060,9 @@ public class MainActivity extends Activity {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
         OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
                 .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
@@ -2117,9 +2117,9 @@ public class MainActivity extends Activity {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
         OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
                 .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();

@@ -45,8 +45,8 @@ public class NetworkUtils {
     public  boolean isInternetAvailable() {
         try {
             OkHttpClient client = new OkHttpClient.Builder()
-                    .connectTimeout(3, TimeUnit.SECONDS)
-                    .readTimeout(3, TimeUnit.SECONDS)
+                    .connectTimeout(10000, TimeUnit.SECONDS)
+                    .readTimeout(10000, TimeUnit.SECONDS)
                     .build();
 
             Request request = new Request.Builder()
