@@ -297,7 +297,7 @@ public class MainActivity extends Activity {
                         @Override
                         public void onClick(String string) {
                             if (!selectedShopList.get(selectedShopIndex).isIs_zengsong()) {
-                                zongjia = zongjia.subtract(selectedShopList.get(selectedShopIndex).getHeji()).setScale(2, RoundingMode.UP);
+                                zongjia = zongjia.subtract(selectedShopList.get(selectedShopIndex).getHeji()).setScale(2, RoundingMode.DOWN);
                                 tv_zongjia.setText(zongjia + "");
                                 MyPresentation.setZongjia(zongjia.toString());
                             }
@@ -864,7 +864,7 @@ public class MainActivity extends Activity {
                                 grouponGoodsMode.setDiscount(memben_discount);
                             }
 
-                            BigDecimal heji = price.setScale(2, RoundingMode.UP);
+                            BigDecimal heji = price.setScale(2, RoundingMode.DOWN);
                             grouponGoodsMode.setHeji(heji);
                             grouponGoodsMode.setShuliang(1);
                             selectedShopList.add(0, SerializableUtils.deepCopy(grouponGoodsMode));
@@ -877,7 +877,7 @@ public class MainActivity extends Activity {
                             // 滚动到位置 0（第一条）
                             selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
                             tv_zongjian.setText(allNum + "");
-                            zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
+                            zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
                             tv_zongjia.setText(zongjia + "");
                             MyPresentation.setZongjia(zongjia.toString());
                             availableAmount();
@@ -984,7 +984,7 @@ public class MainActivity extends Activity {
                                 grouponGoodsModel.setDiscount(memben_discount);
                             }
 
-                            BigDecimal heji = price.setScale(2, RoundingMode.UP);
+                            BigDecimal heji = price.setScale(2, RoundingMode.DOWN);
                             grouponGoodsModel.setHeji(heji);
                             grouponGoodsModel.setShuliang(1);
                             selectedShopList.add(0, grouponGoodsModel);
@@ -995,7 +995,7 @@ public class MainActivity extends Activity {
                             // 滚动到位置 0（第一条）
                             selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
                             tv_zongjian.setText(allNum + "");
-                            zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
+                            zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
                             tv_zongjia.setText(zongjia + "");
                             MyPresentation.setZongjia(zongjia.toString());
                             availableAmount();
@@ -1023,10 +1023,10 @@ public class MainActivity extends Activity {
                                 price = price.multiply(new BigDecimal(model.getDiscount())).divide(new BigDecimal(100));
                                 model.setDiscounted_price(model.getDiscounted_price().add(new BigDecimal(model.getPrice()).subtract(price)));
                             }
-                            BigDecimal heji = price.add(model.getHeji()).setScale(2, RoundingMode.UP);
+                            BigDecimal heji = price.add(model.getHeji()).setScale(2, RoundingMode.DOWN);
                             model.setHeji(heji);
                             if (!model.isIs_zengsong()) {
-                                zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
+                                zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
                             }
 
                             tv_zongjia.setText(zongjia + "");
@@ -1046,7 +1046,7 @@ public class MainActivity extends Activity {
                     grouponGoodsModel.setDiscount(memben_discount);
                 }
 
-                BigDecimal heji = price.setScale(2, RoundingMode.UP);
+                BigDecimal heji = price.setScale(2, RoundingMode.DOWN);
                 grouponGoodsModel.setHeji(heji);
                 grouponGoodsModel.setShuliang(1);
                 selectedShopList.add(0, SerializableUtils.deepCopy(grouponGoodsModel));
@@ -1058,7 +1058,7 @@ public class MainActivity extends Activity {
                 // 滚动到位置 0（第一条）
                 selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
                 tv_zongjian.setText(allNum + "");
-                zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
+                zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
                 tv_zongjia.setText(zongjia + "");
                 MyPresentation.setZongjia(zongjia.toString());
                 availableAmount();
@@ -1174,10 +1174,10 @@ public class MainActivity extends Activity {
                         }
 
 
-                        BigDecimal heji = grouponGoodsModel.getHeji().subtract(price).setScale(2, RoundingMode.UP);
+                        BigDecimal heji = grouponGoodsModel.getHeji().subtract(price).setScale(2, RoundingMode.DOWN);
                         grouponGoodsModel.setHeji(heji);
                         if (!grouponGoodsModel.isIs_zengsong()) {
-                            zongjia = zongjia.subtract(price).setScale(2, RoundingMode.UP);
+                            zongjia = zongjia.subtract(price).setScale(2, RoundingMode.DOWN);
                         }
 
                     } else {
@@ -1192,7 +1192,7 @@ public class MainActivity extends Activity {
                                         grouponGoodsModel.setDiscounted_price(grouponGoodsModel.getDiscounted_price().subtract(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price)));
                                     }
 
-                                    zongjia = zongjia.subtract(price).setScale(2, RoundingMode.UP);
+                                    zongjia = zongjia.subtract(price).setScale(2, RoundingMode.DOWN);
                                     tv_zongjia.setText(zongjia + "");
                                     MyPresentation.setZongjia(zongjia.toString());
                                 }
@@ -1220,10 +1220,10 @@ public class MainActivity extends Activity {
                         grouponGoodsModel.setDiscounted_price(grouponGoodsModel.getDiscounted_price().add(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price)));
                     }
 
-                    BigDecimal heji = grouponGoodsModel.getHeji().add(price).setScale(2, RoundingMode.UP);
+                    BigDecimal heji = grouponGoodsModel.getHeji().add(price).setScale(2, RoundingMode.DOWN);
                     grouponGoodsModel.setHeji(heji);
                     if (!grouponGoodsModel.isIs_zengsong()) {
-                        zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
+                        zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
                     }
 
                 } else if (id == R.id.zengsong) {
@@ -1232,7 +1232,7 @@ public class MainActivity extends Activity {
                         grouponGoodsModel.setIs_zengsong(true);
                         grouponGoodsModel.setDiscount("0");
                         grouponGoodsModel.setDiscounted_price(yuanjia);
-                        zongjia = zongjia.subtract(grouponGoodsModel.getHeji()).setScale(2, RoundingMode.UP);
+                        zongjia = zongjia.subtract(grouponGoodsModel.getHeji()).setScale(2, RoundingMode.DOWN);
                         grouponGoodsModel.setHeji(new BigDecimal("0.00"));
 
                     } else {
@@ -1240,7 +1240,7 @@ public class MainActivity extends Activity {
                         grouponGoodsModel.setIs_zengsong(false);
                         grouponGoodsModel.setDiscounted_price(new BigDecimal("0.00"));
                         grouponGoodsModel.setHeji(yuanjia);
-                        zongjia = zongjia.add(yuanjia).setScale(2, RoundingMode.UP);
+                        zongjia = zongjia.add(yuanjia).setScale(2, RoundingMode.DOWN);
                     }
 
                 }
@@ -1373,10 +1373,10 @@ public class MainActivity extends Activity {
                                 price = price.multiply(new BigDecimal(model.getDiscount())).divide(new BigDecimal(100));
                                 model.setDiscounted_price(model.getDiscounted_price().add(new BigDecimal(model.getPrice()).subtract(price)));
                             }
-                            BigDecimal heji = price.add(model.getHeji()).setScale(2, RoundingMode.UP);
+                            BigDecimal heji = price.add(model.getHeji()).setScale(2, RoundingMode.DOWN);
                             model.setHeji(heji);
                             if (!model.isIs_zengsong()) {
-                                zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
+                                zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
                             }
 
                             tv_zongjia.setText(zongjia + "");
@@ -1396,7 +1396,7 @@ public class MainActivity extends Activity {
                     grouponGoodsModel.setDiscount(memben_discount);
                 }
 
-                BigDecimal heji = price.setScale(2, RoundingMode.UP);
+                BigDecimal heji = price.setScale(2, RoundingMode.DOWN);
                 grouponGoodsModel.setHeji(heji);
                 grouponGoodsModel.setShuliang(1);
                 selectedShopList.add(0, SerializableUtils.deepCopy(grouponGoodsModel));
@@ -1408,7 +1408,7 @@ public class MainActivity extends Activity {
                 // 滚动到位置 0（第一条）
                 selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
                 tv_zongjian.setText(allNum + "");
-                zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
+                zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
                 tv_zongjia.setText(zongjia + "");
                 MyPresentation.setZongjia(zongjia.toString());
                 availableAmount();
