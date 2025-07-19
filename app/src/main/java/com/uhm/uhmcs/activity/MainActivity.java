@@ -976,7 +976,7 @@ public class MainActivity extends Activity {
                         }else {
                             GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = SerializableUtils.deepCopy(grouponGoodsModelList.get(0));
                             allNum++;
-                            BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice()).divide(new BigDecimal(500)).multiply(new BigDecimal(replaced)).multiply(new BigDecimal(1000)).setScale(2, RoundingMode.UP);
+                            BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice()).divide(new BigDecimal(500)).multiply(new BigDecimal(replaced)).multiply(new BigDecimal(1000)).setScale(2, RoundingMode.DOWN);
                             grouponGoodsModel.setPrice(price.toString());
                             if (!TextUtils.isEmpty(memben_discount)) {
                                 price = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
