@@ -34,8 +34,11 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -67,9 +70,9 @@ public class StartActivity extends Activity {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
         OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
+                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(30, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(30, TimeUnit.SECONDS)   // 写入超时
                 .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();
@@ -91,12 +94,15 @@ public class StartActivity extends Activity {
                             if (versionBean.getVersionName().equals(Utilis.getVersionName(StartActivity.this))){
                                 delaymillinon();
                             }else {
+                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.getDefault());
+                                String currentTime = sdf.format(new Date());
+
                                 UpdateAppUtils.init(StartActivity.this);
                                 UpdateConfig updateConfig=new UpdateConfig();
                                 updateConfig.setAlwaysShow(true);//非强制更新时是否每次显示弹窗
                                 updateConfig.setAlwaysShowDownLoadDialog(true);//飞强制更新时是否显示进度条
                                 updateConfig.setForce(true);//是否强制更新
-                                updateConfig.setApkSaveName("uhm");
+                                updateConfig.setApkSaveName("uhm"+currentTime);
                                 updateConfig.setApkSavePath(Environment.getExternalStorageDirectory().getAbsolutePath() +"/UHM");
                                 updateConfig.isShowNotification();
                                 updateConfig.setShowDownloadingToast(true);

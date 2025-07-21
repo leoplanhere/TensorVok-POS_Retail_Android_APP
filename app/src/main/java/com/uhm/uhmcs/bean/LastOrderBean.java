@@ -32,6 +32,16 @@ public class LastOrderBean {
 
     private String phone;
 
+    private String consignee;
+
+    public String getConsignee() {
+        return consignee;
+    }
+
+    public void setConsignee(String consignee) {
+        this.consignee = consignee;
+    }
+
     public String getPhone() {
         return phone;
     }

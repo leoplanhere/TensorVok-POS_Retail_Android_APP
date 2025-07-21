@@ -2,6 +2,7 @@ package com.uhm.uhmcs.utils;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.text.TextUtils;
 
 public class Utilis {
     private static long lastClickTime = 0;
@@ -34,6 +35,11 @@ public class Utilis {
         } catch (PackageManager.NameNotFoundException e) {
             return "unknown";
         }
+    }
+
+    public static String maskPhone(String phone) {
+        if (TextUtils.isEmpty(phone) || phone.length() != 11) return phone;
+        return phone.substring(0, 3) + "****" + phone.substring(7);
     }
 
 }
