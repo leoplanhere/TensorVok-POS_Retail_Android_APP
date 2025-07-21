@@ -34,8 +34,13 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -96,12 +101,16 @@ public class StartActivity extends Activity {
                             if (versionBean.getVersionName().equals(Utilis.getVersionName(StartActivity.this))){
                                 delaymillinon();
                             }else {
+
+                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.getDefault());
+                                String currentTime = sdf.format(new Date());
+
                                 UpdateAppUtils.init(StartActivity.this);
                                 UpdateConfig updateConfig=new UpdateConfig();
                                 updateConfig.setAlwaysShow(true);//非强制更新时是否每次显示弹窗
                                 updateConfig.setAlwaysShowDownLoadDialog(true);//飞强制更新时是否显示进度条
                                 updateConfig.setForce(true);//是否强制更新
-                                updateConfig.setApkSaveName("uhm");
+                                updateConfig.setApkSaveName("uhm"+currentTime);
                                 updateConfig.setApkSavePath(Environment.getExternalStorageDirectory().getAbsolutePath() +"/UHM");
                                 updateConfig.isShowNotification();
                                 updateConfig.setShowDownloadingToast(true);
