@@ -66,6 +66,7 @@
            android:paddingStart="@dimen/dp_10"
            android:layout_height="50dp"
            android:textColor="@color/black"
+           android:text=""
            android:background="@drawable/rounded_border"
            android:id="@+id/pay_code" />
 

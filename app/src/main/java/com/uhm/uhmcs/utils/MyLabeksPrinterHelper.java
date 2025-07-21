@@ -8,6 +8,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -96,12 +97,23 @@ public class MyLabeksPrinterHelper {
                         cmd.append("CLS \n");                // 清空缓冲区
                         cmd.append("TEXT " + 125 + "," + 70+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getTitle()).append("\"\r\n");
                         cmd.append("TEXT " + 80 + "," + 120+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getSn()).append("\"\r\n");
-                        cmd.append("TEXT " + 80 + "," + 165+ ",\"FONT001\",0,1,1,\"").append("编号").append("\"\r\n");
-                        cmd.append("TEXT " + 250 + "," + 165+ ",\"FONT001\",0,1,1,\"").append("规格").append("\"\r\n");
-                        cmd.append("TEXT " + 120 + "," + 215+ ",\"FONT001\",0,1,1,\"").append("kg").append("\"\r\n");
+                        cmd.append("TEXT " + 80 + "," + 165+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getGoods_sn()).append("\"\r\n");
+
+                        if (!TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text())){
+                            String input =grouponGoodsModel.getGoods_sku_text();
+                            String result = input.substring(1, input.length() - 1);
+                            cmd.append("TEXT " + 250 + "," + 165+ ",\"FONT001\",0,1,1,\"").append(result).append("\"\r\n");
+                        }
+
+
+
+                        cmd.append("TEXT " + 120 + "," + 215+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getCompany()).append("\"\r\n");
                         cmd.append("TEXT " + 80 + "," + 260+ ",\"FONT001\",0,1,1,\"").append("合格品").append("\"\r\n");
                         cmd.append("TEXT " + 270 + "," + 215+ ",\"FONT001\",0,1,1,\"").append("物价员").append("\"\r\n");
+//                        cmd.append("TEXT " + 250 + "," + 260+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getc).append("\"\r\n");
                         cmd.append("TEXT " + 495 + "," + 130+ ",\"FONT001\",0,2,2,\"").append(grouponGoodsModel.getPrice()+"元").append("\"\r\n");
+                        cmd.append("TEXT " + 495 + "," + 165+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getReward_points()+"积分").append("\"\r\n");
+                        cmd.append("TEXT " + 495 + "," + 215+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getDeduction_golive()+"元").append("\"\r\n");
                         cmd.append("PRINT 1\r\n");
                     }
 

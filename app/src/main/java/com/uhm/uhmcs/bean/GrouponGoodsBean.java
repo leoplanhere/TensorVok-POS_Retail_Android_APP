@@ -113,6 +113,35 @@ public class GrouponGoodsBean implements Serializable{
 
         private String discount="100";
 
+        private String reward_points;
+
+        private String deduction_golive;
+
+        private String company;
+
+        public String getCompany() {
+            return company;
+        }
+
+        public void setCompany(String company) {
+            this.company = company;
+        }
+
+        public String getReward_points() {
+            return reward_points;
+        }
+
+        public void setReward_points(String reward_points) {
+            this.reward_points = reward_points;
+        }
+
+        public String getDeduction_golive() {
+            return deduction_golive;
+        }
+
+        public void setDeduction_golive(String deduction_golive) {
+            this.deduction_golive = deduction_golive;
+        }
 
         public String getGgprice() {
             return ggprice;
