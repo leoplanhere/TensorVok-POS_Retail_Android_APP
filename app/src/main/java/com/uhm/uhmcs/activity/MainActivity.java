@@ -519,7 +519,7 @@ public class MainActivity extends Activity {
                             discount_fee = discount_fee.add(grouponGoodsModel.getDiscounted_price());
                         }
                         CheckoutBean.GoodsJsonBean goodsJsonBean = new CheckoutBean.GoodsJsonBean();
-                        goodsJsonBean.setGoods_id(grouponGoodsModel.getId());
+                        goodsJsonBean.setGoods_id(grouponGoodsModel.getIds());
                         goodsJsonBean.setTitle(grouponGoodsModel.getTitle());
                         goodsJsonBean.setGoods_sn(grouponGoodsModel.getGoods_sn());
                         goodsJsonBean.setSn(grouponGoodsModel.getSn());

@@ -168,6 +168,7 @@ public class GrouponGoodsBean implements Serializable{
         private BigDecimal discounted_price=new BigDecimal("0.00");
 
         public void setGoods_id(String goods_id) {
+
             this.goods_id = goods_id;
         }
 
@@ -299,6 +300,9 @@ public class GrouponGoodsBean implements Serializable{
                 return ggspid;
             }
 
+        }
+        public String getIds() {
+            return id;
         }
 
         public void setId(String id) {

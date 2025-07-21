@@ -1,5 +1,8 @@
 package com.uhm.uhmcs.popupwindow;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -21,6 +24,7 @@ import com.dou361.dialogui.bean.BuildBean;
 import com.google.gson.Gson;
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.activity.LoginActivity;
+import com.uhm.uhmcs.activity.MainActivity;
 import com.uhm.uhmcs.bean.CheckoutBean;
 import com.uhm.uhmcs.bean.ClubCardBean;
 import com.uhm.uhmcs.bean.CustomRechargeBean;
@@ -156,6 +160,8 @@ public class MemberRechargePopupWindow {
 
         });
         chongzhijine_tv.setOnInputCompleteListener(text -> {
+
+
             submitChongzhi();
         });
         initKey();
@@ -311,6 +317,9 @@ public class MemberRechargePopupWindow {
     }
 
     private void submitChongzhi() {
+
+
+
         if (clubCardData == null) {
             new DeleteShopPopupWindow(context, "请先查询会员信息", true).show();
             return;
@@ -323,11 +332,20 @@ public class MemberRechargePopupWindow {
             new DeleteShopPopupWindow(context, "充值金额必须大于0", true).show();
             return;
         }
-        if (pay_type.equals("cash")){
-            customRecharge();
-        }else {
-            deleteShopPopupWindow.show();
-        }
+
+        new DeleteShopPopupWindow(true, context, "输入密码", new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+            @Override
+            public void onClick(String text) {
+                if (pay_type.equals("cash")){
+                    customRecharge();
+                }else {
+                    deleteShopPopupWindow.show();
+                }
+
+            }
+        }).show();
+
+
 
     }
     BuildBean buildBean;
