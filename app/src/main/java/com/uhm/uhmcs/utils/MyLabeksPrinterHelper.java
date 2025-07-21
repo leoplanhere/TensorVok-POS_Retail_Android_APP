@@ -120,7 +120,8 @@ public class MyLabeksPrinterHelper {
                         // 添加文本
 
                         cmd.append("TEXT " + 150 + "," + 10 + ",\"TSS24.BF2\",0,2,2,\"" + "￥").append(new BigDecimal(grouponGoodsModel.getPrice()).setScale(1, BigDecimal.ROUND_DOWN).toString()).append("\"\r\n");
-                        cmd.append("BARCODE "+20+","+(currentY+30)+",\"128\",80,1,0,2,2,\"").append(grouponGoodsModel.getSn()).append("\"\r\n");
+                        Log.i("ttt",">>>BARCODE>>>y>>>>"+currentY + 30);
+                        cmd.append("BARCODE "+20+","+(Math.max((currentY + 30), 66))+",\"128\",80,1,0,2,2,\"").append(grouponGoodsModel.getSn()).append("\"\r\n");
                         cmd.append("PRINT 1\r\n");
                     }
 
