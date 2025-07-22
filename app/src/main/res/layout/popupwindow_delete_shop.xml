@@ -44,7 +44,7 @@
            <ImageView
                android:layout_width="30dp"
                android:layout_height="30dp"
-               android:src="@mipmap/tishi"/>
+               android:src="@drawable/tishi"/>
            <TextView
                android:id="@+id/hint_tv"
                android:layout_width="wrap_content"
