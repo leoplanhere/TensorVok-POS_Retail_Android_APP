@@ -5,8 +5,8 @@ package com.uhm.uhmcs.http;
  * api接口存放
  */
 public interface POSApiSerview {
-//    String POS_URL1 = "https://xlcc.uhimao.com/";
-    String POS_URL1 = "https://shbs.uhimao.com/";
+    String POS_URL1 = "https://xlcc.uhimao.com/";
+//    String POS_URL1 = "https://shbs.uhimao.com/";
 
     String POS_URL = POS_URL1+"api/";
 //    String POS_URL = "https://xlcc.uhimao.com/api/";
