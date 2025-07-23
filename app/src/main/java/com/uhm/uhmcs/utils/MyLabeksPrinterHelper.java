@@ -95,7 +95,7 @@ public class MyLabeksPrinterHelper {
                     for (int j=0;j<num;j++){
                         // 清空缓冲区
                         cmd.append("CLS \n");                // 清空缓冲区
-                        cmd.append("TEXT " + 125 + "," + 70+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getTitle()).append("\"\r\n");
+                        cmd.append("TEXT " + 125 + "," + 65+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getSubtitle()).append("\"\r\n");
                         cmd.append("TEXT " + 80 + "," + 120+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getSn()).append("\"\r\n");
                         cmd.append("TEXT " + 80 + "," + 165+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getGoods_sn()).append("\"\r\n");
 
@@ -111,7 +111,7 @@ public class MyLabeksPrinterHelper {
                         cmd.append("TEXT " + 80 + "," + 260+ ",\"FONT001\",0,1,1,\"").append("合格品").append("\"\r\n");
                         cmd.append("TEXT " + 270 + "," + 215+ ",\"FONT001\",0,1,1,\"").append("物价员").append("\"\r\n");
 //                        cmd.append("TEXT " + 250 + "," + 260+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getc).append("\"\r\n");
-                        cmd.append("TEXT " + 495 + "," + 130+ ",\"FONT001\",0,2,2,\"").append(grouponGoodsModel.getPrice()+"元").append("\"\r\n");
+                        cmd.append("TEXT " + 495 + "," + 70+ ",\"FONT001\",0,2,2,\"").append(grouponGoodsModel.getPrice()+"元").append("\"\r\n");
                         cmd.append("TEXT " + 495 + "," + 165+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getReward_points()+"积分").append("\"\r\n");
                         cmd.append("TEXT " + 495 + "," + 215+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getDeduction_golive()+"元").append("\"\r\n");
                         cmd.append("PRINT 1\r\n");
