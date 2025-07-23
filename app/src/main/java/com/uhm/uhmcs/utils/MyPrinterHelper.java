@@ -127,7 +127,7 @@ public class MyPrinterHelper {
                 }
 
                 output.write(("优道佳家福会员超市"+"\n").getBytes(Charset.forName("GBK")));
-                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
+                //                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
                 output.write(("全国客服热线:"+"17560635652"+"\n").getBytes(Charset.forName("GBK")));
 
 
@@ -327,7 +327,7 @@ public class MyPrinterHelper {
 
 
                 output.write(("优道佳家福会员超市"+"\n").getBytes(Charset.forName("GBK")));
-                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
+//                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
                 output.write(("全国客服热线:"+"17560635652"+"\n").getBytes(Charset.forName("GBK")));
 
 
@@ -474,7 +474,7 @@ public class MyPrinterHelper {
                 }
 
                 output.write(("优道佳家福会员超市"+"\n").getBytes(Charset.forName("GBK")));
-                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
+                //                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
                 output.write(("全国客服热线:"+"17560635652"+"\n").getBytes(Charset.forName("GBK")));
 
 
@@ -712,7 +712,7 @@ public class MyPrinterHelper {
 
 
                 output.write(("优道佳家福会员超市"+context.getString(R.string.Reprint)+"\n").getBytes(Charset.forName("GBK")));
-                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
+                //                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
                 output.write(("全国客服热线:"+"17560635652"+"\n").getBytes(Charset.forName("GBK")));
 //                output.write("潮享三句半\n".getBytes(Charset.forName("GBK")));
 //                output.write("上海市静安区大悦城s516\n".getBytes(Charset.forName("GBK")));
@@ -967,7 +967,7 @@ public class MyPrinterHelper {
 
 
                 output.write(("优道佳家福会员超市"+"\n").getBytes(Charset.forName("GBK")));
-                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
+                //                output.write(("潍坊市经济开发区玄武街文化路西北角1611号"+"\n").getBytes(Charset.forName("GBK")));
                 output.write(("全国客服热线:"+"17560635652"+"\n").getBytes(Charset.forName("GBK")));
 //                output.write("潮享三句半\n".getBytes(Charset.forName("GBK")));
 //                output.write("上海市静安区大悦城s516\n".getBytes(Charset.forName("GBK")));
