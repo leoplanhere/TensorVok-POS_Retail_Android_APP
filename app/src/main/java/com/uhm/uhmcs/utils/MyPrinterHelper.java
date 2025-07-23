@@ -201,7 +201,7 @@ public class MyPrinterHelper {
                 output.write(youhuizongji.getBytes("GBK"));
                 output.write(0x0A); // 换行
 
-                String daijinjuan="代金卷抵扣:";
+                String daijinjuan="代金券抵扣:";
                 daijinjuan+=(new String(new char[48-11-calculateDisplayWidth("-"+checkoutBean.getCoupon_fee()+"")]).replace('\0', ' '));
                 daijinjuan+=("-"+checkoutBean.getCoupon_fee()+"");
                 output.write(daijinjuan.getBytes("GBK"));
@@ -544,7 +544,7 @@ public class MyPrinterHelper {
                 youhuizongji+=("-"+checkoutBean.getDiscount_fee()+"");
                 output.write(youhuizongji.getBytes("GBK"));
                 output.write(0x0A); // 换行
-                String daijinjuan="代金卷抵扣:";
+                String daijinjuan="代金券抵扣:";
                 daijinjuan+=(new String(new char[48-11-calculateDisplayWidth("-"+checkoutBean.getCoupon_fee()+"")]).replace('\0', ' '));
                 daijinjuan+=("-"+checkoutBean.getCoupon_fee()+"");
                 output.write(daijinjuan.getBytes("GBK"));
@@ -784,7 +784,7 @@ public class MyPrinterHelper {
                 output.write(youhuizongji.getBytes("GBK"));
                 output.write(0x0A); // 换行
 
-                String daijinjuan="代金卷抵扣:";
+                String daijinjuan="代金券抵扣:";
                 daijinjuan+=(new String(new char[48-11-calculateDisplayWidth("-"+lastOrderBean.getCoupon_fee()+"")]).replace('\0', ' '));
                 daijinjuan+=("-"+lastOrderBean.getCoupon_fee()+"");
                 output.write(daijinjuan.getBytes("GBK"));
@@ -1037,7 +1037,7 @@ public class MyPrinterHelper {
                 youhuizongji+=("-"+lastOrderBean.getDiscount_fee()+"");
                 output.write(youhuizongji.getBytes("GBK"));
                 output.write(0x0A); // 换行
-                String daijinjuan="代金卷抵扣:";
+                String daijinjuan="代金券抵扣:";
                 daijinjuan+=(new String(new char[48-11-calculateDisplayWidth("-"+lastOrderBean.getCoupon_fee()+"")]).replace('\0', ' '));
                 daijinjuan+=("-"+lastOrderBean.getCoupon_fee()+"");
                 output.write(daijinjuan.getBytes("GBK"));
