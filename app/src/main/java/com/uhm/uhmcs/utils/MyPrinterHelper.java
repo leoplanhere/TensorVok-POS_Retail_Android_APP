@@ -152,7 +152,14 @@ public class MyPrinterHelper {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                 // 获取当前时间（基于系统时区）
                 String formattedTime = sdf.format(System.currentTimeMillis());
-                output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
+//                output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
+                String shouyinshijian="收银时间:"+formattedTime;
+                String shouyinyuan="收银员:"+UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
+                String shouyinData=shouyinyuan;
+                shouyinData+=(new String(new char[48-calculateDisplayWidth(shouyinyuan+shouyinshijian)]).replace('\0', ' '));
+                shouyinData+=shouyinshijian;
+                output.write(shouyinData.getBytes("GBK"));
+                output.write(0x0A); // 换行
                 output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
                 String title="商品名称";
                 title+=(new String(new char[18-8]).replace('\0', ' '));
@@ -340,7 +347,14 @@ public class MyPrinterHelper {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                 // 获取当前时间（基于系统时区）
                 String formattedTime = sdf.format(System.currentTimeMillis());
-                output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
+//                output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
+                String shouyinshijian="收银时间:"+formattedTime;
+                String shouyinyuan="收银员:"+UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
+                String shouyinData=shouyinyuan;
+                shouyinData+=(new String(new char[48-calculateDisplayWidth(shouyinyuan+shouyinshijian)]).replace('\0', ' '));
+                shouyinData+=shouyinshijian;
+                output.write(shouyinData.getBytes("GBK"));
+                output.write(0x0A); // 换行
                 output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
                 String title="商品名称";
                 title+=(new String(new char[18-8]).replace('\0', ' '));
@@ -496,7 +510,17 @@ public class MyPrinterHelper {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                 // 获取当前时间（基于系统时区）
                 String formattedTime = sdf.format(System.currentTimeMillis());
-                output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
+//                output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
+
+
+                String shouyinshijian="收银时间:"+formattedTime;
+                String shouyinyuan="收银员:"+UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
+                String shouyinData=shouyinyuan;
+                shouyinData+=(new String(new char[48-calculateDisplayWidth(shouyinyuan+shouyinshijian)]).replace('\0', ' '));
+                shouyinData+=shouyinshijian;
+                output.write(shouyinData.getBytes("GBK"));
+                output.write(0x0A); // 换行
+
                 output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
                 String title="商品名称";
                 title+=(new String(new char[18-8]).replace('\0', ' '));
@@ -733,7 +757,14 @@ public class MyPrinterHelper {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                 // 获取当前时间（基于系统时区）
                 String formattedTime = sdf.format(new Date(lastOrderBean.getPaytime()* 1000L));
-                output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
+//                output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
+                String shouyinshijian="收银时间:"+formattedTime;
+                String shouyinyuan="收银员:"+UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
+                String shouyinData=shouyinyuan;
+                shouyinData+=(new String(new char[48-calculateDisplayWidth(shouyinyuan+shouyinshijian)]).replace('\0', ' '));
+                shouyinData+=shouyinshijian;
+                output.write(shouyinData.getBytes("GBK"));
+                output.write(0x0A); // 换行
                 output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
                 String title="商品名称";
                 title+=(new String(new char[18-8]).replace('\0', ' '));
@@ -987,7 +1018,14 @@ public class MyPrinterHelper {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                 // 获取当前时间（基于系统时区）
                 String formattedTime = sdf.format(new Date(lastOrderBean.getPaytime()* 1000L));
-                output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
+//                output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
+                String shouyinshijian="收银时间:"+formattedTime;
+                String shouyinyuan="收银员:"+UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
+                String shouyinData=shouyinyuan;
+                shouyinData+=(new String(new char[48-calculateDisplayWidth(shouyinyuan+shouyinshijian)]).replace('\0', ' '));
+                shouyinData+=shouyinshijian;
+                output.write(shouyinData.getBytes("GBK"));
+                output.write(0x0A); // 换行
                 output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
                 String title="商品名称";
                 title+=(new String(new char[18-8]).replace('\0', ' '));

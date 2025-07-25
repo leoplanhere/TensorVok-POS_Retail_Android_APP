@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/rlMainArea"
-    tools:ignore="MissingDefaultResource">
+    android:id="@+id/rlMainArea">
 
     <LinearLayout
         android:id="@+id/llLoginArea"
@@ -48,13 +45,16 @@
                     style="@style/EditTextUnderlineColor"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:focusableInTouchMode="false"
+                    android:focusable="true"
+                    android:importantForAutofill="yes"
+                    android:imeOptions="actionNext"
                     android:inputType="number"
                     android:paddingLeft="15dp"
                     android:paddingRight="15dp"
                     android:textColor="@color/black"
                     android:textSize="30sp"
-                    android:hint="@string/usr"/>
+                    android:hint="@string/usr"
+                    android:textColorHint="@color/black"/>
             </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -73,13 +73,16 @@
                     style="@style/EditTextUnderlineColor"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:focusableInTouchMode="false"
+                    android:focusable="true"
+                    android:importantForAutofill="yes"
+                    android:imeOptions="actionNext"
                     android:inputType="numberPassword"
-                    android:textColor="@color/black"
                     android:paddingLeft="15dp"
                     android:paddingRight="15dp"
                     android:textSize="30sp"
-                    android:hint="@string/pwd"/>
+                    android:hint="@string/pwd"
+                    android:textColor="@color/black"
+                    android:textColorHint="@color/black"/>
             </LinearLayout>
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnLogin"

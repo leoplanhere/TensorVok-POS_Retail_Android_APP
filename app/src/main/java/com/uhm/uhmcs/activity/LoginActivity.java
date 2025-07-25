@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -22,14 +23,14 @@ import com.uhm.uhmcs.http.POSApiSerview;
 import com.uhm.uhmcs.popupwindow.DeleteShopPopupWindow;
 import com.uhm.uhmcs.utils.UserUtils;
 import com.uhm.uhmcs.utils.Utilis;
+import com.uhm.uhmcs.view.CustomInputTextView;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class LoginActivity extends Activity {
-    private EditText currEditText;
-    private EditText etUserName,etUserPwd;
+    private EditText etUserName,etUserPwd,currEditText;
     AppCompatButton btnLogin;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,20 +39,53 @@ public class LoginActivity extends Activity {
 
         initView();
     }
+
+    private Runnable etUserNameRunnable = new Runnable() {
+        @Override
+        public void run() {
+            etUserName.requestFocus();
+        }
+    };
+    private Runnable etUserPwdRunnable = new Runnable() {
+        @Override
+        public void run() {
+            etUserPwd.requestFocus();
+        }
+    };
+    //1 名字  2密码
+    int inputType=1;
+    @SuppressLint({"ClickableViewAccessibility", "CutPasteId"})
     public void initView(){
         try{
             initKey();
             btnLogin=(AppCompatButton)findViewById(R.id.btnLogin);
-            currEditText = (EditText)findViewById(R.id.etUserName);
-            etUserName = (EditText)findViewById(R.id.etUserName);
-            etUserPwd = (EditText)findViewById(R.id.etUserPwd);
+
+            etUserName = findViewById(R.id.etUserName);
+            etUserPwd = findViewById(R.id.etUserPwd);
+
+
+
             etUserName.setText(UserUtils.getInstance().getLoginPhone());
             etUserPwd.setText(UserUtils.getInstance().getLoginPassword());
-            findViewById(R.id.etUserName).setOnClickListener(v -> {
-                currEditText = findViewById(R.id.etUserName);
+            etUserName.setOnTouchListener((v, event) -> {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    // 在这里处理点击逻辑
+                    Log.d("EditText", "点击生效");
+                    currEditText = findViewById(R.id.etUserName);
+                    etUserName.requestFocus();
+                    return true; // 表示事件已消费
+                }
+                return false;
             });
-            findViewById(R.id.etUserPwd).setOnClickListener(v -> {
-                currEditText = findViewById(R.id.etUserPwd);
+            etUserPwd.setOnTouchListener((v, event) -> {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    // 在这里处理点击逻辑
+                    Log.d("EditText", "点击生效");
+                    currEditText = findViewById(R.id.etUserPwd);
+                    etUserPwd.requestFocus();
+                    return true; // 表示事件已消费
+                }
+                return false;
             });
             findViewById(R.id.btnLogin).setOnClickListener(v -> {
                 if(TextUtils.isEmpty(etUserName.getText().toString().trim())){
@@ -93,13 +127,14 @@ public class LoginActivity extends Activity {
                             Gson gson = new Gson();
                             LoginBase loginBase = gson.fromJson(responseData, LoginBase.class);
                             Log.i("登录返回",responseData+"");
-                            UserUtils.getInstance().setLoginBase(LoginActivity.this,loginBase);
-                            UserUtils.getInstance().setLoginPassword(LoginActivity.this,etUserPwd.getText().toString());
-                            UserUtils.getInstance().setLoginPhone(LoginActivity.this,etUserName.getText().toString());
+
 
                             if(response != null){
                                 try{
                                     if(loginBase.getCode() == 1){
+                                        UserUtils.getInstance().setLoginBase(LoginActivity.this,loginBase);
+                                        UserUtils.getInstance().setLoginPassword(LoginActivity.this,etUserPwd.getText().toString());
+                                        UserUtils.getInstance().setLoginPhone(LoginActivity.this,etUserName.getText().toString());
                                         Map<String, String> params = new HashMap<>();
                                         params.put("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
                                         OkHttpUtil.setGlobalHeaders(params);

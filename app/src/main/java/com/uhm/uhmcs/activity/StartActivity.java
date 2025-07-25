@@ -79,7 +79,12 @@ public class StartActivity extends Activity {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        delaymillinon();
+                    }
+                });
             }
 
             @Override

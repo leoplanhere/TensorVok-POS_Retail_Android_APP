@@ -11,13 +11,16 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
+
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatTextView;
 
 public class CustomInputTextView extends AppCompatTextView {
     private Paint mCursorPaint;
     private boolean mCursorVisible;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
-    private static final int CURSOR_BLINK_INTERVAL = 500; // 光标闪烁间隔(ms)
+    private static final int CURSOR_BLINK_INTERVAL = 800; // 光标闪烁间隔(ms)
     private int mCursorWidth = 2; // 光标宽度(px)
 
     public CustomInputTextView(Context context) {
@@ -56,7 +59,22 @@ public class CustomInputTextView extends AppCompatTextView {
             }
         }, CURSOR_BLINK_INTERVAL);
     }
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            requestFocus();  // 立即请求焦点
+            performClick();  // 立即执行点击
+            return true;
+        }
+        return super.onTouchEvent(event);
+    }
+    @Override
+    public boolean performClick() {
+        super.performClick();
+        // 这里添加你的点击逻辑
 
+        return true;
+    }
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);

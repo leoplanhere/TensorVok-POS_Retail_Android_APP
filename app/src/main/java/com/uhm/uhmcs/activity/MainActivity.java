@@ -125,6 +125,8 @@ public class MainActivity extends Activity {
     private LinearLayout huiyuan_btn;
     private TextView huiyuan_name;
 
+    private ImageView shanchuhuiyuan_btn;
+
     private DeleteShopPopupWindow deleteShopPopupWindow;
     private BigDecimal zongjia = new BigDecimal("0.00");
     ;
@@ -150,6 +152,8 @@ public class MainActivity extends Activity {
     private TextView caozuo_view;
 
     private View shop_mocheng;
+
+    private ImageView shop_image;
 
 
     @Override
@@ -558,6 +562,7 @@ public class MainActivity extends Activity {
                                 }
                             }, 3000);
                             onClickListener.onClick(qingkong_btn);
+                            onClickListener.onClick(shanchuhuiyuan_btn);
                         }
                     });
                     Log.i("ttt", ">>>>>>>sss>SS>>" + checkoutPopupWindow.isShow());
@@ -889,6 +894,7 @@ public class MainActivity extends Activity {
 
             }
         };
+        shop_image=findViewById(R.id.shop_image);
         caozuo_view=findViewById(R.id.caozuo_view);
         shop_mocheng=findViewById(R.id.shop_mocheng);
         shop_mocheng.setOnClickListener(v -> {
@@ -920,7 +926,8 @@ public class MainActivity extends Activity {
         daying_btn = findViewById(R.id.daying_btn);
         daying_btn.setOnClickListener(onClickListener);
         huiyuan_name = findViewById(R.id.huiyuan_name);
-        findViewById(R.id.shanchuhuiyuan_btn).setOnClickListener(onClickListener);
+        shanchuhuiyuan_btn=findViewById(R.id.shanchuhuiyuan_btn);
+        shanchuhuiyuan_btn.setOnClickListener(onClickListener);
         findViewById(R.id.more_function_btn).setOnClickListener(onClickListener);
         findViewById(R.id.add_no_code_btn).setOnClickListener(onClickListener);
 
@@ -975,6 +982,8 @@ public class MainActivity extends Activity {
                             return;
                         }else {
                             GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = SerializableUtils.deepCopy(grouponGoodsModelList.get(0));
+                            Glide.with(MainActivity.this).clear(shop_image);  // 先清空ImageView
+                            Glide.with(MainActivity.this).load(grouponGoodsModel.getImage()).into(shop_image);  // 再加载新图片
                             allNum++;
                             BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice()).divide(new BigDecimal(500)).multiply(new BigDecimal(replaced)).multiply(new BigDecimal(1000)).setScale(2, RoundingMode.DOWN);
                             grouponGoodsModel.setPrice(price.toString());
@@ -1009,6 +1018,8 @@ public class MainActivity extends Activity {
                 }
                 allNum++;
                 GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = grouponGoodsModelArrayList.get(0);
+                Glide.with(MainActivity.this).clear(shop_image);  // 先清空ImageView
+                Glide.with(MainActivity.this).load(grouponGoodsModel.getImage()).into(shop_image);  // 再加载新图片
                 if (selectedShopList != null && !selectedShopList.isEmpty()) {
 
                     for (int i = 0; i < selectedShopList.size(); i++) {
@@ -1602,6 +1613,7 @@ public class MainActivity extends Activity {
 
                                         DialogUIUtils.dismiss(buildBean);
                                         onClickListener.onClick(qingkong_btn);
+                                        onClickListener.onClick(shanchuhuiyuan_btn);
                                         new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_succeeded), true).show();
                                         String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
                                         String zhifubao_pice = checkoutBean.getPay_type().equals("alipay") ? checkoutBean.getPay_fee() : "";
@@ -2008,6 +2020,12 @@ public class MainActivity extends Activity {
             int keyCode = event.getKeyCode();
             Log.i("ttt", "外部键盘点击" + keyCode);
 
+            if (keyCode == KeyEvent.KEYCODE_F1) {
+                MyPrinterHelper.getInstance().asyncOpenMoneyBox(MainActivity.this);
+                // 监听外接键盘的返回键
+                return true;
+            }
+
             if (keyCode == KeyEvent.KEYCODE_F2) {
                 onClickListener.onClick(guadan_btn);
                 // 监听外接键盘的返回键
@@ -2313,6 +2331,7 @@ public class MainActivity extends Activity {
 
                                         DialogUIUtils.dismiss(buildBean);
                                         onClickListener.onClick(qingkong_btn);
+                                        onClickListener.onClick(shanchuhuiyuan_btn);
                                         new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_succeeded), true).show();
                                         String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
                                         String zhifubao_pice = checkoutBean.getPay_type().equals("alipay") ? checkoutBean.getPay_fee() : "";

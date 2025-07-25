@@ -9,7 +9,7 @@
         android:clickable="true"
         android:focusable="true"
         android:padding="20dp"
-        android:layout_width="840dp"
+        android:layout_width="800dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="@drawable/white_bg">
@@ -40,7 +40,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center">
+            android:gravity="center_vertical">
             <TextView
                 android:id="@+id/tongbushuju_btn"
                 android:layout_marginRight="10dp"
@@ -104,11 +104,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center">
+            android:gravity="center_vertical">
             <TextView
                 android:id="@+id/zhangdandayingji_btn"
                 android:visibility="visible"
-                android:layout_marginRight="10dp"
+                android:layout_marginEnd="10dp"
                 android:layout_width="140dp"
                 android:layout_height="140dp"
                 android:background="@drawable/blue_bg4"
@@ -142,7 +142,7 @@
                 android:text="@string/discount_toggle"
                 android:gravity="center"/>
             <TextView
-                android:visibility="visible"
+                android:visibility="gone"
                 android:id="@+id/shangpindianji_btn"
                 android:layout_marginRight="10dp"
                 android:layout_width="140dp"
@@ -166,7 +166,7 @@
                 android:text="支付设置"
                 android:gravity="center"/>
             <TextView
-                android:visibility="visible"
+                android:visibility="gone"
                 android:id="@+id/huiyuanchongzhi_btn"
                 android:layout_marginRight="10dp"
                 android:layout_width="140dp"
@@ -189,6 +189,7 @@
                 android:textStyle="bold"
                 android:text="钱箱设置"
                 android:gravity="center"/>
+
             <TextView
                 android:visibility="gone"
                 android:id="@+id/jiaojieban_btn"
@@ -201,7 +202,6 @@
                 android:textStyle="bold"
                 android:text="交接班"
                 android:gravity="center"/>
-
 
 
         </LinearLayout>
