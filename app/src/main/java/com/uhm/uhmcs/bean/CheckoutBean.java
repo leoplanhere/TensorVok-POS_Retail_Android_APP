@@ -243,7 +243,7 @@ public class CheckoutBean {
         public String goods_price;
         public int goods_num;
 
-        public int goods_weight;
+        public String goods_weight;
         public int weigh_id;
         public String pay_price;
         public String goods_sku_price_id;
@@ -293,11 +293,11 @@ public class CheckoutBean {
             this.goods_num = goods_num;
         }
 
-        public int getGoods_weight() {
+        public String getGoods_weight() {
             return goods_weight;
         }
 
-        public void setGoods_weight(int goods_weight) {
+        public void setGoods_weight(String goods_weight) {
             this.goods_weight = goods_weight;
         }
 

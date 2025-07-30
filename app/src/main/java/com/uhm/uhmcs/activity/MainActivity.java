@@ -16,6 +16,7 @@ import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
@@ -531,6 +532,7 @@ public class MainActivity extends Activity {
                         goodsJsonBean.setDiscounted_price(grouponGoodsModel.getDiscounted_price() == null ? "0.00" : grouponGoodsModel.getDiscounted_price().toString());
                         goodsJsonBean.setGoods_price(grouponGoodsModel.getPrice());
                         goodsJsonBean.setGoods_num(grouponGoodsModel.getShuliang());
+                        goodsJsonBean.setGoods_weight(grouponGoodsModel.getGoods_weight());
                         goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
                         goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGgspid() + "");
                         goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text()) ? "" : grouponGoodsModel.getGoods_sku_text());
@@ -670,6 +672,7 @@ public class MainActivity extends Activity {
                  * 更多功能
                  */
                 if (R.id.more_function_btn == id) {
+
 //                    MyLabeksPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this,new ArrayList<>());
 
                     new MorefunctionPopupWindow(MainActivity.this, new PopupWindowOnClickListener.MorefunctionOnClickListener() {
@@ -682,7 +685,7 @@ public class MainActivity extends Activity {
                                 case 1:
                                     is_tongbu = true;
                                     grouponGoods_page=1;
-                                    OverviewList();
+                                    getGrouponGoods2();
                                     break;
                                 /*
                                  * 标签打印
@@ -973,7 +976,9 @@ public class MainActivity extends Activity {
                         int index = text.indexOf("001");
                         String before = text.substring(0, index); // "abc"
                         String after = text.substring(index + 3); // "def"
-                        String replaced = after.replace("002", "."); // "abc.def"
+                        String replaced = after.replaceFirst("002", "."); // "abc.def"
+
+                        Log.i("ttt",">>>>>>>>>>>>>"+before+">>>>>>>"+replaced);
                         ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelList = allGrouponGoodsModelList.stream()
                                 .filter(grouponGoodsModel -> grouponGoodsModel.getId().equals(before))
                                 .collect(Collectors.toCollection(ArrayList::new));
@@ -996,6 +1001,7 @@ public class MainActivity extends Activity {
                             BigDecimal heji = price.setScale(2, RoundingMode.DOWN);
                             grouponGoodsModel.setHeji(heji);
                             grouponGoodsModel.setShuliang(1);
+                            grouponGoodsModel.setGoods_weight(new BigDecimal(replaced).multiply(new BigDecimal(1000)).toString());
                             selectedShopList.add(0, grouponGoodsModel);
                             have_paid_view.setVisibility(GONE);
                             selectedShopAdapter.setNewData(selectedShopList);
@@ -1020,6 +1026,7 @@ public class MainActivity extends Activity {
                 GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = grouponGoodsModelArrayList.get(0);
                 Glide.with(MainActivity.this).clear(shop_image);  // 先清空ImageView
                 Glide.with(MainActivity.this).load(grouponGoodsModel.getImage()).into(shop_image);  // 再加载新图片
+                grouponGoodsModel.setGoods_weight("0");
                 if (selectedShopList != null && !selectedShopList.isEmpty()) {
 
                     for (int i = 0; i < selectedShopList.size(); i++) {
@@ -1103,6 +1110,7 @@ public class MainActivity extends Activity {
                     goodsJsonBean.setDiscounted_price(grouponGoodsModel.getDiscounted_price() == null ? "0.00" : grouponGoodsModel.getDiscounted_price().toString());
                     goodsJsonBean.setGoods_price(grouponGoodsModel.getPrice());
                     goodsJsonBean.setGoods_num(grouponGoodsModel.getShuliang());
+                    goodsJsonBean.setGoods_weight(grouponGoodsModel.getGoods_weight());
                     goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
 //                        goodsJsonBean.setPay_price("0.01");
 //                        goodsJsonBean.setGoods_price("0.01");
@@ -1498,6 +1506,7 @@ public class MainActivity extends Activity {
             goodsJsonBean.setDiscounted_price(grouponGoodsModel.getDiscounted_price() == null ? "0.00" : grouponGoodsModel.getDiscounted_price().toString());
             goodsJsonBean.setGoods_price(grouponGoodsModel.getPrice());
             goodsJsonBean.setGoods_num(grouponGoodsModel.getShuliang());
+            goodsJsonBean.setGoods_weight(grouponGoodsModel.getGoods_weight());
             goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
             goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGgspid() + "");
             goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text()) ? "" : grouponGoodsModel.getGoods_sku_text());
@@ -1981,6 +1990,70 @@ public class MainActivity extends Activity {
 
                                 }
                             }
+
+
+                        } else {
+
+//                            Toast.makeText(LoginActivity.this,"数据处理错误:"+ex.getMessage(),Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "请求错误，结果为空", LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+            }
+
+            @Override
+            public void onFailure(IOException e) {
+                runOnUiThread(() -> {
+                    popupView.dismiss();
+                    if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
+                        Gson gson = new Gson();
+                        GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
+                        allGrouponGoodsModelList = grouponGoodsBean.getData();
+                        indexGrouponGoodsModelList = allGrouponGoodsModelList;
+                        grouponGoods_page = 1;
+                        grouponGoodsAdapter.hasMore = true;
+                        grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+                    }
+                    System.err.println("请求失败: " + e.getMessage());
+                });
+
+            }
+        });
+    }
+
+
+    private void getGrouponGoods2() {
+        LoadingPopupView popupView = (LoadingPopupView) new XPopup.Builder(this)
+                .asLoading(getString(R.string.loading_data))
+                .show();
+//        popupView.setTitle("");
+        Map<String, String> params = new HashMap<>();
+//        params.put("category_ids", TextUtils.isEmpty(category_ids) ? "" : category_ids);
+        params.put("category_ids", "");
+        params.put("goods_sn", "");
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+//        params.put("page", grouponGoods_page + "");
+//        params.put("strip", "20");
+        String url = POSApiSerview.POS_URL + POSApiSerview.getGrouponGoods3;
+        OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
+            @Override
+            public void onSuccess(String response) {
+                Log.i("ttt", response);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!response.isEmpty()) {
+                            try {
+                                JSONObject jsonObject=new JSONObject(response);
+                                if (jsonObject.getInt("code") == 1) {
+                                    popupView.dismiss();
+                                    getGrouponGoods();
+                                }
+                            } catch (JSONException e) {
+                                throw new RuntimeException(e);
+                            }
+
 
 
                         } else {

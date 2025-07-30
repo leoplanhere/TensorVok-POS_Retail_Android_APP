@@ -412,6 +412,16 @@ public class LastOrderBean {
          private String transaction_id;
          private int order_status;
 
+         private String changemoney;
+
+         public String getChangemoney() {
+             return changemoney;
+         }
+
+         public void setChangemoney(String changemoney) {
+             this.changemoney = changemoney;
+         }
+
          private String code;
 
          public String getCode() {

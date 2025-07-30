@@ -631,8 +631,8 @@ public class CheckoutPopupWindow {
             order_status=2;
         }
         if (!isyouhuijuan){
-            checkoutBean.setMember_name("");
-            checkoutBean.setMember_phone("");
+//            checkoutBean.setMember_name("");
+//            checkoutBean.setMember_phone("");
 //            checkoutBean.setCardnumber("");
             checkoutBean.setCoupon_fee("");
         }

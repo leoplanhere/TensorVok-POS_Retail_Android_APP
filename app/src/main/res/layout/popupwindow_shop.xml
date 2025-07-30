@@ -5,49 +5,56 @@
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:padding="20dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="50dp"
         android:background="@drawable/white_bg"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="20dp">
+
         <RelativeLayout
-            android:layout_marginBottom="20dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="@string/product_selection"
                 android:textColor="@color/black"
                 android:textSize="30dp"
-                android:text="@string/product_selection"
-                android:textStyle="bold"
-                android:layout_centerInParent="true" />
+                android:textStyle="bold" />
+
             <ImageView
                 android:id="@+id/guanbi_btn"
-                android:layout_centerVertical="true"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:src="@drawable/guanbi"
-                android:layout_alignParentRight="true"/>
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:src="@drawable/guanbi" />
         </RelativeLayout>
+
         <LinearLayout
-            android:layout_marginTop="20dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginTop="20dp"
             android:orientation="horizontal">
+
             <LinearLayout
                 android:layout_width="200dp"
                 android:layout_height="match_parent"
                 android:orientation="vertical">
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="70dp"
                     android:gravity="center"
+                    android:text="@string/product_category"
                     android:textColor="@color/black"
                     android:textSize="25dp"
-                    android:textStyle="bold"
-                    android:text="@string/product_category"/>
+                    android:textStyle="bold" />
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/shop_type_rv"
                     android:layout_width="match_parent"
@@ -61,147 +68,165 @@
                     android:scrollbars="vertical"
                     android:visibility="visible" />
             </LinearLayout>
+
             <LinearLayout
-                android:paddingLeft="20dp"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:paddingLeft="20dp">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="70dp"
                     android:orientation="horizontal">
+
                     <EditText
                         android:id="@+id/sousuo_tv"
-                        android:paddingLeft="10dp"
                         android:layout_width="300dp"
                         android:layout_height="match_parent"
                         android:background="@drawable/rounded_border"
+                        android:gravity="center_vertical"
                         android:hint="@string/pinming_bianma"
-                        android:textColorHint="@color/mr_gray_888"
-                        android:textSize="25dp"
                         android:inputType="text"
+                        android:paddingLeft="10dp"
                         android:textColor="@color/black"
-                        android:gravity="center_vertical"/>
+                        android:textColorHint="@color/mr_gray_888"
+                        android:textSize="25dp" />
 
                     <TextView
                         android:id="@+id/sousuo_btn"
                         android:layout_width="100dp"
                         android:layout_height="match_parent"
+                        android:layout_marginLeft="20dp"
+                        android:background="@drawable/rounded_border"
+                        android:gravity="center"
                         android:text="@string/search"
                         android:textColor="@color/black"
-                        android:textSize="25dp"
-                        android:gravity="center"
-                        android:background="@drawable/rounded_border"
-                        android:layout_marginLeft="20dp"/>
+                        android:textSize="25dp" />
+
                     <TextView
                         android:id="@+id/add_btn"
                         android:layout_width="160dp"
                         android:layout_height="match_parent"
+                        android:layout_marginLeft="20dp"
+                        android:background="@drawable/rounded_border"
+                        android:gravity="center"
                         android:text="@string/check_to_add"
                         android:textColor="@color/black"
-                        android:textSize="25dp"
-                        android:gravity="center"
-                        android:background="@drawable/rounded_border"
-                        android:layout_marginLeft="20dp"/>
+                        android:textSize="25dp" />
+
                     <TextView
                         android:id="@+id/btn_quxiao"
                         android:layout_width="100dp"
                         android:layout_height="match_parent"
+                        android:layout_marginLeft="20dp"
+                        android:background="@drawable/rounded_border"
+                        android:gravity="center"
                         android:text="@string/cancel"
                         android:textColor="@color/black"
-                        android:textSize="25dp"
-                        android:gravity="center"
-                        android:background="@drawable/rounded_border"
-                        android:layout_marginLeft="20dp"/>
+                        android:textSize="25dp" />
                 </LinearLayout>
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <LinearLayout
                         android:id="@+id/all_select_btn"
-                        android:gravity="center_vertical"
-                        android:layout_marginTop="20dp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:gravity="center_vertical"
                         android:orientation="horizontal">
+
                         <LinearLayout
-                            android:gravity="center_vertical"
                             android:layout_width="wrap_content"
-                            android:layout_height="match_parent">
+                            android:layout_height="match_parent"
+                            android:gravity="center_vertical">
+
                             <TextView
-                                android:layout_marginEnd="20dp"
                                 android:id="@+id/all_select"
-                                android:layout_marginStart="20dp"
-                                android:background="@drawable/custom_checkbox"
                                 android:layout_width="30dp"
-                                android:layout_height="30dp"/>
+                                android:layout_height="30dp"
+                                android:layout_marginStart="20dp"
+                                android:layout_marginEnd="20dp"
+                                android:background="@drawable/custom_checkbox" />
                         </LinearLayout>
+
                         <TextView
                             android:layout_width="0dp"
+                            android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:layout_height="wrap_content"
-                            android:textSize="25dp"
+                            android:text="@string/No"
                             android:textColor="@color/black"
-                            android:text="@string/No" />
+                            android:textSize="25dp" />
+
                         <TextView
                             android:layout_width="0dp"
+                            android:layout_height="wrap_content"
                             android:layout_weight="1.5"
                             android:gravity="center"
-                            android:layout_height="wrap_content"
-                            android:textSize="25dp"
+                            android:text="@string/sku"
                             android:textColor="@color/black"
-                            android:text="@string/sku" />
+                            android:textSize="25dp" />
+
                         <TextView
                             android:layout_width="0dp"
+                            android:layout_height="wrap_content"
                             android:layout_weight="2"
                             android:gravity="center"
-                            android:layout_height="wrap_content"
-                            android:textSize="25dp"
+                            android:text="@string/product_name"
                             android:textColor="@color/black"
-                            android:text="@string/product_name" />
-                        <TextView
-                            android:visibility="gone"
-                            android:layout_width="0dp"
-                            android:layout_weight="1.5"
-                            android:gravity="center"
-                            android:layout_height="wrap_content"
-                            android:textSize="25dp"
-                            android:textColor="@color/black"
-                            android:text="副标题" />
+                            android:textSize="25dp" />
+
                         <TextView
                             android:layout_width="0dp"
+                            android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:layout_height="wrap_content"
-                            android:textSize="25dp"
+                            android:text="副标题"
                             android:textColor="@color/black"
-                            android:text="@string/selling_price" />
+                            android:textSize="25dp"
+                            android:visibility="visible" />
+
                         <TextView
                             android:layout_width="0dp"
+                            android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:layout_height="wrap_content"
-                            android:textSize="25dp"
+                            android:text="@string/selling_price"
                             android:textColor="@color/black"
-                            android:text="@string/market_price" />
+                            android:textSize="25dp" />
+
                         <TextView
                             android:layout_width="0dp"
+                            android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:layout_height="wrap_content"
-                            android:textSize="25dp"
+                            android:text="@string/market_price"
                             android:textColor="@color/black"
-                            android:text="@string/cost_price" />
+                            android:textSize="25dp" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/cost_price"
+                            android:textColor="@color/black"
+                            android:textSize="25dp" />
                     </LinearLayout>
+
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="#ebeef5"
-                        android:layout_marginTop="20dp"/>
+                        android:layout_marginTop="20dp"
+                        android:background="#ebeef5" />
                 </LinearLayout>
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/shop_rv"
                     android:layout_width="match_parent"
@@ -215,6 +240,94 @@
                     android:scrollbars="vertical"
                     android:visibility="visible" />
 
+                <LinearLayout
+                    android:id="@+id/fenye_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:layout_marginBottom="10dp"
+                    android:gravity="center"
+                    android:visibility="visible">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/zongshu_tv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:gravity="center"
+                        android:text="共0页"
+                        android:textColor="@color/black"
+                        android:textSize="30dp" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/jian_btn"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginLeft="10dp"
+                        android:background="@drawable/rounded_border"
+                        android:padding="12dp"
+                        android:src="@mipmap/pos_ui_page_up_bg_01" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/yeshu_tv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1"
+                            android:textSize="30dp"
+                            android:textColor="@color/black"
+                            android:layout_marginStart="20dp"
+                            android:layout_marginEnd="20dp"/>
+
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/jia_btn"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@drawable/rounded_border"
+                        android:padding="12dp"
+                        android:src="@mipmap/pos_ui_next_page_bg_01" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginLeft="18dp"
+                        android:gravity="center"
+                        android:text="前往"
+                        android:textColor="@color/black"
+                        android:textSize="30dp"
+                        android:visibility="visible" />
+
+                    <com.uhm.uhmcs.view.CustomInputTextView
+                        android:id="@+id/qianwang_tv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/pos_drawable_area_color_white_01"
+                        android:gravity="center"
+                        android:minWidth="50dp"
+                        android:padding="10dp"
+                        android:text="1"
+                        android:textColor="@color/black"
+                        android:textSize="30dp"
+                        android:visibility="visible" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:gravity="center"
+                        android:text="页"
+                        android:textColor="@color/black"
+                        android:textSize="30dp"
+                        android:visibility="visible" />
+
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 

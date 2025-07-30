@@ -13,11 +13,12 @@ public class ShopAdapter extends BaseQuickAdapter<GrouponGoodsBean.GrouponGoodsM
     public ShopAdapter() {
         super(R.layout.item_shop);
     }
-
+    public boolean hasMore = true; // 标记是否还有更多数据可以加载
 
     @Override
     protected void convert(BaseViewHolder helper, GrouponGoodsBean.GrouponGoodsModel item) {
         helper.setText(R.id.shop_name,item.getTitle());
+        helper.setText(R.id.shop_name1,item.getSubtitle());
         helper.setText(R.id.xuhao_tv,(helper.getLayoutPosition()+1)+"");
         helper.setText(R.id.bianma_tv,item.getSn());
         helper.setText(R.id.fubiaoti_tv,item.getSubtitle());

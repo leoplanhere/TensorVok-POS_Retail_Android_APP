@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -16,18 +17,24 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.widget.AppCompatImageView;
+import androidx.appcompat.widget.AppCompatTextView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.google.gson.Gson;
 import com.uhm.uhmcs.R;
+import com.uhm.uhmcs.activity.MainActivity;
 import com.uhm.uhmcs.adapter.GuaDanShopAdapter;
 import com.uhm.uhmcs.adapter.ShopAdapter;
 import com.uhm.uhmcs.adapter.ShopTypeAdapter1;
 import com.uhm.uhmcs.bean.CategoryListBean;
 import com.uhm.uhmcs.bean.GrouponGoodsBean;
 import com.uhm.uhmcs.utils.UserUtils;
+import com.uhm.uhmcs.view.CustomInputTextView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,8 +56,10 @@ public class ShopPopupWindow {
     private LinearLayout all_select_btn;
     private LinearLayoutManager shopTypeLinearLayoutManager;
     private  PopupWindowOnClickListener.ShopOnClickListener shopOnClickListener;
-
-
+    private TextView zongshu_tv,yeshu_tv;
+    private AppCompatImageView jian_btn,jia_btn;
+    private CustomInputTextView qianwang_tv;
+    private ArrayList<GrouponGoodsBean.GrouponGoodsModel> indexGrouponGoodsModelList = new ArrayList<>();
     public ShopPopupWindow(Context context, PopupWindowOnClickListener.ShopOnClickListener shopOnClickListener){
 
         this.context = context;
@@ -100,6 +109,14 @@ public class ShopPopupWindow {
         all_select=popupView.findViewById(R.id.all_select);
         all_select_btn=popupView.findViewById(R.id.all_select_btn);
 
+        zongshu_tv=popupView.findViewById(R.id.zongshu_tv);
+        jian_btn=popupView.findViewById(R.id.jian_btn);
+        yeshu_tv=popupView.findViewById(R.id.yeshu_tv);
+        jia_btn=popupView.findViewById(R.id.jia_btn);
+        qianwang_tv=popupView.findViewById(R.id.qianwang_tv);
+
+
+
         all_select_btn.setOnClickListener(v -> {
             if (is_all_select){
                 is_all_select=false;
@@ -124,13 +141,25 @@ public class ShopPopupWindow {
                 // 滚动到位置 0（第一条）
                 shopTypeLinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
                 category_ids="";
+                shopTypeAdapter1.setIndex(0);
                 if (TextUtils.isEmpty(sousuo_tv.getText().toString())){
-                    shopAdapter.setNewData(allGrouponGoodsModelList);
+                    indexGrouponGoodsModelList=allGrouponGoodsModelList;
+                    grouponGoods_page=1;
+                    shopAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+                    zongshu_tv.setText("共"+getTotalPages(indexGrouponGoodsModelList)+"页");
+                    yeshu_tv.setText(grouponGoods_page+"");
                     return true;
                 }
-                shopAdapter.setNewData(allGrouponGoodsModelList.stream()
+                Log.i("ttt",new Gson().toJson((ArrayList<GrouponGoodsBean.GrouponGoodsModel>)allGrouponGoodsModelList.stream()
                         .filter(grouponGoodsModel -> grouponGoodsModel.getTitle().contains(sousuo_tv.getText().toString())||(!TextUtils.isEmpty(grouponGoodsModel.getSn())&&grouponGoodsModel.getSn().equals(sousuo_tv.getText().toString())))
-                        .collect(Collectors.toCollection(ArrayList::new)));
+                        .collect(Collectors.toCollection(ArrayList::new))));
+                indexGrouponGoodsModelList=allGrouponGoodsModelList.stream()
+                        .filter(grouponGoodsModel -> grouponGoodsModel.getTitle().contains(sousuo_tv.getText().toString())||(!TextUtils.isEmpty(grouponGoodsModel.getSn())&&grouponGoodsModel.getSn().equals(sousuo_tv.getText().toString())))
+                        .collect(Collectors.toCollection(ArrayList::new));
+                grouponGoods_page=1;
+                shopAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+                zongshu_tv.setText("共"+getTotalPages(indexGrouponGoodsModelList)+"页");
+                yeshu_tv.setText(grouponGoods_page+"");
                 sousuo_tv.setText("");
                 return true; // 消费事件
             }
@@ -141,13 +170,25 @@ public class ShopPopupWindow {
             // 滚动到位置 0（第一条）
             shopTypeLinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
             category_ids="";
+            shopTypeAdapter1.setIndex(0);
             if (TextUtils.isEmpty(sousuo_tv.getText().toString())){
-                shopAdapter.setNewData(allGrouponGoodsModelList);
+                indexGrouponGoodsModelList=allGrouponGoodsModelList;
+                grouponGoods_page=1;
+                shopAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+                zongshu_tv.setText("共"+getTotalPages(indexGrouponGoodsModelList)+"页");
+                yeshu_tv.setText(grouponGoods_page+"");
                 return;
             }
-            shopAdapter.setNewData(allGrouponGoodsModelList.stream()
+            Log.i("ttt",new Gson().toJson((ArrayList<GrouponGoodsBean.GrouponGoodsModel>)allGrouponGoodsModelList.stream()
                     .filter(grouponGoodsModel -> grouponGoodsModel.getTitle().contains(sousuo_tv.getText().toString())||(!TextUtils.isEmpty(grouponGoodsModel.getSn())&&grouponGoodsModel.getSn().equals(sousuo_tv.getText().toString())))
-                    .collect(Collectors.toCollection(ArrayList::new)));
+                    .collect(Collectors.toCollection(ArrayList::new))));
+            indexGrouponGoodsModelList=allGrouponGoodsModelList.stream()
+                    .filter(grouponGoodsModel -> grouponGoodsModel.getTitle().contains(sousuo_tv.getText().toString())||(!TextUtils.isEmpty(grouponGoodsModel.getSn())&&grouponGoodsModel.getSn().equals(sousuo_tv.getText().toString())))
+                    .collect(Collectors.toCollection(ArrayList::new));
+            grouponGoods_page=1;
+            shopAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+            zongshu_tv.setText("共"+getTotalPages(indexGrouponGoodsModelList)+"页");
+            yeshu_tv.setText(grouponGoods_page+"");
             sousuo_tv.setText("");
 
         });
@@ -182,15 +223,54 @@ public class ShopPopupWindow {
 //            for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : allGrouponGoodsModelList) {
 //                grouponGoodsModel.setSelected(false);
 //            }
+
             if (TextUtils.isEmpty(category_ids)) {
-                shopAdapter.setNewData(allGrouponGoodsModelList);
+
+
+                indexGrouponGoodsModelList=allGrouponGoodsModelList;
+
             }else {
-                shopAdapter.setNewData(allGrouponGoodsModelList.stream()
+                indexGrouponGoodsModelList=allGrouponGoodsModelList.stream()
                         .filter(grouponGoodsModel -> grouponGoodsModel.getCategory_ids().equals(category_ids))
-                        .collect(Collectors.toCollection(ArrayList::new)));
+                        .collect(Collectors.toCollection(ArrayList::new));
+
             }
+            grouponGoods_page=1;
+            shopAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+            zongshu_tv.setText("共"+getTotalPages(indexGrouponGoodsModelList)+"页");
+            yeshu_tv.setText(grouponGoods_page+"");
 
         }
+        jia_btn.setOnClickListener(v -> {
+            if (grouponGoods_page==getTotalPages(indexGrouponGoodsModelList)){
+                return;
+            }
+            grouponGoods_page++;
+            yeshu_tv.setText(grouponGoods_page+"");
+            shopAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+        });
+        jian_btn.setOnClickListener(v -> {
+            if (grouponGoods_page==1){
+                return;
+            }
+            grouponGoods_page--;
+            yeshu_tv.setText(grouponGoods_page+"");
+            shopAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+        });
+
+        // 自动获取焦点
+        qianwang_tv.postDelayed(() -> qianwang_tv.requestFocus(), 100);
+
+        qianwang_tv.setOnInputCompleteListener(text -> {
+            if (!isValidPositiveInteger(text,getTotalPages(indexGrouponGoodsModelList))){
+                new DeleteShopPopupWindow(context,"请输入正确的页数",true).show();
+                return;
+            }
+            grouponGoods_page=Integer.parseInt(text);
+            yeshu_tv.setText(grouponGoods_page+"");
+            shopAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+        });
+
 
         shopTypeAdapter1.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
@@ -211,15 +291,22 @@ public class ShopPopupWindow {
 //                goods_sn = "";
 //                getGrouponGoods();
                 if (TextUtils.isEmpty(category_ids)) {
-                    shopAdapter.setNewData(allGrouponGoodsModelList);
+                    indexGrouponGoodsModelList=allGrouponGoodsModelList;
+                    grouponGoods_page=1;
+                    shopAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+                    zongshu_tv.setText("共"+getTotalPages(indexGrouponGoodsModelList)+"页");
+                    yeshu_tv.setText(grouponGoods_page+"");
                     return;
                 }
                 ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = new ArrayList<>();
                 grouponGoodsModelArrayList = allGrouponGoodsModelList.stream()
                         .filter(grouponGoodsModel -> !Arrays.asList(grouponGoodsModel.getCategory_ids().split(",")).stream().filter(s ->s .equals(category_ids)) .collect(Collectors.toCollection(ArrayList::new)).isEmpty())
                         .collect(Collectors.toCollection(ArrayList::new));
-
-                shopAdapter.setNewData(grouponGoodsModelArrayList);
+                indexGrouponGoodsModelList=grouponGoodsModelArrayList;
+                grouponGoods_page=1;
+                shopAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+                zongshu_tv.setText("共"+getTotalPages(indexGrouponGoodsModelList)+"页");
+                yeshu_tv.setText(grouponGoods_page+"");
             }
         });
         shopAdapter.setOnItemClickListener((adapter, view, position) -> {
@@ -247,6 +334,27 @@ public class ShopPopupWindow {
 
 
 
+    }
+
+    public static boolean isValidPositiveInteger(String input,int tos) {
+        try {
+            int num = Integer.parseInt(input);
+            return num > 0 && num <=tos;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+    private int grouponGoods_page = 1;
+
+    public ArrayList<GrouponGoodsBean.GrouponGoodsModel> getPageData(int currentPage, ArrayList<GrouponGoodsBean.GrouponGoodsModel> sourceList) {
+        int start = (currentPage - 1) * 50;
+        int end = Math.min(start + 50, sourceList.size());
+        if (start >= end) return new ArrayList<>();
+        return new ArrayList<>(sourceList.subList(start, end)); // 避免直接使用 subList
+    }
+    // 计算总页数
+    public int getTotalPages(ArrayList<GrouponGoodsBean.GrouponGoodsModel> sourceList) {
+        return (int) Math.ceil((double) sourceList.size() / 50);
     }
 
     public void show() {

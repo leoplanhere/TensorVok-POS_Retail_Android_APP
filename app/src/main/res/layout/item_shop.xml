@@ -50,6 +50,15 @@
                 android:textColor="@color/black"
                 android:text="" />
             <TextView
+                android:id="@+id/shop_name1"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:layout_height="wrap_content"
+                android:textSize="25dp"
+                android:textColor="@color/black"
+                android:text="" />
+            <TextView
                 android:visibility="gone"
                 android:id="@+id/fubiaoti_tv"
                 android:layout_width="0dp"

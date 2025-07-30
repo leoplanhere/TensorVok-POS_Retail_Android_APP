@@ -191,7 +191,7 @@
                 android:gravity="center"/>
 
             <TextView
-                android:visibility="gone"
+                android:visibility="visible"
                 android:id="@+id/jiaojieban_btn"
                 android:layout_marginRight="10dp"
                 android:layout_width="140dp"

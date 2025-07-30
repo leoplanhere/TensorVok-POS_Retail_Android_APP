@@ -115,6 +115,14 @@
                 android:layout_height="wrap_content"
                 android:textSize="25dp"
                 android:textColor="@color/black"
+                android:text="副标题" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:layout_height="wrap_content"
+                android:textSize="25dp"
+                android:textColor="@color/black"
                 android:text="@string/selling_price" />
             <TextView
                 android:layout_width="0dp"

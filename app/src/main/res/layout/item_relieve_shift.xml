@@ -34,25 +34,53 @@
             android:text=""
             android:textSize="25dp"
             android:textColor="@color/black"
-            android:layout_weight="2"/>
+            android:layout_weight="1"/>
         <TextView
-            android:id="@+id/danhao_tv"
+            android:id="@+id/shoukuan_tv"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:gravity="center"
             android:text=""
             android:textSize="25dp"
             android:textColor="@color/black"
-            android:layout_weight="2"/>
+            android:layout_weight="1"/>
         <TextView
-            android:id="@+id/yingyee_tv"
+            android:id="@+id/tuikuan_tv"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:gravity="center"
             android:text=""
             android:textSize="25dp"
             android:textColor="@color/black"
-            android:layout_weight="2"/>
+            android:layout_weight="1"/>
+        <TextView
+            android:id="@+id/yingshou_tv"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text=""
+            android:textSize="25dp"
+            android:textColor="@color/black"
+            android:layout_weight="1"/>
+        <LinearLayout
+            android:visibility="visible"
+            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_weight="1">
+            <TextView
+                android:id="@+id/print_btn"
+                android:layout_width="140dp"
+                android:layout_margin="20dp"
+                android:layout_height="50dp"
+                android:background="@drawable/rounded_border"
+                android:layout_weight="1"
+                android:textSize="25dp"
+                android:textColor="@color/black"
+                android:text="打印"
+                android:gravity="center"/>
+        </LinearLayout>
     </LinearLayout>
     <View
         android:layout_width="match_parent"

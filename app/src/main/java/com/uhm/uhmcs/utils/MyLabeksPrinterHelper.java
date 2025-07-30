@@ -99,15 +99,15 @@ public class MyLabeksPrinterHelper {
                         cmd.append("TEXT " + 80 + "," + 120+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getSn()).append("\"\r\n");
                         cmd.append("TEXT " + 80 + "," + 165+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getGoods_sn()).append("\"\r\n");
 
-                        if (!TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text())){
-                            String input =grouponGoodsModel.getGoods_sku_text();
-                            String result = input.substring(1, input.length() - 1);
-                            cmd.append("TEXT " + 250 + "," + 165+ ",\"FONT001\",0,1,1,\"").append(result).append("\"\r\n");
+                        if (!TextUtils.isEmpty(grouponGoodsModel.getSpecs_title())){
+//                            String input =grouponGoodsModel.getGoods_sku_text();
+//                            String result = input.substring(1, input.length() - 1);
+                            cmd.append("TEXT " + 250 + "," + 165+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getSpecs_title()).append("\"\r\n");
                         }
 
 
 
-                        cmd.append("TEXT " + 120 + "," + 215+ ",\"FONT001\",0,1,1,\"").append("1").append("\"\r\n");
+                        cmd.append("TEXT " + 120 + "," + 215+ ",\"FONT001\",0,1,1,\"").append((TextUtils.isEmpty(grouponGoodsModel.getUnit())?"1":grouponGoodsModel.getUnit())).append("\"\r\n");
                         cmd.append("TEXT " + 80 + "," + 260+ ",\"FONT001\",0,1,1,\"").append("合格品").append("\"\r\n");
                         cmd.append("TEXT " + 270 + "," + 215+ ",\"FONT001\",0,1,1,\"").append("物价员").append("\"\r\n");
 //                        cmd.append("TEXT " + 250 + "," + 260+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getc).append("\"\r\n");
@@ -116,7 +116,6 @@ public class MyLabeksPrinterHelper {
                         cmd.append("TEXT " + 495 + "," + 215+ ",\"FONT001\",0,1,1,\"").append(grouponGoodsModel.getDeduction_golive()).append("\"\r\n");
                         cmd.append("PRINT 1\r\n");
                     }
-
 
                 }
                 // 执行打印

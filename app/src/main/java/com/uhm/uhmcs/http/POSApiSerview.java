@@ -5,8 +5,8 @@ package com.uhm.uhmcs.http;
  * api接口存放
  */
 public interface POSApiSerview {
-//    String POS_URL1 = "https://xlcc.uhimao.com/";
-    String POS_URL1 = "https://uhimaosc.wiipoo.com/";
+    String POS_URL1 = "https://sdscsh.uhimao.com/";
+//    String POS_URL1 = "https://uhimaosc.wiipoo.com/";
 
     String POS_URL = POS_URL1+"api/";
 //    String POS_URL = "https://shbs.uhimao.com/api/";
@@ -30,6 +30,8 @@ public interface POSApiSerview {
     String getGrouponGoods = "Supermarket/getGrouponGoods";
     //根据分类查询商品
     String getGrouponGoods2 = "Supermarket/getGrouponGoods3";
+
+    String getGrouponGoods3 = "Supermarket/getGrouponGoods2";
 
     //根据id查询商品
     String getGoods = "Supermarket/getGoodsMultiple";
@@ -66,7 +68,7 @@ public interface POSApiSerview {
     //交班列表
     String handoverList = "Supermarket/handoverList";
     //交班
-    String shiftHandover = "Supermarket/shiftHandover1";
+    String shiftHandover = "Supermarket/shiftHandoveraz";
     //查询微信支付状态
     String fwsgetOrderInformation = "Supermarket/fwsgetOrderInformation";
     //撤销微信支付订单

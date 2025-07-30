@@ -119,6 +119,37 @@ public class GrouponGoodsBean implements Serializable{
 
         private String company;
 
+        private String goods_weight;
+
+        private String unit;
+
+        private String specs_title;
+
+
+        public String getUnit() {
+            return unit;
+        }
+
+        public void setUnit(String unit) {
+            this.unit = unit;
+        }
+
+        public String getSpecs_title() {
+            return specs_title;
+        }
+
+        public void setSpecs_title(String specs_title) {
+            this.specs_title = specs_title;
+        }
+
+        public String getGoods_weight() {
+            return goods_weight;
+        }
+
+        public void setGoods_weight(String goods_weight) {
+            this.goods_weight = goods_weight;
+        }
+
         public String getCompany() {
             return company;
         }

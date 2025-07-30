@@ -9,6 +9,37 @@ public class RelieveShiftBean {
     private String turnover;
     private int user_id;
 
+    private int logintime;
+
+    private String refundjson;
+
+    private String paymentjson;
+
+
+    public int getLogintime() {
+        return logintime;
+    }
+
+    public void setLogintime(int logintime) {
+        this.logintime = logintime;
+    }
+
+    public String getRefundjson() {
+        return refundjson;
+    }
+
+    public void setRefundjson(String refundjson) {
+        this.refundjson = refundjson;
+    }
+
+    public String getPaymentjson() {
+        return paymentjson;
+    }
+
+    public void setPaymentjson(String paymentjson) {
+        this.paymentjson = paymentjson;
+    }
+
     public int getCreatetime() {
         return createtime;
     }

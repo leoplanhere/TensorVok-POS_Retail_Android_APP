@@ -1,6 +1,7 @@
 package com.uhm.uhmcs.adapter;
 
 import android.content.Context;
+import android.icu.math.BigDecimal;
 import android.text.TextUtils;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -37,7 +38,12 @@ public class PaymentAdapter extends BaseQuickAdapter<LastOrderBean.PaymentlogBea
             helper.addOnClickListener(R.id.tuikuan_btn);
             helper.setText(R.id.tuikuan_btn, context.getString(R.string.refund));
         }
-        helper.setText(R.id.jiage_tv,item.getReceivedmoney());
+        if (!TextUtils.isEmpty(item.getChangemoney())){
+            helper.setText(R.id.jiage_tv,new BigDecimal(item.getReceivedmoney()).subtract(new BigDecimal(item.getChangemoney())).toString());
+        }else {
+            helper.setText(R.id.jiage_tv,item.getReceivedmoney());
+        }
+
 
     }
 }

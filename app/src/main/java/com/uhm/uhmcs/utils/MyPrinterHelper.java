@@ -34,6 +34,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -209,8 +210,8 @@ public class MyPrinterHelper {
                 output.write(0x0A); // 换行
 
                 String daijinjuan="代金券抵扣:";
-                daijinjuan+=(new String(new char[48-11-calculateDisplayWidth("-"+checkoutBean.getCoupon_fee()+"")]).replace('\0', ' '));
-                daijinjuan+=("-"+checkoutBean.getCoupon_fee()+"");
+                daijinjuan+=(new String(new char[48-11-calculateDisplayWidth("-"+(TextUtils.isEmpty(checkoutBean.getCoupon_fee())?"0.00":checkoutBean.getCoupon_fee())+"")]).replace('\0', ' '));
+                daijinjuan+=("-"+(TextUtils.isEmpty(checkoutBean.getCoupon_fee())?"0.00":checkoutBean.getCoupon_fee())+"");
                 output.write(daijinjuan.getBytes("GBK"));
                 output.write(0x0A); // 换行
                 BigDecimal shifujine_pice=new BigDecimal("0.00");
@@ -274,13 +275,13 @@ public class MyPrinterHelper {
                 // 设置居中对齐
                 output.write(new byte[]{0x1B, 0x61, 0x01});
                 output.write(0x0A); // 换行
-//                if(!TextUtils.isEmpty(order_sn)){
-//                    Bitmap biaoqingbitmap= generateBarcode(order_sn,BarcodeFormat.CODE_128,360,80);
-//                    Bitmap biaoqingprocessed = ImagePrinter.toMonochrome(biaoqingbitmap);
-//                    output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
-//                }
-//                output.write((order_sn+"\n").getBytes(Charset.forName("GBK")));
-//                output.write(0x0A); // 换行
+                if(!TextUtils.isEmpty(order_sn)){
+                    Bitmap biaoqingbitmap= generateBarcode(order_sn,BarcodeFormat.CODE_128,440,80);
+                    Bitmap biaoqingprocessed = ImagePrinter.toMonochrome(biaoqingbitmap);
+                    output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
+                }
+                output.write((order_sn+"\n").getBytes(Charset.forName("GBK")));
+                output.write(0x0A); // 换行
                 // 左对齐
                 output.write(new byte[]{0x1B, 0x61, 0x00});
                 output.write("此单据二维码为开具增值税普通发票\n".getBytes(Charset.forName("GBK")));
@@ -569,8 +570,8 @@ public class MyPrinterHelper {
                 output.write(youhuizongji.getBytes("GBK"));
                 output.write(0x0A); // 换行
                 String daijinjuan="代金券抵扣:";
-                daijinjuan+=(new String(new char[48-11-calculateDisplayWidth("-"+checkoutBean.getCoupon_fee()+"")]).replace('\0', ' '));
-                daijinjuan+=("-"+checkoutBean.getCoupon_fee()+"");
+                daijinjuan+=(new String(new char[48-11-calculateDisplayWidth("-"+(TextUtils.isEmpty(checkoutBean.getCoupon_fee())?"0.00":checkoutBean.getCoupon_fee())+"")]).replace('\0', ' '));
+                daijinjuan+=("-"+(TextUtils.isEmpty(checkoutBean.getCoupon_fee())?"0.00":checkoutBean.getCoupon_fee())+"");
                 output.write(daijinjuan.getBytes("GBK"));
                 output.write(0x0A); // 换行
 
@@ -643,13 +644,13 @@ public class MyPrinterHelper {
                 // 设置居中对齐
                 output.write(new byte[]{0x1B, 0x61, 0x01});
                 output.write(0x0A); // 换行
-//                if(!TextUtils.isEmpty(order_sn)){
-//                    Bitmap biaoqingbitmap= generateBarcode(order_sn,BarcodeFormat.CODE_128,360,80);
-//                    Bitmap biaoqingprocessed = ImagePrinter.toMonochrome(biaoqingbitmap);
-//                    output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
-//                }
-//                output.write((order_sn+"\n").getBytes(Charset.forName("GBK")));
-//                output.write(0x0A); // 换行
+                if(!TextUtils.isEmpty(order_sn)){
+                    Bitmap biaoqingbitmap= generateBarcode(order_sn,BarcodeFormat.CODE_128,440,80);
+                    Bitmap biaoqingprocessed = ImagePrinter.toMonochrome(biaoqingbitmap);
+                    output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
+                }
+                output.write((order_sn+"\n").getBytes(Charset.forName("GBK")));
+                output.write(0x0A); // 换行
                 // 左对齐
                 output.write(new byte[]{0x1B, 0x61, 0x00});
                 output.write("此单据二维码为开具增值税普通发票\n".getBytes(Charset.forName("GBK")));
@@ -816,8 +817,8 @@ public class MyPrinterHelper {
                 output.write(0x0A); // 换行
 
                 String daijinjuan="代金券抵扣:";
-                daijinjuan+=(new String(new char[48-11-calculateDisplayWidth("-"+lastOrderBean.getCoupon_fee()+"")]).replace('\0', ' '));
-                daijinjuan+=("-"+lastOrderBean.getCoupon_fee()+"");
+                daijinjuan+=(new String(new char[48-11-calculateDisplayWidth("-"+(TextUtils.isEmpty(lastOrderBean.getCoupon_fee())?"0.00":lastOrderBean.getCoupon_fee())+"")]).replace('\0', ' '));
+                daijinjuan+=("-"+(TextUtils.isEmpty(lastOrderBean.getCoupon_fee())?"0.00":lastOrderBean.getCoupon_fee())+"");
                 output.write(daijinjuan.getBytes("GBK"));
                 output.write(0x0A); // 换行
 
@@ -917,13 +918,13 @@ public class MyPrinterHelper {
                 // 设置居中对齐
                 output.write(new byte[]{0x1B, 0x61, 0x01});
                 output.write(0x0A); // 换行
-//                if(!TextUtils.isEmpty(lastOrderBean.getOrder_sn())){
-//                    Bitmap biaoqingbitmap= generateBarcode(lastOrderBean.getOrder_sn(),BarcodeFormat.CODE_128,360,80);
-//                    Bitmap biaoqingprocessed = ImagePrinter.toMonochrome(biaoqingbitmap);
-//                    output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
-//                }
-//                output.write((lastOrderBean.getOrder_sn()+"\n").getBytes(Charset.forName("GBK")));
-//                output.write(0x0A); // 换行
+                if(!TextUtils.isEmpty(lastOrderBean.getOrder_sn())){
+                    Bitmap biaoqingbitmap= generateBarcode(lastOrderBean.getOrder_sn(),BarcodeFormat.CODE_128,440,80);
+                    Bitmap biaoqingprocessed = ImagePrinter.toMonochrome(biaoqingbitmap);
+                    output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
+                }
+                output.write((lastOrderBean.getOrder_sn()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(0x0A); // 换行
                 // 左对齐
                 output.write(new byte[]{0x1B, 0x61, 0x00});
                 output.write("此单据二维码为开具增值税普通发票\n".getBytes(Charset.forName("GBK")));
@@ -1076,8 +1077,8 @@ public class MyPrinterHelper {
                 output.write(youhuizongji.getBytes("GBK"));
                 output.write(0x0A); // 换行
                 String daijinjuan="代金券抵扣:";
-                daijinjuan+=(new String(new char[48-11-calculateDisplayWidth("-"+lastOrderBean.getCoupon_fee()+"")]).replace('\0', ' '));
-                daijinjuan+=("-"+lastOrderBean.getCoupon_fee()+"");
+                daijinjuan+=(new String(new char[48-11-calculateDisplayWidth("-"+(TextUtils.isEmpty(lastOrderBean.getCoupon_fee())?"0.00":lastOrderBean.getCoupon_fee())+"")]).replace('\0', ' '));
+                daijinjuan+=("-"+(TextUtils.isEmpty(lastOrderBean.getCoupon_fee())?"0.00":lastOrderBean.getCoupon_fee())+"");
                 output.write(daijinjuan.getBytes("GBK"));
                 output.write(0x0A); // 换行
 
@@ -1177,13 +1178,13 @@ public class MyPrinterHelper {
                 // 设置居中对齐
                 output.write(new byte[]{0x1B, 0x61, 0x01});
                 output.write(0x0A); // 换行
-//                if(!TextUtils.isEmpty(lastOrderBean.getOrder_sn())){
-//                    Bitmap biaoqingbitmap= generateBarcode(lastOrderBean.getOrder_sn(),BarcodeFormat.CODE_128,360,80);
-//                    Bitmap biaoqingprocessed = ImagePrinter.toMonochrome(biaoqingbitmap);
-//                    output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
-//                }
-//                output.write((lastOrderBean.getOrder_sn()+"\n").getBytes(Charset.forName("GBK")));
-//                output.write(0x0A); // 换行
+                if(!TextUtils.isEmpty(lastOrderBean.getOrder_sn())){
+                    Bitmap biaoqingbitmap= generateBarcode(lastOrderBean.getOrder_sn(),BarcodeFormat.CODE_128,440,80);
+                    Bitmap biaoqingprocessed = ImagePrinter.toMonochrome(biaoqingbitmap);
+                    output.write(ImagePrinter.convertBitmapToEscPos(biaoqingprocessed));
+                }
+                output.write((lastOrderBean.getOrder_sn()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(0x0A); // 换行
                 // 左对齐
                 output.write(new byte[]{0x1B, 0x61, 0x00});
                 output.write("此单据二维码为开具增值税普通发票\n".getBytes(Charset.forName("GBK")));
@@ -1257,19 +1258,60 @@ public class MyPrinterHelper {
                 output.write(new byte[]{0x1B, 0x61, 0x01});
                 output.write("交接单\n".getBytes(Charset.forName("GBK")));
                 output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
-                // 设置居右对齐
-                output.write(new byte[]{0x1B, 0x61, 0x02});
-                output.write(("交班单号:"+relieveShiftPrintBean.getShift_id()+"\n").getBytes(Charset.forName("GBK")));
+                // 设置居左对齐
+                output.write(new byte[]{0x1B, 0x61, 0x00});
                 // 定义日期格式模板
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                SimpleDateFormat sdf =new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                 // 获取当前时间（基于系统时区）
                 String formattedTime = sdf.format(System.currentTimeMillis());
-                output.write(("交班时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("上班时间:"+sdf.format(new Date(relieveShiftPrintBean.getData().getLogintime()* 1000L))+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("交班时间:"+sdf.format(new Date(relieveShiftPrintBean.getData().getEndtime()* 1000L))+"\n").getBytes(Charset.forName("GBK")));
                 output.write(("营业门店:"+"优道佳家福会员超市"+"\n").getBytes(Charset.forName("GBK")));
-                output.write(("收银员:"+UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUsername()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(("收银员:"+relieveShiftPrintBean.getData().getNickname()+"\n").getBytes(Charset.forName("GBK")));
                 output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
+                output.write(("收款信息"+"\n").getBytes(Charset.forName("GBK")));
+                RelieveShiftPrintBean.DataBean dataBean=relieveShiftPrintBean.getData();
+                BigDecimal toeal_shoukuan=new BigDecimal(0.00);
+                if (!dataBean.getTotal().isEmpty()){
+                    for (RelieveShiftPrintBean.DataBean.TotalBean totalBean:dataBean.getTotal()){
+                        if (totalBean.getPay_type().equals("cash")){
+                            output.write(("现金收款:"+(new String(new char[48-calculateDisplayWidth("现金收款:")-calculateDisplayWidth(totalBean.getTotal()+"")]).replace('\0', ' '))+totalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                        }else if (totalBean.getPay_type().equals("wallet")){
+                            output.write(("会员卡收款:"+(new String(new char[48-calculateDisplayWidth("会员卡收款:")-calculateDisplayWidth(totalBean.getTotal()+"")]).replace('\0', ' '))+totalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                        }else if (totalBean.getPay_type().equals("wechat")){
+                            output.write(("微信收款:"+(new String(new char[48-calculateDisplayWidth("微信收款:")-calculateDisplayWidth(totalBean.getTotal()+"")]).replace('\0', ' '))+totalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                        }else if (totalBean.getPay_type().equals("alipay")){
+                            output.write(("支付宝收款:"+(new String(new char[48-calculateDisplayWidth("支付宝收款:")-calculateDisplayWidth(totalBean.getTotal()+"")]).replace('\0', ' '))+totalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                        }
+                        toeal_shoukuan=toeal_shoukuan.add(new BigDecimal(totalBean.getTotal()));
+                    }
+                }
 
+                output.write(("总收款:"+(new String(new char[48-calculateDisplayWidth("总收款:")-calculateDisplayWidth(toeal_shoukuan.toString())]).replace('\0', ' '))+toeal_shoukuan.toString()+"\n").getBytes(Charset.forName("GBK")));
+                output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
+                output.write(("退款信息"+"\n").getBytes(Charset.forName("GBK")));
+                BigDecimal toeal_tuikuan=new BigDecimal(0.00);
+                if (!dataBean.getRefund().isEmpty()){
+                    for (RelieveShiftPrintBean.DataBean.RefundBean totalBean:dataBean.getRefund()){
+                        if (totalBean.getPay_type().equals("cash")){
+                            output.write(("现金退款:"+(new String(new char[48-calculateDisplayWidth("现金退款:")-calculateDisplayWidth(totalBean.getTotal()+"")]).replace('\0', ' '))+totalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                        }else if (totalBean.getPay_type().equals("wallet")){
+                            output.write(("会员卡退款:"+(new String(new char[48-calculateDisplayWidth("会员卡退款:")-calculateDisplayWidth(totalBean.getTotal()+"")]).replace('\0', ' '))+totalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                        }else if (totalBean.getPay_type().equals("wechat")){
+                            output.write(("微信退款:"+(new String(new char[48-calculateDisplayWidth("微信退款:")-calculateDisplayWidth(totalBean.getTotal()+"")]).replace('\0', ' '))+totalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                        }else if (totalBean.getPay_type().equals("alipay")){
+                            output.write(("支付宝退款:"+(new String(new char[48-calculateDisplayWidth("支付宝退款:")-calculateDisplayWidth(totalBean.getTotal()+"")]).replace('\0', ' '))+totalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                        }
+                        toeal_tuikuan=toeal_tuikuan.add(new BigDecimal(totalBean.getTotal()));
+                    }
+                }
 
+                output.write(("总退款:"+(new String(new char[48-calculateDisplayWidth("总退款:")-calculateDisplayWidth(toeal_tuikuan.toString())]).replace('\0', ' '))+toeal_tuikuan.toString()+"\n").getBytes(Charset.forName("GBK")));
+                output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
+                output.write(0x0A); // 换行
+                output.write(("营收总额:"+(new String(new char[48-calculateDisplayWidth("营收总额:")-calculateDisplayWidth(toeal_shoukuan.subtract(toeal_tuikuan).toString())]).replace('\0', ' '))+toeal_shoukuan.subtract(toeal_tuikuan).toString()+"\n").getBytes(Charset.forName("GBK")));
+                output.write(0x0A); // 换行
+                output.write(0x0A); // 换行
                 // 走纸和切纸
                 output.write(new byte[] { 0x1D, 0x56, 0x42, 0x30 });
                 int transfer = usbConnection.bulkTransfer(

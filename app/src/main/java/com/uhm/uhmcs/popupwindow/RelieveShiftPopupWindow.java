@@ -21,6 +21,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.activity.LoginActivity;
+import com.uhm.uhmcs.activity.MainActivity;
 import com.uhm.uhmcs.adapter.OrderShopAdapter;
 import com.uhm.uhmcs.adapter.RelieveShiftAdapter;
 import com.uhm.uhmcs.bean.LastOrderBean;
@@ -28,6 +29,7 @@ import com.uhm.uhmcs.bean.RelieveShiftBean;
 import com.uhm.uhmcs.bean.RelieveShiftPrintBean;
 import com.uhm.uhmcs.http.OkHttpUtil;
 import com.uhm.uhmcs.http.POSApiSerview;
+import com.uhm.uhmcs.utils.GsonSandL;
 import com.uhm.uhmcs.utils.MyPrinterHelper;
 import com.uhm.uhmcs.utils.UserUtils;
 
@@ -35,8 +37,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RelieveShiftPopupWindow {
@@ -218,8 +222,83 @@ public class RelieveShiftPopupWindow {
 
             }
         });
+        relieveShiftAdapter.setOnItemChildClickListener((adapter, view, position) -> {
+            RelieveShiftBean relieveShiftBean=relieveShiftAdapter.getItem(position);
+            RelieveShiftPrintBean relieveShiftPrintBean=new RelieveShiftPrintBean();
+            RelieveShiftPrintBean.DataBean dataBean=new RelieveShiftPrintBean.DataBean();
+            dataBean.setLogintime(relieveShiftBean.getLogintime());
+            dataBean.setEndtime(relieveShiftBean.getCreatetime());
+            dataBean.setNickname(relieveShiftBean.getNickname());
+
+            if (!TextUtils.isEmpty(relieveShiftBean.getPaymentjson())){
+                List<RelieveShiftPrintBean.DataBean.TotalBean> totalBeans= GsonSandL.getInstance().GsonStoL(relieveShiftBean.getPaymentjson(),RelieveShiftPrintBean.DataBean.TotalBean.class);
+                dataBean.setTotal(totalBeans);
+            }else {
+                dataBean.setTotal(new ArrayList<>());
+            }
+            if (!TextUtils.isEmpty(relieveShiftBean.getRefundjson())){
+                List<RelieveShiftPrintBean.DataBean.RefundBean> refundBeans= GsonSandL.getInstance().GsonStoL(relieveShiftBean.getRefundjson(),RelieveShiftPrintBean.DataBean.RefundBean.class);
+                dataBean.setRefund(refundBeans);
+            }else {
+                dataBean.setRefund(new ArrayList<>());
+            }
+
+
+
+
+            relieveShiftPrintBean.setData(dataBean);
+            MyPrinterHelper.getInstance().asyncPrintRelieveShift(context,relieveShiftPrintBean);
+        });
+
         gethandoverList();
 
+    }
+
+    private void shiftHandover() {
+        Map<String, String> params = new HashMap<>();
+        params.put("user_id", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId()+"");
+        params.put("machine_number", "001");
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        String url = POSApiSerview.POS_URL + POSApiSerview.shiftHandover;
+        OkHttpUtil.postFormAsync(url, params,context, new OkHttpUtil.OkHttpCallback() {
+            @Override
+            public void onSuccess(String response) {
+                Log.i("ttt", response);
+                context.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            JSONObject jsonObject = new JSONObject(response);
+                            int code = jsonObject.getInt("code");
+                            if (code!=1){
+                                return;
+                            }
+                            RelieveShiftPrintBean relieveShiftPrintBean=new Gson().fromJson(response, RelieveShiftPrintBean.class);
+                            new DeleteShopPopupWindow(context, true, "交班成功", new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                                @Override
+                                public void onClick(String text) {
+                                    UserUtils.getInstance().setLoginBase(context, null);
+                                    Intent intent=new Intent(context, LoginActivity.class);
+                                    context.startActivity(intent);
+                                }
+                            }).show();
+
+                            MyPrinterHelper.getInstance().asyncPrintRelieveShift(context,relieveShiftPrintBean);
+
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                    }
+                });
+
+            }
+
+            @Override
+            public void onFailure(IOException e) {
+                System.err.println("请求失败: " + e.getMessage());
+            }
+        });
     }
 
     public void show() {
@@ -275,53 +354,53 @@ public class RelieveShiftPopupWindow {
             }
         });
     }
-    private void shiftHandover() {
-        Map<String, String> params = new HashMap<>();
-        params.put("user_id", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId()+"");
-        params.put("machine_number", "001");
-        params.put("handover_sheet", handover_sheet+"");
-        params.put("number", number+"");
-        params.put("category_summary", category_summary+"");
-        params.put("product_summary",product_summary +"");
-        params.put("return_summary", return_summary+"");
-        String url = POSApiSerview.POS_URL + POSApiSerview.shiftHandover;
-        OkHttpUtil.postFormAsync(url, params,context, new OkHttpUtil.OkHttpCallback() {
-            @Override
-            public void onSuccess(String response) {
-                Log.i("ttt", response);
-                context.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            int code = jsonObject.getInt("code");
-                            if (code!=1){
-                                return;
-                            }
-                            new DeleteShopPopupWindow(context, true, "交班成功", new PopupWindowOnClickListener.DeleteShopOnClickListener() {
-                                @Override
-                                public void onClick(String text) {
-                                    Intent intent=new Intent(context, LoginActivity.class);
-                                    context.startActivity(intent);
-                                }
-                            }).show();
-                            ArrayList<RelieveShiftPrintBean> relieveShiftPrintBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<RelieveShiftPrintBean>>() {
-                            }.getType());
-                            MyPrinterHelper.getInstance().asyncPrintRelieveShift(context,relieveShiftPrintBeanArrayList.get(0));
-
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
-                        }
-
-                    }
-                });
-
-            }
-
-            @Override
-            public void onFailure(IOException e) {
-                System.err.println("请求失败: " + e.getMessage());
-            }
-        });
-    }
+//    private void shiftHandover() {
+//        Map<String, String> params = new HashMap<>();
+//        params.put("user_id", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId()+"");
+//        params.put("machine_number", "001");
+//        params.put("handover_sheet", handover_sheet+"");
+//        params.put("number", number+"");
+//        params.put("category_summary", category_summary+"");
+//        params.put("product_summary",product_summary +"");
+//        params.put("return_summary", return_summary+"");
+//        String url = POSApiSerview.POS_URL + POSApiSerview.shiftHandover;
+//        OkHttpUtil.postFormAsync(url, params,context, new OkHttpUtil.OkHttpCallback() {
+//            @Override
+//            public void onSuccess(String response) {
+//                Log.i("ttt", response);
+//                context.runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        try {
+//                            JSONObject jsonObject = new JSONObject(response);
+//                            int code = jsonObject.getInt("code");
+//                            if (code!=1){
+//                                return;
+//                            }
+//                            new DeleteShopPopupWindow(context, true, "交班成功", new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+//                                @Override
+//                                public void onClick(String text) {
+//                                    Intent intent=new Intent(context, LoginActivity.class);
+//                                    context.startActivity(intent);
+//                                }
+//                            }).show();
+//                            ArrayList<RelieveShiftPrintBean> relieveShiftPrintBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<RelieveShiftPrintBean>>() {
+//                            }.getType());
+//                            MyPrinterHelper.getInstance().asyncPrintRelieveShift(context,relieveShiftPrintBeanArrayList.get(0));
+//
+//                        } catch (JSONException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//
+//                    }
+//                });
+//
+//            }
+//
+//            @Override
+//            public void onFailure(IOException e) {
+//                System.err.println("请求失败: " + e.getMessage());
+//            }
+//        });
+//    }
 }

@@ -1,194 +1,161 @@
 package com.uhm.uhmcs.bean;
 
-import java.util.ArrayList;
+import java.io.Serializable;
+import java.util.List;
 
-public class RelieveShiftPrintBean {
-   private int id;
-    private String shift_id;
-    private int user_id;
-    private long createtime;
-    private String turnover;
-    private String refund;
-    private ArrayList<LblisstBean> lblisst;
 
-    private ArrayList<SplisstBean> splisst;
-    private ArrayList<ThlisstBean> thlisst;
+public class RelieveShiftPrintBean implements Serializable {
 
-    public int getId() {
-        return id;
+    /**
+     * code : 1
+     * msg : 交班成功
+     * time : 1753435177
+     * data : {"nickname":"优海猫测试用","logintime":1753434588,"endtime":1753435177,"total":[{"pay_type":"cash","total":"0.03"},{"pay_type":"wallet","total":"0.01"},{"pay_type":"wechat","total":"0.01"},{"pay_type":"alipay","total":"0.01"}],"refund":[{"pay_type":"wechat","total":"0.01"},{"pay_type":"alipay","total":"0.01"}]}
+     */
+
+    private int code;
+    private String msg;
+    private String time;
+    private DataBean data;
+
+    public int getCode() {
+        return code;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setCode(int code) {
+        this.code = code;
     }
 
-    public String getShift_id() {
-        return shift_id;
+    public String getMsg() {
+        return msg;
     }
 
-    public void setShift_id(String shift_id) {
-        this.shift_id = shift_id;
+    public void setMsg(String msg) {
+        this.msg = msg;
     }
 
-    public int getUser_id() {
-        return user_id;
+    public String getTime() {
+        return time;
     }
 
-    public void setUser_id(int user_id) {
-        this.user_id = user_id;
+    public void setTime(String time) {
+        this.time = time;
     }
 
-    public long getCreatetime() {
-        return createtime;
+    public DataBean getData() {
+        return data;
     }
 
-    public void setCreatetime(long createtime) {
-        this.createtime = createtime;
+    public void setData(DataBean data) {
+        this.data = data;
     }
 
-    public String getTurnover() {
-        return turnover;
-    }
+    public static class DataBean implements Serializable {
+        /**
+         * nickname : 优海猫测试用
+         * logintime : 1753434588
+         * endtime : 1753435177
+         * total : [{"pay_type":"cash","total":"0.03"},{"pay_type":"wallet","total":"0.01"},{"pay_type":"wechat","total":"0.01"},{"pay_type":"alipay","total":"0.01"}]
+         * refund : [{"pay_type":"wechat","total":"0.01"},{"pay_type":"alipay","total":"0.01"}]
+         */
 
-    public void setTurnover(String turnover) {
-        this.turnover = turnover;
-    }
+        private String nickname;
+        private int logintime;
+        private int endtime;
+        private List<TotalBean> total;
+        private List<RefundBean> refund;
 
-    public String getRefund() {
-        return refund;
-    }
-
-    public void setRefund(String refund) {
-        this.refund = refund;
-    }
-
-    public ArrayList<LblisstBean> getLblisst() {
-        return lblisst;
-    }
-
-    public void setLblisst(ArrayList<LblisstBean> lblisst) {
-        this.lblisst = lblisst;
-    }
-
-    public ArrayList<SplisstBean> getSplisst() {
-        return splisst;
-    }
-
-    public void setSplisst(ArrayList<SplisstBean> splisst) {
-        this.splisst = splisst;
-    }
-
-    public ArrayList<ThlisstBean> getThlisst() {
-        return thlisst;
-    }
-
-    public void setThlisst(ArrayList<ThlisstBean> thlisst) {
-        this.thlisst = thlisst;
-    }
-
-    class LblisstBean{
-       private String flname;
-       private  String sum;
-       private  int count;
-
-        public String getFlname() {
-            return flname;
+        public String getNickname() {
+            return nickname;
         }
 
-        public void setFlname(String flname) {
-            this.flname = flname;
+        public void setNickname(String nickname) {
+            this.nickname = nickname;
         }
 
-        public String getSum() {
-            return sum;
+        public int getLogintime() {
+            return logintime;
         }
 
-        public void setSum(String sum) {
-            this.sum = sum;
+        public void setLogintime(int logintime) {
+            this.logintime = logintime;
         }
 
-        public int getCount() {
-            return count;
+        public int getEndtime() {
+            return endtime;
         }
 
-        public void setCount(int count) {
-            this.count = count;
-        }
-    }
-   class SplisstBean{
-       private  String title;
-       private int goods_num;
-       private String goods_weight;
-       private String pay_price;
-
-       public String getTitle() {
-           return title;
-       }
-
-       public void setTitle(String title) {
-           this.title = title;
-       }
-
-       public int getGoods_num() {
-           return goods_num;
-       }
-
-       public void setGoods_num(int goods_num) {
-           this.goods_num = goods_num;
-       }
-
-       public String getGoods_weight() {
-           return goods_weight;
-       }
-
-       public void setGoods_weight(String goods_weight) {
-           this.goods_weight = goods_weight;
-       }
-
-       public String getPay_price() {
-           return pay_price;
-       }
-
-       public void setPay_price(String pay_price) {
-           this.pay_price = pay_price;
-       }
-   }
-    class ThlisstBean{
-        private  String title;
-        private int goods_num;
-        private String goods_weight;
-        private String pay_price;
-
-        public String getTitle() {
-            return title;
+        public void setEndtime(int endtime) {
+            this.endtime = endtime;
         }
 
-        public void setTitle(String title) {
-            this.title = title;
+        public List<TotalBean> getTotal() {
+            return total;
         }
 
-        public int getGoods_num() {
-            return goods_num;
+        public void setTotal(List<TotalBean> total) {
+            this.total = total;
         }
 
-        public void setGoods_num(int goods_num) {
-            this.goods_num = goods_num;
+        public List<RefundBean> getRefund() {
+            return refund;
         }
 
-        public String getGoods_weight() {
-            return goods_weight;
+        public void setRefund(List<RefundBean> refund) {
+            this.refund = refund;
         }
 
-        public void setGoods_weight(String goods_weight) {
-            this.goods_weight = goods_weight;
+        public static class TotalBean implements Serializable {
+            /**
+             * pay_type : cash
+             * total : 0.03
+             */
+
+            private String pay_type;
+            private String total;
+
+            public String getPay_type() {
+                return pay_type;
+            }
+
+            public void setPay_type(String pay_type) {
+                this.pay_type = pay_type;
+            }
+
+            public String getTotal() {
+                return total;
+            }
+
+            public void setTotal(String total) {
+                this.total = total;
+            }
         }
 
-        public String getPay_price() {
-            return pay_price;
-        }
+        
+        public static class RefundBean implements Serializable {
+            /**
+             * pay_type : wechat
+             * total : 0.01
+             */
 
-        public void setPay_price(String pay_price) {
-            this.pay_price = pay_price;
+            private String pay_type;
+            private String total;
+
+            public String getPay_type() {
+                return pay_type;
+            }
+
+            public void setPay_type(String pay_type) {
+                this.pay_type = pay_type;
+            }
+
+            public String getTotal() {
+                return total;
+            }
+
+            public void setTotal(String total) {
+                this.total = total;
+            }
         }
     }
 }
