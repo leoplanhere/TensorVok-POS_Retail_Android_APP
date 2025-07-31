@@ -1539,7 +1539,7 @@ public class MainActivity extends Activity {
                                 }
 
                             } catch (JSONException e) {
-                                throw new RuntimeException(e);
+                                Log.e("ttt", "Error occurred", e);
                             }
 
 
@@ -1670,13 +1670,13 @@ public class MainActivity extends Activity {
 
 
                                 } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                    Log.e("ttt", "Error occurred", e);
                                 }
                             }
                         });
 
                     } catch (JSONException e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -1759,13 +1759,13 @@ public class MainActivity extends Activity {
 
 
                                 } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                    Log.e("ttt", "Error occurred", e);
                                 }
                             }
                         });
 
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -1853,7 +1853,7 @@ public class MainActivity extends Activity {
                         });
 
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -2051,7 +2051,7 @@ public class MainActivity extends Activity {
                                     getGrouponGoods();
                                 }
                             } catch (JSONException e) {
-                                throw new RuntimeException(e);
+                                Log.e("ttt", "Error occurred", e);
                             }
 
 
@@ -2183,7 +2183,7 @@ public class MainActivity extends Activity {
                                     MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, lastOrderBeanArrayList.get(0), null);
                                 }
                             } catch (JSONException e) {
-                                throw new RuntimeException(e);
+                                Log.e("ttt", "Error occurred", e);
                             }
 
                         } else {
@@ -2277,13 +2277,13 @@ public class MainActivity extends Activity {
 
 
                                 } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                    Log.e("ttt", "Error occurred", e);
                                 }
                             }
                         });
 
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -2345,7 +2345,7 @@ public class MainActivity extends Activity {
                         });
 
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -2414,13 +2414,13 @@ public class MainActivity extends Activity {
                                     }
 
                                 } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                    Log.e("ttt", "Error occurred", e);
                                 }
                             }
                         });
 
                     } catch (JSONException e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -2453,7 +2453,7 @@ public class MainActivity extends Activity {
                                 MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, null, "", weixin_pice, zhifubao_pice, order_sn);
                             }
                         } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            Log.e("ttt", "Error occurred", e);
                         }
                     }
                 });
@@ -2488,7 +2488,7 @@ public class MainActivity extends Activity {
                                 MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, lastOrderBean, null);
                             }
                         } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            Log.e("ttt", "Error occurred", e);
                         }
                     }
                 });

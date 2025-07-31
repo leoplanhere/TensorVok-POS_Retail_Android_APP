@@ -802,13 +802,13 @@ public class CheckoutPopupWindow {
                                         new DeleteShopPopupWindow(context,context.getString(R.string.Payment_failed)+jsonObject.getString("msg"),true).show();
 
                                     } catch (JSONException e) {
-                                        throw new RuntimeException(e);
+                                        Log.e("ttt", "Error occurred", e);
                                     }
                                 }
                             });
 
                         } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            Log.e("ttt", "Error occurred", e);
                         }
                     } else {
 
@@ -893,13 +893,13 @@ public class CheckoutPopupWindow {
 
 
                                 } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                    Log.e("ttt", "Error occurred", e);
                                 }
                             }
                         });
 
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -981,13 +981,13 @@ public class CheckoutPopupWindow {
 
 
                                 } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                    Log.e("ttt", "Error occurred", e);
                                 }
                             }
                         });
 
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -1049,7 +1049,7 @@ public class CheckoutPopupWindow {
                         });
 
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -1113,7 +1113,7 @@ public class CheckoutPopupWindow {
                         });
 
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -1206,13 +1206,13 @@ public class CheckoutPopupWindow {
                                     }
 
                                 } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                    Log.e("ttt", "Error occurred", e);
                                 }
                             }
                         });
 
                     } catch (JSONException e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -1242,7 +1242,7 @@ public class CheckoutPopupWindow {
                                 MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,null,xinjin_pice,weixin_pice,zhifubao_pice,order_sn);
                             }
                         } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            Log.e("ttt", "Error occurred", e);
                         }
                     }
                 });

@@ -72,7 +72,7 @@ public class MyUsbDeviceHelper {
                             }
 
                         } catch (IOException e) {
-                            throw new RuntimeException(e);
+                            Log.e("ttt", "Error occurred", e);
                         }
                     }
                 }else {

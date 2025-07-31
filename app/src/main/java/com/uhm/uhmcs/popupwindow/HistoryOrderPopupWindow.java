@@ -293,13 +293,13 @@ public class HistoryOrderPopupWindow {
 
 
                                 } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                    Log.e("ttt", "Error occurred", e);
                                 }
                             }
                         });
 
                     } catch (JSONException e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -330,7 +330,7 @@ public class HistoryOrderPopupWindow {
                                 MyPrinterHelper.getInstance().asyncPrintLastOrder(context,lastOrderBean,null);
                             }
                         } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            Log.e("ttt", "Error occurred", e);
                         }
                     }
                 });
@@ -404,7 +404,7 @@ public class HistoryOrderPopupWindow {
 
                             order_sn_et.setText("");
                         } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            Log.e("ttt", "Error occurred", e);
                         }
 
                     }

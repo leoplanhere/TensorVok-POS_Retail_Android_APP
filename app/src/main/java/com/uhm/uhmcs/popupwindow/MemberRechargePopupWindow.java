@@ -463,13 +463,13 @@ public class MemberRechargePopupWindow {
                                     new DeleteShopPopupWindow(context,"充值失败"+jsonObject.getString("msg"),true).show();
 
                                 } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                    Log.e("ttt", "Error occurred", e);
                                 }
                             }
                         });
 
                     } catch (JSONException e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -503,7 +503,7 @@ public class MemberRechargePopupWindow {
                                 new DeleteShopPopupWindow(context,jsonObject.getString("msg"),true).show();
                             }
                         } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            Log.e("ttt", "Error occurred", e);
                         }
                     }
                 });
@@ -588,13 +588,13 @@ public class MemberRechargePopupWindow {
 
 
                                 } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                    Log.e("ttt", "Error occurred", e);
                                 }
                             }
                         });
 
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -676,13 +676,13 @@ public class MemberRechargePopupWindow {
 
 
                                 } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                    Log.e("ttt", "Error occurred", e);
                                 }
                             }
                         });
 
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -744,7 +744,7 @@ public class MemberRechargePopupWindow {
                         });
 
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -808,7 +808,7 @@ public class MemberRechargePopupWindow {
                         });
 
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 
@@ -874,13 +874,13 @@ public class MemberRechargePopupWindow {
                                     }
 
                                 } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                    Log.e("ttt", "Error occurred", e);
                                 }
                             }
                         });
 
                     } catch (JSONException e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
 

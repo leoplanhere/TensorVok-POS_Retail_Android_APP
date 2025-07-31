@@ -181,7 +181,7 @@ public class GoodsWarehousingPopupWindow {
                             goodsWarehousingOnClickListener.onClick(code,jsonObject.getString("msg"));
                             popupWindow.dismiss();
                         } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            Log.e("ttt", "Error occurred", e);
                         }
                     }
                 });

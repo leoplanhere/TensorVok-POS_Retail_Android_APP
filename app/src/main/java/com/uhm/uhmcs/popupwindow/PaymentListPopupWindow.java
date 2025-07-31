@@ -154,7 +154,7 @@ public class PaymentListPopupWindow {
                             }
 
                         } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            Log.e("ttt", "Error occurred", e);
                         }
 
                     }

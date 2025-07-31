@@ -286,7 +286,7 @@ public class RelieveShiftPopupWindow {
                             MyPrinterHelper.getInstance().asyncPrintRelieveShift(context,relieveShiftPrintBean);
 
                         } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            Log.e("ttt", "Error occurred", e);
                         }
 
                     }
@@ -340,7 +340,7 @@ public class RelieveShiftPopupWindow {
                                 relieveShiftAdapter.setNewData(new ArrayList<>());
                             }
                         } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            Log.e("ttt", "Error occurred", e);
                         }
 
                     }
@@ -389,7 +389,7 @@ public class RelieveShiftPopupWindow {
 //                            MyPrinterHelper.getInstance().asyncPrintRelieveShift(context,relieveShiftPrintBeanArrayList.get(0));
 //
 //                        } catch (JSONException e) {
-//                            throw new RuntimeException(e);
+//                            Log.e("ttt", "Error occurred", e);
 //                        }
 //
 //                    }

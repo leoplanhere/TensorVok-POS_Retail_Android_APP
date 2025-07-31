@@ -329,7 +329,7 @@ public class OkHttpUtil {
                                         }).show();
 
                                     } catch (JSONException e) {
-                                        throw new RuntimeException(e);
+                                        Log.e("ttt", "Error occurred", e);
                                     }
                                 }
                             });
@@ -339,7 +339,7 @@ public class OkHttpUtil {
                         }
 
                     } catch (JSONException e) {
-                        throw new RuntimeException(e);
+                        Log.e("ttt", "Error occurred", e);
                     }
                 } else {
                     callback.onFailure(new IOException("请求失败，状态码: " + response.code()));

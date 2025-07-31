@@ -191,7 +191,7 @@ public class AddNoCodePopupWindow {
                                 new DeleteShopPopupWindow(context,jsonObject.getString("msg"),true).show();
                             }
                         } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            Log.e("ttt", "Error occurred", e);
                         }
                     }
                 });
