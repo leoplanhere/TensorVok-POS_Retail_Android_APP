@@ -792,7 +792,7 @@ public class CheckoutPopupWindow {
                                             }else if (pay_type.equals("alipay")){
                                                 out_trade_no=jsonObject.getString("out_trade_no");
                                                 order_sn=jsonObject.getString("order_sn");
-                                                queryOrder();
+//                                                queryOrder();
                                                 time.start();
 
                                             }
@@ -1275,7 +1275,7 @@ public class CheckoutPopupWindow {
         @Override
         public void onFinish() {
             is_chaoshi=true;
-            queryOrder();
+
         }
     }
 

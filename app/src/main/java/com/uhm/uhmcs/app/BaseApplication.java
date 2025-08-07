@@ -28,5 +28,7 @@ public class BaseApplication extends Application {
 
         }
 
+        CrashHandler.init(getApplicationContext());
+
     }
 }

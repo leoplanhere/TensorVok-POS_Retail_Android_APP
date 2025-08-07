@@ -124,7 +124,7 @@ public class MainActivity extends Activity {
     private Animation animation;
     private TextView tv_zongjia, tv_zongjian, qingkong_btn, qudan_btn, guadan_btn, dazhe_one_btn, dazhe_all_btn, checkout_btn, daying_btn;
     private LinearLayout huiyuan_btn;
-    private TextView huiyuan_name;
+    private TextView huiyuan_name,shuaxin_btn;
 
     private ImageView shanchuhuiyuan_btn;
 
@@ -286,6 +286,15 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 int id = v.getId();
+                 /*
+                  刷新商品
+                 */
+                if (id == R.id.shuaxin_btn) {
+                    is_tongbu = true;
+                    grouponGoods_page=1;
+                    getGrouponGoods();
+
+                }
 
                 /*
                   删除商品
@@ -535,7 +544,7 @@ public class MainActivity extends Activity {
                         goodsJsonBean.setGoods_weight(grouponGoodsModel.getGoods_weight());
                         goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
                         goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGgspid() + "");
-                        goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text()) ? "" : grouponGoodsModel.getGoods_sku_text());
+//                        goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text()) ? "" : grouponGoodsModel.getGoods_sku_text());
                         goodsJsonBeanArrayList.add(goodsJsonBean);
                     }
                     Gson gson = new Gson();
@@ -911,6 +920,7 @@ public class MainActivity extends Activity {
         Glide.with(this).load(R.drawable.have_paid_img).into(imageView);
         have_paid_view = findViewById(R.id.have_paid_view);
         findViewById(R.id.delete_shop).setOnClickListener(onClickListener);
+        findViewById(R.id.shuaxin_btn).setOnClickListener(onClickListener);
         guadan_btn = findViewById(R.id.guadan_btn);
         guadan_btn.setOnClickListener(onClickListener);
         qingkong_btn = findViewById(R.id.qingkong_btn);
@@ -1115,7 +1125,7 @@ public class MainActivity extends Activity {
 //                        goodsJsonBean.setPay_price("0.01");
 //                        goodsJsonBean.setGoods_price("0.01");
                     goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGgspid() + "");
-                    goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text()) ? "" : grouponGoodsModel.getGoods_sku_text());
+//                    goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text()) ? "" : grouponGoodsModel.getGoods_sku_text());
 
 
                     goodsJsonBeanArrayList.add(goodsJsonBean);
@@ -1509,7 +1519,7 @@ public class MainActivity extends Activity {
             goodsJsonBean.setGoods_weight(grouponGoodsModel.getGoods_weight());
             goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
             goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGgspid() + "");
-            goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text()) ? "" : grouponGoodsModel.getGoods_sku_text());
+//            goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text()) ? "" : grouponGoodsModel.getGoods_sku_text());
 
 
             goodsJsonBeanArrayList.add(goodsJsonBean);
