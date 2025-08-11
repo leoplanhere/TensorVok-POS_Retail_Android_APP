@@ -250,9 +250,17 @@ public class CheckoutBean {
 
          private String goods_sku_text;
 
+         private String online_type;
 
+         public String getOnline_type() {
+             return online_type;
+         }
 
-        public String getGoods_id() {
+         public void setOnline_type(String online_type) {
+             this.online_type = online_type;
+         }
+
+         public String getGoods_id() {
             return goods_id;
         }
 

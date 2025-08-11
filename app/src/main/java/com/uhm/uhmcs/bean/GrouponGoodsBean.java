@@ -125,6 +125,15 @@ public class GrouponGoodsBean implements Serializable{
 
         private String specs_title;
 
+        private String online_type;
+
+        public String getOnline_type() {
+            return online_type;
+        }
+
+        public void setOnline_type(String online_type) {
+            this.online_type = online_type;
+        }
 
         public String getUnit() {
             return unit;

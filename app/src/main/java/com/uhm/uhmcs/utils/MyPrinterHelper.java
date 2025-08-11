@@ -1355,13 +1355,13 @@ public class MyPrinterHelper {
             // 生成填充空格并构造完整行
             line+=(name);
         }
-        numWidth = calculateDisplayWidth("x"+goodsJsonBean.getGoods_num());
+        numWidth = calculateDisplayWidth("x"+(goodsJsonBean.getOnline_type().equals("weight")?goodsJsonBean.getGoods_weight()+"g":goodsJsonBean.getGoods_num()));
         priceWidth = calculateDisplayWidth(goodsJsonBean.getGoods_price());
         allPriceWidth = calculateDisplayWidth(goodsJsonBean.getPay_price());
 
         Log.i("ttt",">>>>>"+nameWidth+">>>"+numWidth+">>>"+priceWidth+">>>"+allPriceWidth+">>>");
         line+=(new String(new char[18-nameWidth]).replace('\0', ' '));
-        line+=("x"+goodsJsonBean.getGoods_num());
+        line+=("x"+(goodsJsonBean.getOnline_type().equals("weight")?goodsJsonBean.getGoods_weight()+"g":goodsJsonBean.getGoods_num()));
         line+=(new String(new char[12-numWidth]).replace('\0', ' '));
         line+=(goodsJsonBean.getGoods_price());
         line+=(new String(new char[8-priceWidth]).replace('\0', ' '));
@@ -1384,13 +1384,13 @@ public class MyPrinterHelper {
             // 生成填充空格并构造完整行
             line+=(name);
         }
-        numWidth = calculateDisplayWidth("x"+goodsJsonBean.getGoods_num());
+        numWidth = calculateDisplayWidth("x"+(goodsJsonBean.getOnline_type().equals("weight")?goodsJsonBean.getGoods_weight()+"g":goodsJsonBean.getGoods_num()));
         priceWidth = calculateDisplayWidth(goodsJsonBean.getGoods_price());
         allPriceWidth = calculateDisplayWidth(goodsJsonBean.getPay_price());
 
         Log.i("ttt",">>>>>"+nameWidth+">>>"+numWidth+">>>"+priceWidth+">>>"+allPriceWidth+">>>");
         line+=(new String(new char[18-nameWidth]).replace('\0', ' '));
-        line+=("x"+goodsJsonBean.getGoods_num());
+        line+=("x"+(goodsJsonBean.getOnline_type().equals("weight")?goodsJsonBean.getGoods_weight()+"g":goodsJsonBean.getGoods_num()));
         line+=(new String(new char[12-numWidth]).replace('\0', ' '));
         line+=(goodsJsonBean.getGoods_price());
         line+=(new String(new char[8-priceWidth]).replace('\0', ' '));

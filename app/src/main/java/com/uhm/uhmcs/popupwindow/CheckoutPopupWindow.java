@@ -51,6 +51,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -110,7 +111,7 @@ public class CheckoutPopupWindow {
     View popupView;
     BuildBean buildBean;
     private LinearLayout youhuijuan_view;
-    private TextView youhuijuan_jine,shiyong_btn,bushiyong_btn;
+    private TextView youhuijuan_jine,shiyong_btn,bushiyong_btn,qufen_btn;
     @SuppressLint("SetTextI18n")
     private void initPopup() {
         popupView = LayoutInflater.from(context).inflate(R.layout.popupwindow_checkout, null);
@@ -142,6 +143,8 @@ public class CheckoutPopupWindow {
         shiyong_btn=popupView.findViewById(R.id.shiyong_btn);
         bushiyong_btn=popupView.findViewById(R.id.bushiyong_btn);
 
+        qufen_btn=popupView.findViewById(R.id.qufen_btn);
+
 
         shoukuan_tv=popupView.findViewById(R.id.shoukuan_tv);
 
@@ -167,6 +170,19 @@ public class CheckoutPopupWindow {
             bushiyong_btn.setBackgroundResource(R.drawable.blue_bg2);
             youhui_tv.setText("￥"+new BigDecimal(checkoutBean.getDiscount_fee()).add(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
             checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
+            shijishou_tv.setText("￥"+checkoutBean.getTotal_fee());
+            shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
+        });
+        qufen_btn.setOnClickListener(v -> {
+            // 原始金额
+            BigDecimal original = new BigDecimal(checkoutBean.getTotal_fee());
+            // 抹去分位（向下取整）
+            BigDecimal truncated = original.setScale(1, RoundingMode.DOWN);
+            // 计算差额
+            BigDecimal diff = original.subtract(truncated);
+            checkoutBean.setDiscount_fee(new BigDecimal(checkoutBean.getDiscount_fee()).add(diff).toString());
+            youhui_tv.setText("￥"+checkoutBean.getDiscount_fee());
+            checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).subtract(diff).toString());
             shijishou_tv.setText("￥"+checkoutBean.getTotal_fee());
             shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
         });
@@ -351,6 +367,7 @@ public class CheckoutPopupWindow {
             pay_type="wechat";
             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
             zhaolin_tv.setText("0.00");
+            qufen_btn.setVisibility(GONE);
 
         });
         xianjin_btn.setOnClickListener(v -> {
@@ -362,6 +379,7 @@ public class CheckoutPopupWindow {
             pay_type="cash";
             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
             zhaolin_tv.setText("0.00");
+            qufen_btn.setVisibility(VISIBLE);
         });
         zhifubao_btn.setOnClickListener(v -> {
             if (!NetworkUtils.getInstance().isNetworkConnected(context)){
@@ -380,6 +398,7 @@ public class CheckoutPopupWindow {
             pay_type="alipay";
             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
             zhaolin_tv.setText("0.00");
+            qufen_btn.setVisibility(GONE);
         });
         huiyuanka_btn.setOnClickListener(v -> {
             if (!NetworkUtils.getInstance().isNetworkConnected(context)){
@@ -402,6 +421,7 @@ public class CheckoutPopupWindow {
                 huiyuankahao_tv.setText(clubCardData.getNumber());
                 huiyuanyue_tv.setText(clubCardData.getAmount());
             }).show();
+            qufen_btn.setVisibility(GONE);
         });
         popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
             popupWindow.dismiss();
@@ -467,6 +487,7 @@ public class CheckoutPopupWindow {
             huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
             pay_type="cash";
             shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
+            qufen_btn.setVisibility(VISIBLE);
         }else {
             weixin_btn.setBackgroundResource(R.drawable.blue_bg3);
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
@@ -474,6 +495,7 @@ public class CheckoutPopupWindow {
             huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
             pay_type="wechat";
             shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
+            qufen_btn.setVisibility(GONE);
 
 
         }

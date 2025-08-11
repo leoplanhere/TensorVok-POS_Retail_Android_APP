@@ -99,6 +99,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import okhttp3.Call;
@@ -124,7 +126,7 @@ public class MainActivity extends Activity {
     private Animation animation;
     private TextView tv_zongjia, tv_zongjian, qingkong_btn, qudan_btn, guadan_btn, dazhe_one_btn, dazhe_all_btn, checkout_btn, daying_btn;
     private LinearLayout huiyuan_btn;
-    private TextView huiyuan_name,shuaxin_btn;
+    private TextView huiyuan_name, shuaxin_btn;
 
     private ImageView shanchuhuiyuan_btn;
 
@@ -268,7 +270,8 @@ public class MainActivity extends Activity {
     boolean is_kuangjie = false;
     int allNum = 0;
     public MemberBean memberBean1;
-    @SuppressLint({"SetTextI18n","NotifyDataSetChanged","SimpleDateFormat"})
+
+    @SuppressLint({"SetTextI18n", "NotifyDataSetChanged", "SimpleDateFormat"})
     private void initView() {
         MediaRouter mediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
         MediaRouter.RouteInfo route = mediaRouter.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_VIDEO);
@@ -291,7 +294,7 @@ public class MainActivity extends Activity {
                  */
                 if (id == R.id.shuaxin_btn) {
                     is_tongbu = true;
-                    grouponGoods_page=1;
+                    grouponGoods_page = 1;
                     getGrouponGoods();
 
                 }
@@ -325,7 +328,7 @@ public class MainActivity extends Activity {
 
                             // 滚动到位置 0（第一条）
                             selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
-                            if (selectedShopAdapter.getItemCount()>0){
+                            if (selectedShopAdapter.getItemCount() > 0) {
                                 availableAmount();
                             }
 
@@ -542,6 +545,7 @@ public class MainActivity extends Activity {
                         goodsJsonBean.setGoods_price(grouponGoodsModel.getPrice());
                         goodsJsonBean.setGoods_num(grouponGoodsModel.getShuliang());
                         goodsJsonBean.setGoods_weight(grouponGoodsModel.getGoods_weight());
+                        goodsJsonBean.setOnline_type(grouponGoodsModel.getOnline_type());
                         goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
                         goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGgspid() + "");
 //                        goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text()) ? "" : grouponGoodsModel.getGoods_sku_text());
@@ -555,7 +559,7 @@ public class MainActivity extends Activity {
                     checkoutBean.setGoods_original_amount(zongjia.add(discount_fee).toString());
 //                    checkoutBean.setTotal_amount((int) 0.01);
 //                    checkoutBean.setTotal_amount((int) 0.01);
-                    if (memberBean1!=null){
+                    if (memberBean1 != null) {
                         checkoutBean.setMember_name(memberBean1.getNickname());
                         checkoutBean.setMember_phone(memberBean1.getMobile());
 //                        checkoutBean.setCardnumber(memberBean1.getMobile());
@@ -589,10 +593,10 @@ public class MainActivity extends Activity {
                   会员查询
                  */
                 if (id == R.id.huiyuan_btn) {
-                    new MemberPopupWindow(MainActivity.this,memberBean1, new PopupWindowOnClickListener.MemberOnClickListener() {
+                    new MemberPopupWindow(MainActivity.this, memberBean1, new PopupWindowOnClickListener.MemberOnClickListener() {
                         @Override
                         public void onClick(MemberBean memberBean) {
-                            memberBean1=memberBean;
+                            memberBean1 = memberBean;
                             huiyuan_name.setText(memberBean.getNickname());
                             availableAmount();
 //                            if (memberBean.getVip() == 0) {
@@ -646,9 +650,9 @@ public class MainActivity extends Activity {
                  * 删除会员
                  */
                 if (R.id.shanchuhuiyuan_btn == id) {
-                    memberBean1=null;
+                    memberBean1 = null;
                     huiyuan_name.setText(getString(R.string.member_nickname));
-                    Coupon_fee="";
+                    Coupon_fee = "";
 //                    memben_discount = "100";
 //
 //                    if (selectedShopAdapter.getItemCount() <= 0) {
@@ -693,7 +697,7 @@ public class MainActivity extends Activity {
                                  */
                                 case 1:
                                     is_tongbu = true;
-                                    grouponGoods_page=1;
+                                    grouponGoods_page = 1;
                                     getGrouponGoods2();
                                     break;
                                 /*
@@ -750,12 +754,12 @@ public class MainActivity extends Activity {
                                  * 账单打印机设置
                                  */
                                 case 8:
-                                    new PrintDevicePopupWindow(MainActivity.this, 1,new PopupWindowOnClickListener.PrintDeviceOnClickListener() {
+                                    new PrintDevicePopupWindow(MainActivity.this, 1, new PopupWindowOnClickListener.PrintDeviceOnClickListener() {
                                         @Override
                                         public void onClick(UsbDevice usbDevice) {
                                             UserUtils.getInstance().setVENDOR_ID(MainActivity.this, usbDevice.getVendorId());
                                             UserUtils.getInstance().setPRODUCT_ID(MainActivity.this, usbDevice.getProductId());
-                                            if (usbDevice.getVendorId() ==  UserUtils.getInstance().getLABEKS_VENDOR_ID() && usbDevice.getProductId() ==  UserUtils.getInstance().getLABEKS_PRODUCT_ID()) { // 替换为实际 VID/PID
+                                            if (usbDevice.getVendorId() == UserUtils.getInstance().getLABEKS_VENDOR_ID() && usbDevice.getProductId() == UserUtils.getInstance().getLABEKS_PRODUCT_ID()) { // 替换为实际 VID/PID
                                                 UserUtils.getInstance().setLABEKS_VENDOR_ID(MainActivity.this, 0);
                                                 UserUtils.getInstance().setLABEKS_PRODUCT_ID(MainActivity.this, 0);
                                             }
@@ -768,12 +772,12 @@ public class MainActivity extends Activity {
                                  * 标签打印机设置
                                  */
                                 case 9:
-                                    new PrintDevicePopupWindow(MainActivity.this,2, new PopupWindowOnClickListener.PrintDeviceOnClickListener() {
+                                    new PrintDevicePopupWindow(MainActivity.this, 2, new PopupWindowOnClickListener.PrintDeviceOnClickListener() {
                                         @Override
                                         public void onClick(UsbDevice usbDevice) {
                                             UserUtils.getInstance().setLABEKS_VENDOR_ID(MainActivity.this, usbDevice.getVendorId());
                                             UserUtils.getInstance().setLABEKS_PRODUCT_ID(MainActivity.this, usbDevice.getProductId());
-                                            if (usbDevice.getVendorId() == UserUtils.getInstance().getVENDOR_ID() && usbDevice.getProductId() ==  UserUtils.getInstance().getPRODUCT_ID()) { // 替换为实际 VID/PID
+                                            if (usbDevice.getVendorId() == UserUtils.getInstance().getVENDOR_ID() && usbDevice.getProductId() == UserUtils.getInstance().getPRODUCT_ID()) { // 替换为实际 VID/PID
                                                 UserUtils.getInstance().setVENDOR_ID(MainActivity.this, 0);
                                                 UserUtils.getInstance().setPRODUCT_ID(MainActivity.this, 0);
                                             }
@@ -786,19 +790,19 @@ public class MainActivity extends Activity {
                                  * 打折开关
                                  */
                                 case 10:
-                                    new DeleteShopPopupWindow(true,MainActivity.this, UserUtils.getInstance().isDazhe()?getString(R.string.discounts_hint,getString(R.string.off)):getString(R.string.discounts_hint,getString(R.string.on)), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                                    new DeleteShopPopupWindow(true, MainActivity.this, UserUtils.getInstance().isDazhe() ? getString(R.string.discounts_hint, getString(R.string.off)) : getString(R.string.discounts_hint, getString(R.string.on)), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
                                         @Override
                                         public void onClick(String text) {
-                                            UserUtils.getInstance().setDazhe(MainActivity.this,!UserUtils.getInstance().isDazhe());
-                                            if (UserUtils.getInstance().isDazhe()){
+                                            UserUtils.getInstance().setDazhe(MainActivity.this, !UserUtils.getInstance().isDazhe());
+                                            if (UserUtils.getInstance().isDazhe()) {
                                                 dazhe_all_btn.setVisibility(VISIBLE);
                                                 dazhe_one_btn.setVisibility(VISIBLE);
                                                 caozuo_view.setVisibility(VISIBLE);
-                                            }else {
+                                            } else {
                                                 caozuo_view.setVisibility(GONE);
                                                 dazhe_all_btn.setVisibility(GONE);
                                                 dazhe_one_btn.setVisibility(GONE);
-                                                if (selectedShopAdapter.getItemCount()>0){
+                                                if (selectedShopAdapter.getItemCount() > 0) {
                                                     for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopAdapter.getData()) {
 
                                                         grouponGoodsModel.setDiscount("100");
@@ -828,9 +832,9 @@ public class MainActivity extends Activity {
                                         }
                                     }).show();
                                     break;
-                                    /*
-                                     * 会员充值
-                                     */
+                                /*
+                                 * 会员充值
+                                 */
                                 case 11:
                                     new MemberRechargePopupWindow(MainActivity.this, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
                                         @Override
@@ -849,11 +853,11 @@ public class MainActivity extends Activity {
                                  * 商品点击设置
                                  */
                                 case 12:
-                                    new DeleteShopPopupWindow(true,MainActivity.this, UserUtils.getInstance().isDianji()?getString(R.string.shangpinkaiguan_hint,getString(R.string.off)):getString(R.string.shangpinkaiguan_hint,getString(R.string.on)), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                                    new DeleteShopPopupWindow(true, MainActivity.this, UserUtils.getInstance().isDianji() ? getString(R.string.shangpinkaiguan_hint, getString(R.string.off)) : getString(R.string.shangpinkaiguan_hint, getString(R.string.on)), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
                                         @Override
                                         public void onClick(String text) {
-                                            UserUtils.getInstance().setDianji(MainActivity.this,!UserUtils.getInstance().isDianji());
-                                            shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji()?VISIBLE:GONE);
+                                            UserUtils.getInstance().setDianji(MainActivity.this, !UserUtils.getInstance().isDianji());
+                                            shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji() ? VISIBLE : GONE);
 
                                         }
                                     }).show();
@@ -903,16 +907,15 @@ public class MainActivity extends Activity {
                 }
 
 
-
             }
         };
-        shop_image=findViewById(R.id.shop_image);
-        caozuo_view=findViewById(R.id.caozuo_view);
-        shop_mocheng=findViewById(R.id.shop_mocheng);
+        shop_image = findViewById(R.id.shop_image);
+        caozuo_view = findViewById(R.id.caozuo_view);
+        shop_mocheng = findViewById(R.id.shop_mocheng);
         shop_mocheng.setOnClickListener(v -> {
 
         });
-        shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji()?VISIBLE:GONE);
+        shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji() ? VISIBLE : GONE);
         bendin_view = findViewById(R.id.bendin_view);
         wangluo_view = findViewById(R.id.wangluo_view);
         ImageView imageView = findViewById(R.id.image);
@@ -939,16 +942,16 @@ public class MainActivity extends Activity {
         daying_btn = findViewById(R.id.daying_btn);
         daying_btn.setOnClickListener(onClickListener);
         huiyuan_name = findViewById(R.id.huiyuan_name);
-        shanchuhuiyuan_btn=findViewById(R.id.shanchuhuiyuan_btn);
+        shanchuhuiyuan_btn = findViewById(R.id.shanchuhuiyuan_btn);
         shanchuhuiyuan_btn.setOnClickListener(onClickListener);
         findViewById(R.id.more_function_btn).setOnClickListener(onClickListener);
         findViewById(R.id.add_no_code_btn).setOnClickListener(onClickListener);
 
-        if (UserUtils.getInstance().isDazhe()){
+        if (UserUtils.getInstance().isDazhe()) {
             dazhe_all_btn.setVisibility(VISIBLE);
             dazhe_one_btn.setVisibility(VISIBLE);
             caozuo_view.setVisibility(VISIBLE);
-        }else {
+        } else {
             caozuo_view.setVisibility(GONE);
             dazhe_all_btn.setVisibility(GONE);
             dazhe_one_btn.setVisibility(GONE);
@@ -981,52 +984,61 @@ public class MainActivity extends Activity {
                         .filter(grouponGoodsModel -> !TextUtils.isEmpty(grouponGoodsModel.getSn()) && grouponGoodsModel.getSn().equals(text))
                         .collect(Collectors.toCollection(ArrayList::new));
                 if (grouponGoodsModelArrayList.isEmpty()) {
-                    if (text.contains("001")&&text.contains("002")){
+                    if (text.matches("^s\\d+w[\\d.]+d[\\d.]+$")) {
+                        // 正则匹配模式：s开头id + w开头重量 + d开头折扣
+                        Pattern pattern = Pattern.compile("s(\\d+)w(\\d+\\.?\\d*)d(\\d+\\.?\\d*)");
+                        Matcher matcher = pattern.matcher(text);
+                        String productId;
+                        String weight;
+                        String discount;
+                        if (matcher.find()) {
+                            productId = matcher.group(1);
+                            weight = matcher.group(2);
+                            discount = matcher.group(3);
+                            ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelList = allGrouponGoodsModelList.stream()
+                                    .filter(grouponGoodsModel -> grouponGoodsModel.getId().equals(productId))
+                                    .collect(Collectors.toCollection(ArrayList::new));
+                            if (grouponGoodsModelList.isEmpty()) {
+                                new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
+                                return;
+                            } else {
+                                GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = SerializableUtils.deepCopy(grouponGoodsModelList.get(0));
+                                Glide.with(MainActivity.this).clear(shop_image);  // 先清空ImageView
+                                Glide.with(MainActivity.this).load(grouponGoodsModel.getImage()).into(shop_image);  // 再加载新图片
+                                allNum++;
+                                grouponGoodsModel.setDiscount(discount);
+                                grouponGoodsModel.setGoods_weight(weight);
+                                BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
+                                BigDecimal zhehoujia = price.multiply(new BigDecimal(discount)).divide(new BigDecimal("100")).setScale(2, RoundingMode.DOWN);
 
-                        int index = text.indexOf("001");
-                        String before = text.substring(0, index); // "abc"
-                        String after = text.substring(index + 3); // "def"
-                        String replaced = after.replaceFirst("002", "."); // "abc.def"
 
-                        Log.i("ttt",">>>>>>>>>>>>>"+before+">>>>>>>"+replaced);
-                        ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelList = allGrouponGoodsModelList.stream()
-                                .filter(grouponGoodsModel -> grouponGoodsModel.getId().equals(before))
-                                .collect(Collectors.toCollection(ArrayList::new));
-                        if (grouponGoodsModelList.isEmpty()){
+                                BigDecimal heji = zhehoujia.divide(new BigDecimal(500)).multiply(new BigDecimal(weight)).setScale(2, RoundingMode.DOWN);
+
+                                grouponGoodsModel.setHeji(heji);
+                                grouponGoodsModel.setShuliang(1);
+                                grouponGoodsModel.setDiscounted_price(price.subtract(zhehoujia).divide(new BigDecimal(500)).multiply(new BigDecimal(weight)).setScale(2, RoundingMode.DOWN));
+                                selectedShopList.add(0, grouponGoodsModel);
+                                have_paid_view.setVisibility(GONE);
+                                selectedShopAdapter.setNewData(selectedShopList);
+                                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
+
+                                // 滚动到位置 0（第一条）
+                                selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
+                                tv_zongjian.setText(allNum + "");
+                                zongjia = zongjia.add(heji);
+                                tv_zongjia.setText(zongjia + "");
+                                MyPresentation.setZongjia(zongjia.toString());
+                                availableAmount();
+                                return;
+                            }
+                        } else {
                             new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
                             return;
-                        }else {
-                            GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = SerializableUtils.deepCopy(grouponGoodsModelList.get(0));
-                            Glide.with(MainActivity.this).clear(shop_image);  // 先清空ImageView
-                            Glide.with(MainActivity.this).load(grouponGoodsModel.getImage()).into(shop_image);  // 再加载新图片
-                            allNum++;
-                            BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice()).divide(new BigDecimal(500)).multiply(new BigDecimal(replaced)).multiply(new BigDecimal(1000)).setScale(2, RoundingMode.DOWN);
-                            grouponGoodsModel.setPrice(price.toString());
-                            if (!TextUtils.isEmpty(memben_discount)) {
-                                price = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
-                                grouponGoodsModel.setDiscounted_price(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price));
-                                grouponGoodsModel.setDiscount(memben_discount);
-                            }
-
-                            BigDecimal heji = price.setScale(2, RoundingMode.DOWN);
-                            grouponGoodsModel.setHeji(heji);
-                            grouponGoodsModel.setShuliang(1);
-                            grouponGoodsModel.setGoods_weight(new BigDecimal(replaced).multiply(new BigDecimal(1000)).toString());
-                            selectedShopList.add(0, grouponGoodsModel);
-                            have_paid_view.setVisibility(GONE);
-                            selectedShopAdapter.setNewData(selectedShopList);
-                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-
-                            // 滚动到位置 0（第一条）
-                            selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
-                            tv_zongjian.setText(allNum + "");
-                            zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
-                            tv_zongjia.setText(zongjia + "");
-                            MyPresentation.setZongjia(zongjia.toString());
-                            availableAmount();
-                            return;
                         }
-                    }else {
+
+
+//
+                    } else {
                         new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
                         return;
                     }
@@ -1043,7 +1055,7 @@ public class MainActivity extends Activity {
                         GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
 //                        Log.i("ttt", ">>>>>>>>>>>>>>" + model.getId() + "<<<<<" + grouponGoodsModel.getId());
                         Log.i("ttt", ">>>>>>>>Ggspid>>>>>>" + model.getGgspid() + "<<<<<" + grouponGoodsModel.getGgspid());
-                        if (model.getId() .equals(grouponGoodsModel.getId()) &&model.getGgspid() .equals(grouponGoodsModel.getGgspid()) ) {
+                        if (model.getId().equals(grouponGoodsModel.getId()) && model.getGgspid().equals(grouponGoodsModel.getGgspid())) {
 //                            if (model.getGgspid()==0||model.getGgspid()==grouponGoodsModel.getGgspid())
                             model.setShuliang(model.getShuliang() + 1);
                             BigDecimal price = new BigDecimal(model.getPrice());
@@ -1121,6 +1133,7 @@ public class MainActivity extends Activity {
                     goodsJsonBean.setGoods_price(grouponGoodsModel.getPrice());
                     goodsJsonBean.setGoods_num(grouponGoodsModel.getShuliang());
                     goodsJsonBean.setGoods_weight(grouponGoodsModel.getGoods_weight());
+                    goodsJsonBean.setOnline_type(grouponGoodsModel.getOnline_type());
                     goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
 //                        goodsJsonBean.setPay_price("0.01");
 //                        goodsJsonBean.setGoods_price("0.01");
@@ -1145,7 +1158,7 @@ public class MainActivity extends Activity {
                 checkoutBean.setType(1);
                 checkoutBean.setXf_type("1");
                 checkoutBean.setOrder_status(2);
-                if (memberBean1!=null){
+                if (memberBean1 != null) {
                     checkoutBean.setMember_name(memberBean1.getNickname());
                     checkoutBean.setMember_phone(memberBean1.getMobile());
 //                    checkoutBean.setCardnumber(memberBean1.getMobile());
@@ -1229,7 +1242,7 @@ public class MainActivity extends Activity {
                                 selectedShopAdapter.setNewData(selectedShopList);
                                 tv_zongjian.setText(allNum + "");
                                 MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                                if (selectedShopAdapter.getItemCount()>0){
+                                if (selectedShopAdapter.getItemCount() > 0) {
                                     availableAmount();
                                 }
 
@@ -1278,7 +1291,7 @@ public class MainActivity extends Activity {
                 MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
                 MyPresentation.setZongjia(zongjia.toString());
                 selectedShopAdapter.notifyItemChanged(position);
-                if (selectedShopAdapter.getItemCount()>0){
+                if (selectedShopAdapter.getItemCount() > 0) {
                     availableAmount();
                 }
             }
@@ -1312,7 +1325,7 @@ public class MainActivity extends Activity {
                 }
                 ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = new ArrayList<>();
                 grouponGoodsModelArrayList = allGrouponGoodsModelList.stream()
-                        .filter(grouponGoodsModel -> !Arrays.asList(grouponGoodsModel.getCategory_ids().split(",")).stream().filter(s ->s .equals(category_ids)) .collect(Collectors.toCollection(ArrayList::new)).isEmpty())
+                        .filter(grouponGoodsModel -> !Arrays.asList(grouponGoodsModel.getCategory_ids().split(",")).stream().filter(s -> s.equals(category_ids)).collect(Collectors.toCollection(ArrayList::new)).isEmpty())
                         .collect(Collectors.toCollection(ArrayList::new));
                 indexGrouponGoodsModelList = grouponGoodsModelArrayList;
                 grouponGoods_page = 1;
@@ -1395,7 +1408,7 @@ public class MainActivity extends Activity {
                         GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
 //                        Log.i("ttt", ">>>>>>>>>>>>>>" + model.getId() + "<<<<<" + grouponGoodsModel.getId());
                         Log.i("ttt", ">>>>>>>>Ggspid>>>>>>" + model.getGgspid() + "<<<<<" + grouponGoodsModel.getGgspid());
-                        if (model.getId() == grouponGoodsModel.getId()&&model.getGgspid() == grouponGoodsModel.getGgspid()) {
+                        if (model.getId() == grouponGoodsModel.getId() && model.getGgspid() == grouponGoodsModel.getGgspid()) {
                             model.setShuliang(model.getShuliang() + 1);
                             BigDecimal price = new BigDecimal(model.getPrice());
                             if (!TextUtils.isEmpty(model.getDiscount())) {
@@ -1500,9 +1513,11 @@ public class MainActivity extends Activity {
 
         return "unknown";
     }
-    String Coupon_fee="";
-    public void availableAmount(){
-        if(memberBean1==null){
+
+    String Coupon_fee = "";
+
+    public void availableAmount() {
+        if (memberBean1 == null) {
             return;
         }
         ArrayList<CheckoutBean.GoodsJsonBean> goodsJsonBeanArrayList = new ArrayList<>();
@@ -1528,8 +1543,8 @@ public class MainActivity extends Activity {
 
         Map<String, String> params = new HashMap<>();
         params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-        params.put("mobile",memberBean1.getMobile());
-        params.put("order_item",gson.toJson(goodsJsonBeanArrayList));
+        params.put("mobile", memberBean1.getMobile());
+        params.put("order_item", gson.toJson(goodsJsonBeanArrayList));
         String url = POSApiSerview.POS_URL + POSApiSerview.availableAmount;
         OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
             @Override
@@ -1540,12 +1555,12 @@ public class MainActivity extends Activity {
                     public void run() {
                         if (!response.isEmpty()) {
 
-                            JSONObject jsonObject= null;
+                            JSONObject jsonObject = null;
                             try {
                                 jsonObject = new JSONObject(response);
-                                int code=jsonObject.getInt("code");
-                                if (code==1){
-                                    Coupon_fee=jsonObject.getString("data");
+                                int code = jsonObject.getInt("code");
+                                if (code == 1) {
+                                    Coupon_fee = jsonObject.getString("data");
                                 }
 
                             } catch (JSONException e) {
@@ -2055,7 +2070,7 @@ public class MainActivity extends Activity {
                     public void run() {
                         if (!response.isEmpty()) {
                             try {
-                                JSONObject jsonObject=new JSONObject(response);
+                                JSONObject jsonObject = new JSONObject(response);
                                 if (jsonObject.getInt("code") == 1) {
                                     popupView.dismiss();
                                     getGrouponGoods();
@@ -2063,7 +2078,6 @@ public class MainActivity extends Activity {
                             } catch (JSONException e) {
                                 Log.e("ttt", "Error occurred", e);
                             }
-
 
 
                         } else {
@@ -2121,7 +2135,7 @@ public class MainActivity extends Activity {
             }
             if (keyCode == KeyEvent.KEYCODE_F4) {
 
-                if (UserUtils.getInstance().isDazhe()){
+                if (UserUtils.getInstance().isDazhe()) {
                     onClickListener.onClick(dazhe_one_btn);
                 }
                 // 监听外接键盘的返回键
@@ -2133,7 +2147,7 @@ public class MainActivity extends Activity {
                 return true;
             }
             if (keyCode == KeyEvent.KEYCODE_F6) {
-                if (UserUtils.getInstance().isDazhe()){
+                if (UserUtils.getInstance().isDazhe()) {
                     onClickListener.onClick(dazhe_all_btn);
                 }
 

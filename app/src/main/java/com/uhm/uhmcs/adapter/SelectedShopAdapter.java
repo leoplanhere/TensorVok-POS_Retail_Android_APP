@@ -42,11 +42,21 @@ public class SelectedShopAdapter extends BaseQuickAdapter<GrouponGoodsBean.Group
         helper.setText(R.id.guige,"暂无规格");
 
         helper.setText(R.id.heji,item.getHeji()+"");
-        helper.setText(R.id.shuliang,item.getShuliang()+"");
-        helper.setText(R.id.zengsong,item.isIs_zengsong()?context.getString(R.string.cancel_give_away):context.getString(R.string.give_away));
 
-        helper.addOnClickListener(R.id.shuliang_jia);
-        helper.addOnClickListener(R.id.shuliang_jian);
+        helper.setText(R.id.zengsong,item.isIs_zengsong()?context.getString(R.string.cancel_give_away):context.getString(R.string.give_away));
+        if (!item.getOnline_type().equals("weight")){
+            helper.addOnClickListener(R.id.shuliang_jia);
+            helper.addOnClickListener(R.id.shuliang_jian);
+            helper.setGone(R.id.shuliang_jia,true);
+            helper.setGone(R.id.shuliang_jian,true);
+            helper.setText(R.id.shuliang,item.getShuliang()+"");
+        }else {
+            helper.setText(R.id.shuliang,item.getGoods_weight()+"g");
+            helper.setGone(R.id.shuliang_jia,false);
+            helper.setGone(R.id.shuliang_jian,false);
+        }
+
+
         helper.addOnClickListener(R.id.zengsong);
 
         TextView zhekou_view=helper.getView(R.id.zhekou_view);
