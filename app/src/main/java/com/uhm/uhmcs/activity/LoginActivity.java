@@ -57,14 +57,14 @@ public class LoginActivity extends Activity {
     @SuppressLint({"ClickableViewAccessibility", "CutPasteId"})
     public void initView(){
         try{
-            initKey();
+
             btnLogin=(AppCompatButton)findViewById(R.id.btnLogin);
 
             etUserName = findViewById(R.id.etUserName);
             etUserPwd = findViewById(R.id.etUserPwd);
 
 
-
+            currEditText = findViewById(R.id.etUserName);
             etUserName.setText(UserUtils.getInstance().getLoginPhone());
             etUserPwd.setText(UserUtils.getInstance().getLoginPassword());
             etUserName.setOnTouchListener((v, event) -> {
@@ -102,7 +102,7 @@ public class LoginActivity extends Activity {
                 logon();
 
             });
-
+            initKey();
 
         }catch (Exception ex){
             Log.i("错误返回",ex.getMessage()+"");

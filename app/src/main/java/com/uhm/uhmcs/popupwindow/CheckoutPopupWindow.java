@@ -84,8 +84,8 @@ public class CheckoutPopupWindow {
     private String pay_type="";
     private int order_status=0;
 
-    private boolean weixin_type=false;
-    private boolean zhifubao_type=false;
+//    private boolean weixin_type=false;
+//    private boolean zhifubao_type=false;
 
     private boolean isyouhuijuan=true;
 
@@ -208,6 +208,7 @@ public class CheckoutPopupWindow {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 // 文本变化前的状态，如需要撤销操作可在此处理‌:ml-citation{ref="7,8" data="citationList"}
+
             }
 
             @Override
@@ -309,7 +310,7 @@ public class CheckoutPopupWindow {
             }
         });
         shoukuan_tv.setOnFnListener(()->popupWindow.dismiss());
-        buildBean=DialogUIUtils.showLoading(context,context.getString(R.string.paying),true,false,false,false);
+        buildBean=DialogUIUtils.showLoading(context,context.getString(R.string.paying),true,true,false,false);
         deleteShopPopupWindow=new DeleteShopPopupWindow(context, context.getString(R.string.Scan_to_pay),false, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
             @Override
             public void onClick(String text) {
@@ -319,7 +320,11 @@ public class CheckoutPopupWindow {
                     return;
                 }
                 String type=detectPaymentType(text);
-                if (type.equals("unknown")||!pay_type.equals(type)){
+//                if (type.equals("unknown")||!pay_type.equals(type)){
+//                    new DeleteShopPopupWindow(context,context.getString(R.string.Scan_payment_QR_code),true).show();
+//                    return;
+//                }
+                if (type.equals("unknown")){
                     new DeleteShopPopupWindow(context,context.getString(R.string.Scan_payment_QR_code),true).show();
                     return;
                 }
@@ -355,10 +360,10 @@ public class CheckoutPopupWindow {
                 return;
             }
 
-            if (weixin_type){
-                new DeleteShopPopupWindow(context,context.getString(R.string.WeChat_paid_already),true).show();
-                return;
-            }
+//            if (weixin_type){
+//                new DeleteShopPopupWindow(context,context.getString(R.string.WeChat_paid_already),true).show();
+//                return;
+//            }
             huiyuan_view.setVisibility(GONE);
             weixin_btn.setBackgroundResource(R.drawable.blue_bg3);
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
@@ -371,6 +376,7 @@ public class CheckoutPopupWindow {
 
         });
         xianjin_btn.setOnClickListener(v -> {
+
             huiyuan_view.setVisibility(GONE);
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
             weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
@@ -386,10 +392,10 @@ public class CheckoutPopupWindow {
                 new DeleteShopPopupWindow(context,context.getString(R.string.Cash_only),true).show();
                 return;
             }
-            if (zhifubao_type){
-                new DeleteShopPopupWindow(context,context.getString(R.string.Alipay_paid_already),true).show();
-                return;
-            }
+//            if (zhifubao_type){
+//                new DeleteShopPopupWindow(context,context.getString(R.string.Alipay_paid_already),true).show();
+//                return;
+//            }
             huiyuan_view.setVisibility(GONE);
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
             weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
@@ -438,6 +444,8 @@ public class CheckoutPopupWindow {
 
 
     }
+
+
     public boolean isValidNumber(String input) {
         if (TextUtils.isEmpty(input)) return false;
 
@@ -679,7 +687,7 @@ public class CheckoutPopupWindow {
 
             deleteShopPopupWindow.dismiss();
             popupWindow.dismiss();
-            checkoutOnClickListener.onClick();
+            checkoutOnClickListener.onClick(checkoutBean,xinjin_pice,weixin_pice,zhifubao_pice,huiyuanka_pice);
             if (!TextUtils.isEmpty(xinjin_pice)){
                 MyPrinterHelper.getInstance().asyncOpenMoneyBox(context);
             }
@@ -746,11 +754,11 @@ public class CheckoutPopupWindow {
                                             }else if (pay_type.equals("wechat")){
 
                                                 weixin_pice=shoukuan_tv.getText().toString();
-                                                weixin_type=true;
+//                                                weixin_type=true;
                                                 order_sn=new JSONObject(jsonObject.getString("code")).getString("order_sn");
                                             }else if (pay_type.equals("alipay")){
                                                 zhifubao_pice=shoukuan_tv.getText().toString();
-                                                zhifubao_type=true;
+//                                                zhifubao_type=true;
                                                 order_sn=jsonObject.getString("order_sn");
                                                 out_trade_no=jsonObject.getString("out_trade_no");
                                             }else if (pay_type.equals("wallet")){
@@ -767,10 +775,13 @@ public class CheckoutPopupWindow {
 
                                                 deleteShopPopupWindow.dismiss();
                                                 popupWindow.dismiss();
-                                                checkoutOnClickListener.onClick();
+                                                checkoutOnClickListener.onClick(checkoutBean,xinjin_pice,weixin_pice,zhifubao_pice,huiyuanka_pice);
                                                 if (!TextUtils.isEmpty(xinjin_pice)){
                                                     MyPrinterHelper.getInstance().asyncOpenMoneyBox(context);
                                                 }
+//                                                if (new BigDecimal(checkoutBean.getCash_change()).compareTo(BigDecimal.ZERO)>0){
+//                                                    new DeleteShopPopupWindow(context,"你需要找零"+checkoutBean.getCash_change()).show();
+//                                                }
                                                 MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,null,xinjin_pice,weixin_pice,zhifubao_pice,huiyuanka_pice,order_sn);
                                                 order_sn="";
                                                 out_trade_no="";
@@ -1192,11 +1203,11 @@ public class CheckoutPopupWindow {
 
                                         if (pay_type.equals("wechat")){
                                             weixin_pice=shoukuan_tv.getText().toString();
-                                            weixin_type=true;
+//                                            weixin_type=true;
                                         }
                                         if (pay_type.equals("alipay")){
                                             zhifubao_pice=shoukuan_tv.getText().toString();
-                                            zhifubao_type=true;
+//                                            zhifubao_type=true;
                                         }
                                         yinshou=new BigDecimal(yinshou).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
                                         yishou_tv.setText(yinshou);
@@ -1205,7 +1216,7 @@ public class CheckoutPopupWindow {
 
                                             deleteShopPopupWindow.dismiss();
                                             popupWindow.dismiss();
-                                            checkoutOnClickListener.onClick();
+                                            checkoutOnClickListener.onClick(checkoutBean,xinjin_pice,weixin_pice,zhifubao_pice,huiyuanka_pice);
 
                                             MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,null,xinjin_pice,weixin_pice,zhifubao_pice,huiyuanka_pice,order_sn);
                                             order_sn="";

@@ -182,7 +182,7 @@ public class MemberRechargePopupWindow {
                 customRecharge();
             }
         });
-        buildBean=DialogUIUtils.showLoading(context,context.getString(R.string.paying),true,false,false,false);
+        buildBean=DialogUIUtils.showLoading(context,context.getString(R.string.paying),true,true,false,false);
         time = new TimeCount(30000, 5000);//一共执行60000毫秒，每5000执行一次。
         customRechargeBean=new CustomRechargeBean();
     }

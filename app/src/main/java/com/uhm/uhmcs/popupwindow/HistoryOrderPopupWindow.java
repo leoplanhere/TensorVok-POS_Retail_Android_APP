@@ -90,7 +90,7 @@ public class HistoryOrderPopupWindow {
 
     private void initPopup() {
         View popupView = LayoutInflater.from(context).inflate(R.layout.popupwindow_history_order, null);
-        buildBean= DialogUIUtils.showLoading(context,context.getString(R.string.Refunding),true,false,false,false);
+        buildBean= DialogUIUtils.showLoading(context,context.getString(R.string.Refunding),true,true,false,false);
         popupWindow = new PopupWindow(
                 popupView,
                 ViewGroup.LayoutParams.MATCH_PARENT,

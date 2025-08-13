@@ -3,6 +3,7 @@ package com.uhm.uhmcs.popupwindow;
 import android.hardware.usb.UsbDevice;
 import android.view.View;
 
+import com.uhm.uhmcs.bean.CheckoutBean;
 import com.uhm.uhmcs.bean.ClubCardBean;
 import com.uhm.uhmcs.bean.GrouponGoodsBean;
 import com.uhm.uhmcs.bean.MemberBean;
@@ -56,7 +57,7 @@ public class PopupWindowOnClickListener {
          * Called when a view has been clicked.
          *
          */
-        void onClick();
+        void onClick(CheckoutBean checkoutBean,String xinjin_pice, String weixin_pice, String zhifubao_pice,String huiyuanka_pice);
     }
     public interface PrintDeviceOnClickListener {
         /**

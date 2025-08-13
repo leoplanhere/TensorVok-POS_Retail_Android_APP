@@ -34,6 +34,7 @@ public class MyUsbDeviceHelper {
             instance = new MyUsbDeviceHelper();
         return instance;
     }
+    private boolean isReceiverRegistered = false;
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     public void inti(Context context) {
         this.context=context;
@@ -42,6 +43,7 @@ public class MyUsbDeviceHelper {
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         context.registerReceiver(usbReceiver, filter);
         checkConnectedDevices(); // 初始化检测已连接设备
+        isReceiverRegistered = true;
 
     }
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
@@ -125,6 +127,10 @@ public class MyUsbDeviceHelper {
 
     }
     public void unregisterReceiver(){
-        context.unregisterReceiver(usbReceiver);
+        if (isReceiverRegistered){
+            context.unregisterReceiver(usbReceiver);
+            isReceiverRegistered = false;
+        }
+
     }
 }

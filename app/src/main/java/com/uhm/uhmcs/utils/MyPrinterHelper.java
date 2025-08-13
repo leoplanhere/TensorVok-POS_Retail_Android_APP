@@ -20,6 +20,7 @@ import com.google.zxing.common.BitMatrix;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.bean.CheckoutBean;
+import com.uhm.uhmcs.bean.GrouponGoodsBean;
 import com.uhm.uhmcs.bean.LastOrderBean;
 import com.uhm.uhmcs.bean.PrintDataBean;
 import com.uhm.uhmcs.bean.RelieveShiftPrintBean;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class MyPrinterHelper {
     private  final ExecutorService printExecutor = Executors.newSingleThreadExecutor();
@@ -586,6 +588,9 @@ public class MyPrinterHelper {
                 if (!TextUtils.isEmpty(zhifubao_pice)){
                     shifujine_pice=shifujine_pice.add(new BigDecimal(zhifubao_pice));
                 }
+                if (!TextUtils.isEmpty(huiyuanka_pice)){
+                    shifujine_pice=shifujine_pice.add(new BigDecimal(huiyuanka_pice));
+                }
                 String shifujine="实付金额:";
                 shifujine+=(new String(new char[48-9-calculateDisplayWidth(shifujine_pice.toString()+"")]).replace('\0', ' '));
                 shifujine+=(shifujine_pice.toString()+"");
@@ -760,7 +765,7 @@ public class MyPrinterHelper {
                 String formattedTime = sdf.format(new Date(lastOrderBean.getPaytime()* 1000L));
 //                output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
                 String shouyinshijian="收银时间:"+formattedTime;
-                String shouyinyuan="收银员:"+UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
+                String shouyinyuan="收银员:"+lastOrderBean.getCash_user_sn();
                 String shouyinData=shouyinyuan;
                 shouyinData+=(new String(new char[48-calculateDisplayWidth(shouyinyuan+shouyinshijian)]).replace('\0', ' '));
                 shouyinData+=shouyinshijian;
@@ -1021,7 +1026,7 @@ public class MyPrinterHelper {
                 String formattedTime = sdf.format(new Date(lastOrderBean.getPaytime()* 1000L));
 //                output.write(("收银时间:"+formattedTime+"\n").getBytes(Charset.forName("GBK")));
                 String shouyinshijian="收银时间:"+formattedTime;
-                String shouyinyuan="收银员:"+UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
+                String shouyinyuan="收银员:"+lastOrderBean.getCash_user_sn();
                 String shouyinData=shouyinyuan;
                 shouyinData+=(new String(new char[48-calculateDisplayWidth(shouyinyuan+shouyinshijian)]).replace('\0', ' '));
                 shouyinData+=shouyinshijian;
@@ -1308,7 +1313,57 @@ public class MyPrinterHelper {
 
                 output.write(("总退款:"+(new String(new char[48-calculateDisplayWidth("总退款:")-calculateDisplayWidth(toeal_tuikuan.toString())]).replace('\0', ' '))+toeal_tuikuan.toString()+"\n").getBytes(Charset.forName("GBK")));
                 output.write("------------------------------------------------\n".getBytes(Charset.forName("GBK")));
-                output.write(0x0A); // 换行
+                output.write(("营收信息"+"\n").getBytes(Charset.forName("GBK")));
+                if (!dataBean.getTotal().isEmpty()){
+                    for (RelieveShiftPrintBean.DataBean.TotalBean shoukuantotalBean:dataBean.getTotal()){
+
+                        if (!dataBean.getRefund().isEmpty()){
+                            ArrayList<RelieveShiftPrintBean.DataBean.RefundBean> totalBeanArrayList = dataBean.getRefund().stream()
+                                    .filter(tuikuanTotalBean -> tuikuanTotalBean.getPay_type().equals(shoukuantotalBean.getPay_type()))
+                                    .collect(Collectors.toCollection(ArrayList::new));
+                            if (totalBeanArrayList.isEmpty()){
+                                if (shoukuantotalBean.getPay_type().equals("cash")){
+                                    output.write(("现金营收:"+(new String(new char[48-calculateDisplayWidth("现金营收:")-calculateDisplayWidth(shoukuantotalBean.getTotal()+"")]).replace('\0', ' '))+shoukuantotalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                                }else if (shoukuantotalBean.getPay_type().equals("wallet")){
+                                    output.write(("会员卡营收:"+(new String(new char[48-calculateDisplayWidth("会员卡营收:")-calculateDisplayWidth(shoukuantotalBean.getTotal()+"")]).replace('\0', ' '))+shoukuantotalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                                }else if (shoukuantotalBean.getPay_type().equals("wechat")){
+                                    output.write(("微信营收:"+(new String(new char[48-calculateDisplayWidth("微信营收:")-calculateDisplayWidth(shoukuantotalBean.getTotal()+"")]).replace('\0', ' '))+shoukuantotalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                                }else if (shoukuantotalBean.getPay_type().equals("alipay")){
+                                    output.write(("支付宝营收:"+(new String(new char[48-calculateDisplayWidth("支付宝营收:")-calculateDisplayWidth(shoukuantotalBean.getTotal()+"")]).replace('\0', ' '))+shoukuantotalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                                }
+                            }else {
+                                BigDecimal itemYingshou=new BigDecimal("0.00");
+                                itemYingshou=new BigDecimal(shoukuantotalBean.getTotal()).subtract(new BigDecimal(totalBeanArrayList.get(0).getTotal()));
+                                if (shoukuantotalBean.getPay_type().equals("cash")){
+                                    output.write(("现金营收:"+(new String(new char[48-calculateDisplayWidth("现金营收:")-calculateDisplayWidth(itemYingshou.toString())]).replace('\0', ' '))+itemYingshou.toString()+"\n").getBytes(Charset.forName("GBK")));
+                                }else if (shoukuantotalBean.getPay_type().equals("wallet")){
+                                    output.write(("会员卡营收:"+(new String(new char[48-calculateDisplayWidth("会员卡营收:")-calculateDisplayWidth(itemYingshou.toString())]).replace('\0', ' '))+itemYingshou.toString()+"\n").getBytes(Charset.forName("GBK")));
+                                }else if (shoukuantotalBean.getPay_type().equals("wechat")){
+                                    output.write(("微信营收:"+(new String(new char[48-calculateDisplayWidth("微信营收:")-calculateDisplayWidth(itemYingshou.toString())]).replace('\0', ' '))+itemYingshou.toString()+"\n").getBytes(Charset.forName("GBK")));
+                                }else if (shoukuantotalBean.getPay_type().equals("alipay")){
+                                    output.write(("支付宝营收:"+(new String(new char[48-calculateDisplayWidth("支付宝营收:")-calculateDisplayWidth(itemYingshou.toString())]).replace('\0', ' '))+itemYingshou.toString()+"\n").getBytes(Charset.forName("GBK")));
+                                }
+                            }
+                        }else {
+                            if (shoukuantotalBean.getPay_type().equals("cash")){
+                                output.write(("现金营收:"+(new String(new char[48-calculateDisplayWidth("现金营收:")-calculateDisplayWidth(shoukuantotalBean.getTotal()+"")]).replace('\0', ' '))+shoukuantotalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                            }else if (shoukuantotalBean.getPay_type().equals("wallet")){
+                                output.write(("会员卡营收:"+(new String(new char[48-calculateDisplayWidth("会员卡营收:")-calculateDisplayWidth(shoukuantotalBean.getTotal()+"")]).replace('\0', ' '))+shoukuantotalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                            }else if (shoukuantotalBean.getPay_type().equals("wechat")){
+                                output.write(("微信营收:"+(new String(new char[48-calculateDisplayWidth("微信营收:")-calculateDisplayWidth(shoukuantotalBean.getTotal()+"")]).replace('\0', ' '))+shoukuantotalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                            }else if (shoukuantotalBean.getPay_type().equals("alipay")){
+                                output.write(("支付宝营收:"+(new String(new char[48-calculateDisplayWidth("支付宝营收:")-calculateDisplayWidth(shoukuantotalBean.getTotal()+"")]).replace('\0', ' '))+shoukuantotalBean.getTotal()+"\n").getBytes(Charset.forName("GBK")));
+                            }
+                        }
+
+
+
+
+                    }
+                }
+
+
+
                 output.write(("营收总额:"+(new String(new char[48-calculateDisplayWidth("营收总额:")-calculateDisplayWidth(toeal_shoukuan.subtract(toeal_tuikuan).toString())]).replace('\0', ' '))+toeal_shoukuan.subtract(toeal_tuikuan).toString()+"\n").getBytes(Charset.forName("GBK")));
                 output.write(0x0A); // 换行
                 output.write(0x0A); // 换行

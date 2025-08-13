@@ -8,7 +8,7 @@
     <LinearLayout
         android:clickable="true"
         android:focusable="true"
-        android:padding="20dp"
+        android:padding="40dp"
         android:layout_width="1100dp"
         android:layout_height="wrap_content"
         android:background="@drawable/white_bg"
@@ -58,9 +58,10 @@
                 android:background="@drawable/blue_bg3"
                 android:textSize="30dp"
                 android:textColor="@color/white"
-                android:text="@string/wechat_pay"
+                android:text="@string/yidongzhifu"
                 android:gravity="center" />
             <TextView
+                android:visibility="gone"
                 android:id="@+id/zhifubao_btn"
                 android:layout_marginLeft="20dp"
                 android:layout_width="230dp"

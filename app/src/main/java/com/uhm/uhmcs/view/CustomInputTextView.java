@@ -110,6 +110,11 @@ public class CustomInputTextView extends AppCompatTextView {
                 }
                 return true;
             }
+            // 处理删除键
+            if (keyCode == KeyEvent.KEYCODE_FORWARD_DEL) {
+                setText("");
+                return true;
+            }
             if (keyCode==KeyEvent.KEYCODE_F10||keyCode==KeyEvent.KEYCODE_F8||keyCode==KeyEvent.KEYCODE_F9){
                 onFnListener.OnFn();
                 return true;

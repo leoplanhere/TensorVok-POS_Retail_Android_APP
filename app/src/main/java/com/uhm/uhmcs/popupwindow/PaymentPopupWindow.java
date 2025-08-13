@@ -100,7 +100,7 @@ public class PaymentPopupWindow {
         popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
             popupWindow.dismiss();
         });
-        buildBean= DialogUIUtils.showLoading(context,context.getString(R.string.Refunding),true,false,false,false);
+        buildBean= DialogUIUtils.showLoading(context,context.getString(R.string.Refunding),true,true,false,false);
         payment_rv=popupView.findViewById(R.id.payment_rv);
         payment_rv.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL,false));
         paymentAdapter=new PaymentAdapter(context);
