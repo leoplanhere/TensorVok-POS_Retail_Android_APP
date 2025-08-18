@@ -7,6 +7,8 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.CountDownTimer;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -72,22 +74,22 @@ public class CheckoutPopupWindow {
     private PopupWindow popupWindow;
     private Activity context;
     private CheckoutBean checkoutBean;
-    private TextView yingshou_tv,youhui_tv,shijishou_tv,weixin_btn,xianjin_btn,zhaolin_tv,zhifubao_btn,yishou_tv,huiyuanka_btn,huiyuanchaxun_btn;
+    private TextView yingshou_tv, youhui_tv, shijishou_tv, weixin_btn, xianjin_btn, zhaolin_tv, zhifubao_btn, yishou_tv, huiyuanka_btn, huiyuanchaxun_btn;
     private CustomInputTextView shoukuan_tv;
     ClubCardBean.DataBean clubCardData;
-    TextView huiyuankahao_tv ;
-    TextView huiyuanyue_tv ;
+    TextView huiyuankahao_tv;
+    TextView huiyuanyue_tv;
     private LinearLayout huiyuan_view;
     private DeleteShopPopupWindow deleteShopPopupWindow;
-    private String yinshou="0.00";
+    private String yinshou = "0.00";
 
-    private String pay_type="";
-    private int order_status=0;
+    private String pay_type = "";
+    private int order_status = 0;
 
 //    private boolean weixin_type=false;
 //    private boolean zhifubao_type=false;
 
-    private boolean isyouhuijuan=true;
+    private boolean isyouhuijuan = true;
 
     private Runnable shoukuan_tvRunnable = new Runnable() {
         @Override
@@ -98,20 +100,22 @@ public class CheckoutPopupWindow {
 
     private PopupWindowOnClickListener.CheckoutOnClickListener checkoutOnClickListener;
 
-    public boolean isShow(){
+    public boolean isShow() {
         return popupWindow.isShowing();
     }
 
     public CheckoutPopupWindow(Activity context, CheckoutBean checkoutBean, PopupWindowOnClickListener.CheckoutOnClickListener checkoutOnClickListener) {
         this.context = context;
-        this.checkoutBean=checkoutBean;
-        this.checkoutOnClickListener=checkoutOnClickListener;
+        this.checkoutBean = checkoutBean;
+        this.checkoutOnClickListener = checkoutOnClickListener;
         initPopup();
     }
+
     View popupView;
     BuildBean buildBean;
     private LinearLayout youhuijuan_view;
-    private TextView youhuijuan_jine,shiyong_btn,bushiyong_btn,qufen_btn;
+    private TextView youhuijuan_jine, shiyong_btn, bushiyong_btn, qufen_btn;
+
     @SuppressLint("SetTextI18n")
     private void initPopup() {
         popupView = LayoutInflater.from(context).inflate(R.layout.popupwindow_checkout, null);
@@ -132,46 +136,46 @@ public class CheckoutPopupWindow {
             int y = (metrics.heightPixels - popupView.getHeight()) / 2;
             popupWindow.update(x, y, -1, -1); // 更新位置
         });
-        yingshou_tv=popupView.findViewById(R.id.yingshou_tv);
-        youhui_tv=popupView.findViewById(R.id.youhui_tv);
-        shijishou_tv=popupView.findViewById(R.id.shijishou_tv);
-        zhaolin_tv=popupView.findViewById(R.id.zhaolin_tv);
-        yishou_tv=popupView.findViewById(R.id.yishou_tv);
+        yingshou_tv = popupView.findViewById(R.id.yingshou_tv);
+        youhui_tv = popupView.findViewById(R.id.youhui_tv);
+        shijishou_tv = popupView.findViewById(R.id.shijishou_tv);
+        zhaolin_tv = popupView.findViewById(R.id.zhaolin_tv);
+        yishou_tv = popupView.findViewById(R.id.yishou_tv);
 
-        youhuijuan_view=popupView.findViewById(R.id.youhuijuan_view);
-        youhuijuan_jine=popupView.findViewById(R.id.youhuijuan_jine);
-        shiyong_btn=popupView.findViewById(R.id.shiyong_btn);
-        bushiyong_btn=popupView.findViewById(R.id.bushiyong_btn);
+        youhuijuan_view = popupView.findViewById(R.id.youhuijuan_view);
+        youhuijuan_jine = popupView.findViewById(R.id.youhuijuan_jine);
+        shiyong_btn = popupView.findViewById(R.id.shiyong_btn);
+        bushiyong_btn = popupView.findViewById(R.id.bushiyong_btn);
 
-        qufen_btn=popupView.findViewById(R.id.qufen_btn);
+        qufen_btn = popupView.findViewById(R.id.qufen_btn);
 
 
-        shoukuan_tv=popupView.findViewById(R.id.shoukuan_tv);
+        shoukuan_tv = popupView.findViewById(R.id.shoukuan_tv);
 
-        if (!TextUtils.isEmpty(checkoutBean.getCoupon_fee())){
+        if (!TextUtils.isEmpty(checkoutBean.getCoupon_fee())) {
             youhuijuan_view.setVisibility(VISIBLE);
             youhuijuan_jine.setText(checkoutBean.getCoupon_fee());
             checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
-            youhui_tv.setText("￥"+new BigDecimal(checkoutBean.getDiscount_fee()).add(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
-        }else {
-            youhui_tv.setText("￥"+checkoutBean.getDiscount_fee());
+            youhui_tv.setText("￥" + new BigDecimal(checkoutBean.getDiscount_fee()).add(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
+        } else {
+            youhui_tv.setText("￥" + checkoutBean.getDiscount_fee());
         }
         yishou_tv.setText("￥0.00");
-        yingshou_tv.setText("￥"+checkoutBean.getTotal_amount());
-        shijishou_tv.setText("￥"+checkoutBean.getTotal_fee());
+        yingshou_tv.setText("￥" + checkoutBean.getTotal_amount());
+        shijishou_tv.setText("￥" + checkoutBean.getTotal_fee());
 
 
         shiyong_btn.setOnClickListener(v -> {
-            if (isyouhuijuan){
+            if (isyouhuijuan) {
                 return;
             }
-            isyouhuijuan=true;
+            isyouhuijuan = true;
             shiyong_btn.setBackgroundResource(R.drawable.blue_bg3);
             bushiyong_btn.setBackgroundResource(R.drawable.blue_bg2);
-            youhui_tv.setText("￥"+new BigDecimal(checkoutBean.getDiscount_fee()).add(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
+            youhui_tv.setText("￥" + new BigDecimal(checkoutBean.getDiscount_fee()).add(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
             checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
-            shijishou_tv.setText("￥"+checkoutBean.getTotal_fee());
-            shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
+            shijishou_tv.setText("￥" + checkoutBean.getTotal_fee());
+            shoukuan_tv.setText(checkoutBean.getTotal_fee() + "");
         });
         qufen_btn.setOnClickListener(v -> {
             // 原始金额
@@ -181,26 +185,24 @@ public class CheckoutPopupWindow {
             // 计算差额
             BigDecimal diff = original.subtract(truncated);
             checkoutBean.setDiscount_fee(new BigDecimal(checkoutBean.getDiscount_fee()).add(diff).toString());
-            youhui_tv.setText("￥"+checkoutBean.getDiscount_fee());
+            youhui_tv.setText("￥" + checkoutBean.getDiscount_fee());
             checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).subtract(diff).toString());
-            shijishou_tv.setText("￥"+checkoutBean.getTotal_fee());
-            shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
+            shijishou_tv.setText("￥" + checkoutBean.getTotal_fee());
+            shoukuan_tv.setText(checkoutBean.getTotal_fee() + "");
         });
 
 
-
-
         bushiyong_btn.setOnClickListener(v -> {
-            if (!isyouhuijuan){
+            if (!isyouhuijuan) {
                 return;
             }
             bushiyong_btn.setBackgroundResource(R.drawable.blue_bg3);
             shiyong_btn.setBackgroundResource(R.drawable.blue_bg2);
-            isyouhuijuan=false;
-            youhui_tv.setText("￥"+checkoutBean.getDiscount_fee());
+            isyouhuijuan = false;
+            youhui_tv.setText("￥" + checkoutBean.getDiscount_fee());
             checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).add(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
-            shijishou_tv.setText("￥"+checkoutBean.getTotal_fee());
-            shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
+            shijishou_tv.setText("￥" + checkoutBean.getTotal_fee());
+            shoukuan_tv.setText(checkoutBean.getTotal_fee() + "");
         });
 
 
@@ -215,26 +217,26 @@ public class CheckoutPopupWindow {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 // 文本变化中实时触发，适合实时搜索‌:ml-citation{ref="7,8" data="citationList"}
                 // 实时获取当前输入的字符
-                if (TextUtils.isEmpty(s.toString())){
+                if (TextUtils.isEmpty(s.toString())) {
                     zhaolin_tv.setText("0.00");
                     return;
                 }
                 if (count > before) {
                     CharSequence newChar = s.subSequence(start, start + count);
 //                    Log.d("ttt", "新增字符: " + newChar+">>>>"+s.toString());
-                    if (newChar.equals(".")||newChar.equals("-")){
+                    if (newChar.equals(".") || newChar.equals("-")) {
                         return;
                     }
                 }
-                if (!isValidNumber(s.toString())){
+                if (!isValidNumber(s.toString())) {
                     return;
                 }
 
                 BigDecimal zhaolin;
-                zhaolin=new BigDecimal(TextUtils.isEmpty(s.toString())?"0.00":s.toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)));
-                if (zhaolin.compareTo(BigDecimal.ZERO)>0){
+                zhaolin = new BigDecimal(TextUtils.isEmpty(s.toString()) ? "0.00" : s.toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)));
+                if (zhaolin.compareTo(BigDecimal.ZERO) > 0) {
                     zhaolin_tv.setText(zhaolin.toString());
-                }else {
+                } else {
                     zhaolin_tv.setText("0.00");
                 }
 
@@ -249,47 +251,47 @@ public class CheckoutPopupWindow {
         });
         // 自动获取焦点
         shoukuan_tv.postDelayed(shoukuan_tvRunnable, 100);
-        shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
+        shoukuan_tv.setText(checkoutBean.getTotal_fee() + "");
         shoukuan_tv.setOnInputCompleteListener(text -> {
 
-            if (TextUtils.isEmpty(shoukuan_tv.getText().toString())){
-                new DeleteShopPopupWindow(context,context.getString(R.string.enter_payment_amount),true).show();
+            if (TextUtils.isEmpty(shoukuan_tv.getText().toString())) {
+                new DeleteShopPopupWindow(context, context.getString(R.string.enter_payment_amount), true).show();
                 return;
             }
-            if (!isValidNumber(shoukuan_tv.getText().toString())){
-                new DeleteShopPopupWindow(context,context.getString(R.string.Please_input_in_correct_price_format),true).show();
+            if (!isValidNumber(shoukuan_tv.getText().toString())) {
+                new DeleteShopPopupWindow(context, context.getString(R.string.Please_input_in_correct_price_format), true).show();
                 return;
             }
-            if (new BigDecimal(shoukuan_tv.getText().toString()).compareTo(BigDecimal.ZERO)<=0){
-                new DeleteShopPopupWindow(context,context.getString(R.string.Amount_must_0),true).show();
+            if (new BigDecimal(shoukuan_tv.getText().toString()).compareTo(BigDecimal.ZERO) <= 0) {
+                new DeleteShopPopupWindow(context, context.getString(R.string.Amount_must_0), true).show();
                 return;
             }
 
-            if (pay_type.equals("cash")){
+            if (pay_type.equals("cash")) {
                 checkoutBean.setPay_type(pay_type);
                 checkoutBean.setPay_fee(shoukuan_tv.getText().toString());
                 checkoutBean.setCash_price(shoukuan_tv.getText().toString());
                 checkoutBean.setCash_change(zhaolin_tv.getText().toString());
-                if (!NetworkUtils.getInstance().isNetworkConnected(context)){
-                    if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).compareTo(BigDecimal.ZERO)<0){
-                        new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_underpay),true).show();
+                if (!NetworkUtils.getInstance().isNetworkConnected(context)) {
+                    if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).compareTo(BigDecimal.ZERO) < 0) {
+                        new DeleteShopPopupWindow(context, context.getString(R.string.Cannot_underpay), true).show();
                         return;
                     }
                 }
 
                 SubmitCheckout();
-            }else if (pay_type.equals("wallet")){
+            } else if (pay_type.equals("wallet")) {
 
                 if (clubCardData == null) {
                     new DeleteShopPopupWindow(context, "请先查询会员信息", true).show();
                     return;
                 }
-                if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO)>0){
-                    new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_overpay),true).show();
+                if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO) > 0) {
+                    new DeleteShopPopupWindow(context, context.getString(R.string.Cannot_overpay), true).show();
                     return;
                 }
-                if (new BigDecimal(clubCardData.getAmount()).subtract(new BigDecimal(shoukuan_tv.getText().toString())).compareTo(BigDecimal.ZERO)<0){
-                    new DeleteShopPopupWindow(context,"会员卡余额不足",true).show();
+                if (new BigDecimal(clubCardData.getAmount()).subtract(new BigDecimal(shoukuan_tv.getText().toString())).compareTo(BigDecimal.ZERO) < 0) {
+                    new DeleteShopPopupWindow(context, "会员卡余额不足", true).show();
                     return;
                 }
                 checkoutBean.setPay_type(pay_type);
@@ -298,9 +300,9 @@ public class CheckoutPopupWindow {
                 checkoutBean.setCash_change(zhaolin_tv.getText().toString());
                 checkoutBean.setCardnumber(clubCardData.getNumber());
                 SubmitCheckout();
-            }else {
-                if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO)>0){
-                    new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_overpay),true).show();
+            } else {
+                if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO) > 0) {
+                    new DeleteShopPopupWindow(context, context.getString(R.string.Cannot_overpay), true).show();
                     return;
                 }
                 shoukuan_tv.removeCallbacks(shoukuan_tvRunnable);
@@ -309,27 +311,27 @@ public class CheckoutPopupWindow {
 
             }
         });
-        shoukuan_tv.setOnFnListener(()->popupWindow.dismiss());
-        buildBean=DialogUIUtils.showLoading(context,context.getString(R.string.paying),true,true,false,false);
-        deleteShopPopupWindow=new DeleteShopPopupWindow(context, context.getString(R.string.Scan_to_pay),false, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+        shoukuan_tv.setOnFnListener(() -> popupWindow.dismiss());
+        buildBean = DialogUIUtils.showLoading(context, context.getString(R.string.paying), true, true, false, false);
+        deleteShopPopupWindow = new DeleteShopPopupWindow(context, context.getString(R.string.Scan_to_pay), false, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
             @Override
             public void onClick(String text) {
                 shoukuan_tv.postDelayed(shoukuan_tvRunnable, 100);
-                Log.i("ttt",">>>1112>>>>支付码>"+text);
-                if (TextUtils.isEmpty(text)){
+                Log.i("ttt", ">>>1112>>>>支付码>" + text);
+                if (TextUtils.isEmpty(text)) {
                     return;
                 }
-                String type=detectPaymentType(text);
+                String type = detectPaymentType(text);
 //                if (type.equals("unknown")||!pay_type.equals(type)){
 //                    new DeleteShopPopupWindow(context,context.getString(R.string.Scan_payment_QR_code),true).show();
 //                    return;
 //                }
-                if (type.equals("unknown")){
-                    new DeleteShopPopupWindow(context,context.getString(R.string.Scan_payment_QR_code),true).show();
+                if (type.equals("unknown")) {
+                    new DeleteShopPopupWindow(context, context.getString(R.string.Scan_payment_QR_code), true).show();
                     return;
                 }
 
-                pay_type=type;
+                pay_type = type;
                 checkoutBean.setPay_type(pay_type);
                 checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
                 checkoutBean.setAuthCode(text);
@@ -345,18 +347,18 @@ public class CheckoutPopupWindow {
             }
         });
 
-        weixin_btn=popupView.findViewById(R.id.weixin_btn);
-        zhifubao_btn=popupView.findViewById(R.id.zhifubao_btn);
-        huiyuanka_btn=popupView.findViewById(R.id.huiyuanka_btn);
-        xianjin_btn=popupView.findViewById(R.id.xianjin_btn);
-        huiyuan_view=popupView.findViewById(R.id.huiyuan_view);
+        weixin_btn = popupView.findViewById(R.id.weixin_btn);
+        zhifubao_btn = popupView.findViewById(R.id.zhifubao_btn);
+        huiyuanka_btn = popupView.findViewById(R.id.huiyuanka_btn);
+        xianjin_btn = popupView.findViewById(R.id.xianjin_btn);
+        huiyuan_view = popupView.findViewById(R.id.huiyuan_view);
         huiyuankahao_tv = popupView.findViewById(R.id.huiyuankahao_tv);
         huiyuanyue_tv = popupView.findViewById(R.id.huiyuanyue_tv);
         huiyuanchaxun_btn = popupView.findViewById(R.id.huiyuanchaxun_btn);
 
         weixin_btn.setOnClickListener(v -> {
-            if (!NetworkUtils.getInstance().isNetworkConnected(context)){
-                new DeleteShopPopupWindow(context,context.getString(R.string.Cash_only),true).show();
+            if (!NetworkUtils.getInstance().isNetworkConnected(context)) {
+                new DeleteShopPopupWindow(context, context.getString(R.string.Cash_only), true).show();
                 return;
             }
 
@@ -369,7 +371,7 @@ public class CheckoutPopupWindow {
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
             zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
             huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
-            pay_type="wechat";
+            pay_type = "wechat";
             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
             zhaolin_tv.setText("0.00");
             qufen_btn.setVisibility(GONE);
@@ -382,14 +384,14 @@ public class CheckoutPopupWindow {
             weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
             zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
             huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
-            pay_type="cash";
+            pay_type = "cash";
             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
             zhaolin_tv.setText("0.00");
             qufen_btn.setVisibility(VISIBLE);
         });
         zhifubao_btn.setOnClickListener(v -> {
-            if (!NetworkUtils.getInstance().isNetworkConnected(context)){
-                new DeleteShopPopupWindow(context,context.getString(R.string.Cash_only),true).show();
+            if (!NetworkUtils.getInstance().isNetworkConnected(context)) {
+                new DeleteShopPopupWindow(context, context.getString(R.string.Cash_only), true).show();
                 return;
             }
 //            if (zhifubao_type){
@@ -401,25 +403,25 @@ public class CheckoutPopupWindow {
             weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
             zhifubao_btn.setBackgroundResource(R.drawable.blue_bg3);
             huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
-            pay_type="alipay";
+            pay_type = "alipay";
             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
             zhaolin_tv.setText("0.00");
             qufen_btn.setVisibility(GONE);
         });
         huiyuanka_btn.setOnClickListener(v -> {
-            if (!NetworkUtils.getInstance().isNetworkConnected(context)){
-                new DeleteShopPopupWindow(context,context.getString(R.string.Cash_only),true).show();
+            if (!NetworkUtils.getInstance().isNetworkConnected(context)) {
+                new DeleteShopPopupWindow(context, context.getString(R.string.Cash_only), true).show();
                 return;
             }
             huiyuan_view.setVisibility(VISIBLE);
             huiyuankahao_tv.setText("");
             huiyuanyue_tv.setText("");
-            clubCardData=null;
+            clubCardData = null;
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
             weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
             zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
             huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg3);
-            pay_type="wallet";
+            pay_type = "wallet";
             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
             zhaolin_tv.setText("0.00");
             new ClubCardPopupWindow(context, clubCardBean -> {
@@ -459,6 +461,7 @@ public class CheckoutPopupWindow {
 
     /**
      * 判断支付类型
+     *
      * @param code 扫码获取的字符串
      * @return "alipay"（支付宝）、"wechat"（微信）、"unknown"（未知）
      */
@@ -481,60 +484,63 @@ public class CheckoutPopupWindow {
 
         return "unknown";
     }
+
     public void show() {
-        if (popupWindow.isShowing()){
+        if (popupWindow.isShowing()) {
             return;
         }
         View rootView = ((Activity) context).getWindow().getDecorView();
         popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
-        pay_type=checkoutBean.getPay_type();
-        if (pay_type.equals("cash")){
+        pay_type = checkoutBean.getPay_type();
+        if (pay_type.equals("cash")) {
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
             weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
             zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
             huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
-            pay_type="cash";
-            shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
+            pay_type = "cash";
+            shoukuan_tv.setText(checkoutBean.getTotal_fee() + "");
             qufen_btn.setVisibility(VISIBLE);
-        }else {
+        } else {
             weixin_btn.setBackgroundResource(R.drawable.blue_bg3);
             xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
             zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
             huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
-            pay_type="wechat";
-            shoukuan_tv.setText(checkoutBean.getTotal_fee()+"");
+            pay_type = "wechat";
+            shoukuan_tv.setText(checkoutBean.getTotal_fee() + "");
             qufen_btn.setVisibility(GONE);
 
 
         }
     }
-    public void dismiss(){
+
+    public void dismiss() {
         popupWindow.dismiss();
     }
-    @SuppressLint("SetTextI18n")
-    private void initKey(){
-        try{
-            LinearLayout llkeyArea = (LinearLayout) popupView.findViewById(R.id.llkeyArea);
-            for(int i = 0;i<llkeyArea.getChildCount();i++){
-                if (i==0){
-                    LinearLayout numview = (LinearLayout)llkeyArea.getChildAt(0);
-                    for(int j = 0;j<numview.getChildCount();j++){
-                        LinearLayout llNum01_09 = (LinearLayout)numview.getChildAt(j);
 
-                        for (int u=0;u<llNum01_09.getChildCount();u++){
+    @SuppressLint("SetTextI18n")
+    private void initKey() {
+        try {
+            LinearLayout llkeyArea = (LinearLayout) popupView.findViewById(R.id.llkeyArea);
+            for (int i = 0; i < llkeyArea.getChildCount(); i++) {
+                if (i == 0) {
+                    LinearLayout numview = (LinearLayout) llkeyArea.getChildAt(0);
+                    for (int j = 0; j < numview.getChildCount(); j++) {
+                        LinearLayout llNum01_09 = (LinearLayout) numview.getChildAt(j);
+
+                        for (int u = 0; u < llNum01_09.getChildCount(); u++) {
                             llNum01_09.getChildAt(u).setOnClickListener(v -> {
-                                Log.i("ttt",v.getTag().toString());
-                                if (v.getTag().toString().equals("-")){
-                                    if (!TextUtils.isEmpty(shoukuan_tv.getText().toString())){
+                                Log.i("ttt", v.getTag().toString());
+                                if (v.getTag().toString().equals("-")) {
+                                    if (!TextUtils.isEmpty(shoukuan_tv.getText().toString())) {
                                         return;
                                     }
                                 }
-                                if (v.getTag().toString().equals(".")){
-                                    if (shoukuan_tv.getText().toString().contains(".")){
+                                if (v.getTag().toString().equals(".")) {
+                                    if (shoukuan_tv.getText().toString().contains(".")) {
                                         return;
                                     }
                                 }
-                                if (!TextUtils.isEmpty(shoukuan_tv.getText().toString())&&isValidDecimal(shoukuan_tv.getText().toString(),2)){
+                                if (!TextUtils.isEmpty(shoukuan_tv.getText().toString()) && isValidDecimal(shoukuan_tv.getText().toString(), 2)) {
                                     return;
                                 }
 
@@ -547,55 +553,55 @@ public class CheckoutPopupWindow {
                 }
 
 
-                if(i ==1 ){
-                    LinearLayout d_c_submit_view = (LinearLayout)llkeyArea.getChildAt(1);
-                    for(int j = 0;j<d_c_submit_view.getChildCount();j++){
+                if (i == 1) {
+                    LinearLayout d_c_submit_view = (LinearLayout) llkeyArea.getChildAt(1);
+                    for (int j = 0; j < d_c_submit_view.getChildCount(); j++) {
                         d_c_submit_view.getChildAt(j).setOnClickListener(v -> {
-                            if(v.getTag().toString().equals("c")){
+                            if (v.getTag().toString().equals("c")) {
                                 shoukuan_tv.setText("");
-                            }else if(v.getTag().toString().equals("d")){
-                                if (!shoukuan_tv.getText().toString().isEmpty()){
-                                    shoukuan_tv.setText(shoukuan_tv.getText().toString().substring(0,shoukuan_tv.getText().toString().length()-1));
+                            } else if (v.getTag().toString().equals("d")) {
+                                if (!shoukuan_tv.getText().toString().isEmpty()) {
+                                    shoukuan_tv.setText(shoukuan_tv.getText().toString().substring(0, shoukuan_tv.getText().toString().length() - 1));
                                 }
 
-                            }else if(v.getTag().toString().equals("submit")){
+                            } else if (v.getTag().toString().equals("submit")) {
 
-                                if (TextUtils.isEmpty(shoukuan_tv.getText().toString())){
-                                    new DeleteShopPopupWindow(context,context.getString(R.string.enter_payment_amount),true).show();
+                                if (TextUtils.isEmpty(shoukuan_tv.getText().toString())) {
+                                    new DeleteShopPopupWindow(context, context.getString(R.string.enter_payment_amount), true).show();
                                     return;
                                 }
-                                if (!isValidNumber(shoukuan_tv.getText().toString())){
-                                    new DeleteShopPopupWindow(context,context.getString(R.string.Please_input_in_correct_price_format),true).show();
+                                if (!isValidNumber(shoukuan_tv.getText().toString())) {
+                                    new DeleteShopPopupWindow(context, context.getString(R.string.Please_input_in_correct_price_format), true).show();
                                     return;
                                 }
 
 
-                                if (pay_type.equals("cash")){
+                                if (pay_type.equals("cash")) {
 
                                     checkoutBean.setPay_type(pay_type);
                                     checkoutBean.setPay_fee(shoukuan_tv.getText().toString());
                                     checkoutBean.setCash_price(shoukuan_tv.getText().toString());
                                     checkoutBean.setCash_change(zhaolin_tv.getText().toString());
-                                    if (!NetworkUtils.getInstance().isNetworkConnected(context)){
-                                        if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).compareTo(BigDecimal.ZERO)<0){
-                                            new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_underpay),true).show();
+                                    if (!NetworkUtils.getInstance().isNetworkConnected(context)) {
+                                        if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).compareTo(BigDecimal.ZERO) < 0) {
+                                            new DeleteShopPopupWindow(context, context.getString(R.string.Cannot_underpay), true).show();
                                             return;
                                         }
                                     }
 
                                     SubmitCheckout();
-                                }else if (pay_type.equals("wallet")){
+                                } else if (pay_type.equals("wallet")) {
 
                                     if (clubCardData == null) {
                                         new DeleteShopPopupWindow(context, "请先查询会员信息", true).show();
                                         return;
                                     }
-                                    if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO)>0){
-                                        new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_overpay),true).show();
+                                    if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO) > 0) {
+                                        new DeleteShopPopupWindow(context, context.getString(R.string.Cannot_overpay), true).show();
                                         return;
                                     }
-                                    if (new BigDecimal(clubCardData.getAmount()).subtract(new BigDecimal(shoukuan_tv.getText().toString())).compareTo(BigDecimal.ZERO)<0){
-                                        new DeleteShopPopupWindow(context,"会员卡余额不足",true).show();
+                                    if (new BigDecimal(clubCardData.getAmount()).subtract(new BigDecimal(shoukuan_tv.getText().toString())).compareTo(BigDecimal.ZERO) < 0) {
+                                        new DeleteShopPopupWindow(context, "会员卡余额不足", true).show();
                                         return;
                                     }
                                     checkoutBean.setPay_type(pay_type);
@@ -604,9 +610,9 @@ public class CheckoutPopupWindow {
                                     checkoutBean.setCash_change(zhaolin_tv.getText().toString());
                                     checkoutBean.setCardnumber(clubCardData.getNumber());
                                     SubmitCheckout();
-                                }else {
-                                    if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO)>0){
-                                        new DeleteShopPopupWindow(context,context.getString(R.string.Cannot_overpay),true).show();
+                                } else {
+                                    if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO) > 0) {
+                                        new DeleteShopPopupWindow(context, context.getString(R.string.Cannot_overpay), true).show();
                                         return;
                                     }
                                     shoukuan_tv.removeCallbacks(shoukuan_tvRunnable);
@@ -622,10 +628,11 @@ public class CheckoutPopupWindow {
                 }
             }
 
-        }catch (Exception ex){
-            Log.i("错误返回",ex.getMessage()+"");
+        } catch (Exception ex) {
+            Log.i("错误返回", ex.getMessage() + "");
         }
     }
+
     public static boolean isValidDecimal(String input, int maxDecimalDigits) {
         if (input == null || input.isEmpty()) return false;
 
@@ -640,27 +647,29 @@ public class CheckoutPopupWindow {
 
         return true;
     }
-    public String order_sn="";
-    public String xinjin_pice="",weixin_pice="",zhifubao_pice="",huiyuanka_pice="";
-    public void SubmitCheckout(){
-        if (Utilis.isFastClick()){
+
+    public String order_sn = "";
+    public String xinjin_pice = "", weixin_pice = "", zhifubao_pice = "", huiyuanka_pice = "";
+
+    public void SubmitCheckout() {
+        if (Utilis.isFastClick()) {
             return;
         }
         buildBean.show();
         checkoutBean.setOrder_sn(order_sn);
-        if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO)<0){
-            order_status=1;
+        if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO) < 0) {
+            order_status = 1;
             checkoutBean.setType(2);
-        }else {
+        } else {
 
-            if (order_status==0){
+            if (order_status == 0) {
                 checkoutBean.setType(1);
-            }else {
+            } else {
                 checkoutBean.setType(2);
             }
-            order_status=2;
+            order_status = 2;
         }
-        if (!isyouhuijuan){
+        if (!isyouhuijuan) {
 //            checkoutBean.setMember_name("");
 //            checkoutBean.setMember_phone("");
 //            checkoutBean.setCardnumber("");
@@ -669,33 +678,33 @@ public class CheckoutPopupWindow {
         checkoutBean.setXf_type("1");
         checkoutBean.setOrder_status(order_status);
         String url = POSApiSerview.POS_URL + POSApiSerview.addOrder;
-        Gson gson=new Gson();
-        if (!NetworkUtils.getInstance().isNetworkConnected(context)){
+        Gson gson = new Gson();
+        if (!NetworkUtils.getInstance().isNetworkConnected(context)) {
             // 定义日期格式模板
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             // 获取当前时间（基于系统时区）
             String formattedTime = sdf.format(System.currentTimeMillis());
             checkoutBean.setPay_time(formattedTime);
-            ArrayList<CheckoutBean> checkoutBeans=new ArrayList<>();
-            Log.i("ttt","??????1313123??????"+UserUtils.getInstance().getOrderListJson());
-            if (!TextUtils.isEmpty(UserUtils.getInstance().getOrderListJson())){
+            ArrayList<CheckoutBean> checkoutBeans = new ArrayList<>();
+            Log.i("ttt", "??????1313123??????" + UserUtils.getInstance().getOrderListJson());
+            if (!TextUtils.isEmpty(UserUtils.getInstance().getOrderListJson())) {
                 checkoutBeans = (ArrayList<CheckoutBean>) GsonSandL.getInstance().GsonStoL(UserUtils.getInstance().getOrderListJson(), CheckoutBean.class);
             }
             checkoutBeans.add(checkoutBean);
-            UserUtils.getInstance().setOrderListJson(context,gson.toJson(checkoutBeans));
-            xinjin_pice=shoukuan_tv.getText().toString();
+            UserUtils.getInstance().setOrderListJson(context, gson.toJson(checkoutBeans));
+            xinjin_pice = shoukuan_tv.getText().toString();
 
             deleteShopPopupWindow.dismiss();
             popupWindow.dismiss();
-            checkoutOnClickListener.onClick(checkoutBean,xinjin_pice,weixin_pice,zhifubao_pice,huiyuanka_pice);
-            if (!TextUtils.isEmpty(xinjin_pice)){
+            checkoutOnClickListener.onClick(checkoutBean, xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice);
+            if (!TextUtils.isEmpty(xinjin_pice)) {
                 MyPrinterHelper.getInstance().asyncOpenMoneyBox(context);
             }
-            MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,null,xinjin_pice,weixin_pice,zhifubao_pice,order_sn);
-            order_sn="";
-            out_trade_no="";
+            MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, null, xinjin_pice, weixin_pice, zhifubao_pice, order_sn);
+            order_sn = "";
+            out_trade_no = "";
             DialogUIUtils.dismiss(buildBean);
-        }else {
+        } else {
             RequestBody body = RequestBody.create(gson.toJson(checkoutBean), MediaType.parse("application/json; charset=utf-8"));
             Request.Builder builder = new Request.Builder()
                     .url(url);
@@ -722,7 +731,7 @@ public class CheckoutPopupWindow {
                         @Override
                         public void run() {
                             DialogUIUtils.dismiss(buildBean);
-                            new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
+                            new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected), true).show();
                         }
                     });
                 }
@@ -731,68 +740,80 @@ public class CheckoutPopupWindow {
                 public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                     if (response.isSuccessful()) {
                         try {
-                            String success=response.body().string();
-                            JSONObject jsonObject=new JSONObject(success);
+                            String success = response.body().string();
+                            JSONObject jsonObject = new JSONObject(success);
                             context.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     try {
 
 
-                                        if (jsonObject.getString("msg").contains("成功")||jsonObject.getString("msg").contains("Success")){
+                                        if (jsonObject.getString("msg").contains("成功") || jsonObject.getString("msg").contains("Success")) {
                                             DialogUIUtils.dismiss(buildBean);
-
-                                            if (pay_type.equals("cash")){
-                                                if (TextUtils.isEmpty(xinjin_pice)){
-                                                    xinjin_pice=shoukuan_tv.getText().toString();
-                                                }else {
-                                                    xinjin_pice=new BigDecimal(xinjin_pice).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
+                                            // 初始化MediaPlayer
+                                            MediaPlayer mediaPlayer;
+                                            mediaPlayer= MediaPlayer.create(context, R.raw.yidong);
+                                            if (pay_type.equals("cash")) {
+                                                mediaPlayer = MediaPlayer.create(context, R.raw.xianjin);
+                                                if (TextUtils.isEmpty(xinjin_pice)) {
+                                                    xinjin_pice = shoukuan_tv.getText().toString();
+                                                } else {
+                                                    xinjin_pice = new BigDecimal(xinjin_pice).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
                                                 }
 
-                                                order_sn=jsonObject.getString("code");
+                                                order_sn = jsonObject.getString("code");
 
-                                            }else if (pay_type.equals("wechat")){
+                                            } else if (pay_type.equals("wechat")) {
 
-                                                weixin_pice=shoukuan_tv.getText().toString();
+                                                weixin_pice = shoukuan_tv.getText().toString();
 //                                                weixin_type=true;
-                                                order_sn=new JSONObject(jsonObject.getString("code")).getString("order_sn");
-                                            }else if (pay_type.equals("alipay")){
-                                                zhifubao_pice=shoukuan_tv.getText().toString();
+                                                order_sn = new JSONObject(jsonObject.getString("code")).getString("order_sn");
+                                            } else if (pay_type.equals("alipay")) {
+                                                zhifubao_pice = shoukuan_tv.getText().toString();
 //                                                zhifubao_type=true;
-                                                order_sn=jsonObject.getString("order_sn");
-                                                out_trade_no=jsonObject.getString("out_trade_no");
-                                            }else if (pay_type.equals("wallet")){
-                                                if (TextUtils.isEmpty(huiyuanka_pice)){
-                                                    huiyuanka_pice=shoukuan_tv.getText().toString();
-                                                }else {
-                                                    huiyuanka_pice=new BigDecimal(huiyuanka_pice).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
+                                                order_sn = jsonObject.getString("order_sn");
+                                                out_trade_no = jsonObject.getString("out_trade_no");
+                                            } else if (pay_type.equals("wallet")) {
+                                                if (TextUtils.isEmpty(huiyuanka_pice)) {
+                                                    huiyuanka_pice = shoukuan_tv.getText().toString();
+                                                } else {
+                                                    huiyuanka_pice = new BigDecimal(huiyuanka_pice).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
                                                 }
-                                                order_sn=jsonObject.getString("code");
+                                                order_sn = jsonObject.getString("code");
                                             }
-                                            yinshou=new BigDecimal(yinshou).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
+
+
+                                            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                                            mediaPlayer.setOnCompletionListener(mp -> mp.release());
+//                    mediaPlayer.pause();  // 暂停
+//                    mediaPlayer.stop();   // 停止(需重新prepare)
+
+                                            // 播放控制
+                                            mediaPlayer.start();  // 开始播放
+                                            yinshou = new BigDecimal(yinshou).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
                                             yishou_tv.setText(yinshou);
-                                            if (order_status==2){
+                                            if (order_status == 2) {
 
                                                 deleteShopPopupWindow.dismiss();
                                                 popupWindow.dismiss();
-                                                checkoutOnClickListener.onClick(checkoutBean,xinjin_pice,weixin_pice,zhifubao_pice,huiyuanka_pice);
-                                                if (!TextUtils.isEmpty(xinjin_pice)){
+                                                checkoutOnClickListener.onClick(checkoutBean, xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice);
+                                                if (!TextUtils.isEmpty(xinjin_pice)) {
                                                     MyPrinterHelper.getInstance().asyncOpenMoneyBox(context);
                                                 }
 //                                                if (new BigDecimal(checkoutBean.getCash_change()).compareTo(BigDecimal.ZERO)>0){
 //                                                    new DeleteShopPopupWindow(context,"你需要找零"+checkoutBean.getCash_change()).show();
 //                                                }
-                                                MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,null,xinjin_pice,weixin_pice,zhifubao_pice,huiyuanka_pice,order_sn);
-                                                order_sn="";
-                                                out_trade_no="";
-                                            }else {
-                                                new DeleteShopPopupWindow(context,context.getString(R.string.Payment_succeeded),true).show();
+                                                MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, null, xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice, order_sn);
+                                                order_sn = "";
+                                                out_trade_no = "";
+                                            } else {
+                                                new DeleteShopPopupWindow(context, context.getString(R.string.Payment_succeeded), true).show();
                                                 deleteShopPopupWindow.dismiss();
                                                 xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
                                                 weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
                                                 zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
                                                 huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
-                                                pay_type="cash";
+                                                pay_type = "cash";
                                                 huiyuan_view.setVisibility(GONE);
                                                 MyPresentation.setDaizhifu_tv(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
                                                 shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
@@ -800,31 +821,31 @@ public class CheckoutPopupWindow {
                                             return;
 
                                         }
-                                        if (jsonObject.getString("msg").contains("失效")){
+                                        if (jsonObject.getString("msg").contains("失效")) {
                                             DialogUIUtils.dismiss(buildBean);
                                             new DeleteShopPopupWindow(context, true, jsonObject.getString("msg"), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
                                                 @Override
                                                 public void onClick(String text) {
-                                                    Intent intent=new Intent(context, LoginActivity.class);
+                                                    Intent intent = new Intent(context, LoginActivity.class);
                                                     context.startActivity(intent);
                                                 }
                                             }).show();
                                             return;
                                         }
-                                        if (jsonObject.getString("msg").contains("输入密码中")||jsonObject.getString("msg").contains("order success pay inprocess")){
-                                            if (pay_type.equals("wechat")){
-                                                order_sn=new JSONObject(jsonObject.getString("code")).getString("order_sn");
-                                                if (new JSONObject(jsonObject.getString("code")).has("out_trade_no")){
-                                                    out_trade_no=new JSONObject(jsonObject.getString("code")).getString("out_trade_no");
-                                                }else {
+                                        if (jsonObject.getString("msg").contains("输入密码中") || jsonObject.getString("msg").contains("order success pay inprocess")) {
+                                            if (pay_type.equals("wechat")) {
+                                                order_sn = new JSONObject(jsonObject.getString("code")).getString("order_sn");
+                                                if (new JSONObject(jsonObject.getString("code")).has("out_trade_no")) {
+                                                    out_trade_no = new JSONObject(jsonObject.getString("code")).getString("out_trade_no");
+                                                } else {
                                                     DialogUIUtils.dismiss(buildBean);
-                                                    new DeleteShopPopupWindow(context,context.getString(R.string.No_transaction_ID_recorded),true).show();
+                                                    new DeleteShopPopupWindow(context, context.getString(R.string.No_transaction_ID_recorded), true).show();
                                                     return;
                                                 }
                                                 fwsgetOrderInformation();
-                                            }else if (pay_type.equals("alipay")){
-                                                out_trade_no=jsonObject.getString("out_trade_no");
-                                                order_sn=jsonObject.getString("order_sn");
+                                            } else if (pay_type.equals("alipay")) {
+                                                out_trade_no = jsonObject.getString("out_trade_no");
+                                                order_sn = jsonObject.getString("order_sn");
 //                                                queryOrder();
                                                 time.start();
 
@@ -832,7 +853,7 @@ public class CheckoutPopupWindow {
                                             return;
                                         }
                                         DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(context,context.getString(R.string.Payment_failed)+jsonObject.getString("msg"),true).show();
+                                        new DeleteShopPopupWindow(context, context.getString(R.string.Payment_failed) + jsonObject.getString("msg"), true).show();
 
                                     } catch (JSONException e) {
                                         Log.e("ttt", "Error occurred", e);
@@ -851,14 +872,14 @@ public class CheckoutPopupWindow {
         }
 
 
-
-
     }
-    public String out_trade_no="";
+
+    public String out_trade_no = "";
+
     public void fwsgetOrderInformation() {
         Map<String, String> params = new HashMap<>();
         params.put("outTradeNo", out_trade_no);
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
         FormBody.Builder formBuilder = new FormBody.Builder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
             formBuilder.add(entry.getKey(), entry.getValue());
@@ -890,7 +911,7 @@ public class CheckoutPopupWindow {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
+                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected), true).show();
                     }
                 });
             }
@@ -899,27 +920,27 @@ public class CheckoutPopupWindow {
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if (response.isSuccessful()) {
                     try {
-                        String success=response.body().string();
+                        String success = response.body().string();
                         context.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 try {
-                                    JSONObject jsonObject=new JSONObject(success);
+                                    JSONObject jsonObject = new JSONObject(success);
 
-                                    String msg=jsonObject.getString("msg");
+                                    String msg = jsonObject.getString("msg");
 
-                                    String trade_state_desc=new JSONObject(jsonObject.getString("code")).getString("trade_state_desc");
-                                    if (trade_state_desc.contains("输入支付密码")){
+                                    String trade_state_desc = new JSONObject(jsonObject.getString("code")).getString("trade_state_desc");
+                                    if (trade_state_desc.contains("输入支付密码")) {
                                         fwsgetOrderInformation();
-                                    }else if (trade_state_desc.contains("支付成功")){
+                                    } else if (trade_state_desc.contains("支付成功")) {
                                         checkoutBean.setTransaction_id(new JSONObject(jsonObject.getString("code")).getString("transaction_id"));
                                         checkoutBean.setOrder_sn(order_sn);
                                         pushorders(checkoutBean);
-                                    }else if (trade_state_desc.contains("支付失败")){
+                                    } else if (trade_state_desc.contains("支付失败")) {
                                         fwscancelanOrder();
-                                    }else if (trade_state_desc.contains("订单已撤销")){
-                                        order_sn="";
-                                        out_trade_no="";
+                                    } else if (trade_state_desc.contains("订单已撤销")) {
+                                        order_sn = "";
+                                        out_trade_no = "";
                                         DialogUIUtils.dismiss(buildBean);
                                         new DeleteShopPopupWindow(context, context.getString(R.string.order_canceled), true).show();
                                     }
@@ -944,7 +965,7 @@ public class CheckoutPopupWindow {
     public void queryOrder() {
         Map<String, String> params = new HashMap<>();
         params.put("out_trade_no", out_trade_no);
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
         FormBody.Builder formBuilder = new FormBody.Builder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
             formBuilder.add(entry.getKey(), entry.getValue());
@@ -976,7 +997,7 @@ public class CheckoutPopupWindow {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
+                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected), true).show();
                     }
                 });
             }
@@ -985,29 +1006,29 @@ public class CheckoutPopupWindow {
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if (response.isSuccessful()) {
                     try {
-                        String success=response.body().string();
+                        String success = response.body().string();
                         context.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 try {
-                                    JSONObject jsonObject=new JSONObject(success);
+                                    JSONObject jsonObject = new JSONObject(success);
 
-                                    String trade_status=jsonObject.getString("trade_status");
-                                    if (is_chaoshi&&!trade_status.contains("TRADE_FINISHED")&&!trade_status.contains("TRADE_SUCCESS")){
-                                        is_chaoshi=false;
+                                    String trade_status = jsonObject.getString("trade_status");
+                                    if (is_chaoshi && !trade_status.contains("TRADE_FINISHED") && !trade_status.contains("TRADE_SUCCESS")) {
+                                        is_chaoshi = false;
                                         revokeOrder();
                                         return;
                                     }
-                                    if (trade_status.contains("TRADE_FINISHED")||trade_status.contains("TRADE_SUCCESS")){
+                                    if (trade_status.contains("TRADE_FINISHED") || trade_status.contains("TRADE_SUCCESS")) {
                                         time.cancel();
                                         checkoutBean.setTransaction_id(jsonObject.getString("trade_no"));
                                         checkoutBean.setOrder_sn(order_sn);
                                         pushorders(checkoutBean);
 
                                     }
-                                    if (trade_status.contains("TRADE_CLOSED")){
-                                        order_sn="";
-                                        out_trade_no="";
+                                    if (trade_status.contains("TRADE_CLOSED")) {
+                                        order_sn = "";
+                                        out_trade_no = "";
                                         DialogUIUtils.dismiss(buildBean);
                                         new DeleteShopPopupWindow(context, context.getString(R.string.order_canceled), true).show();
                                     }
@@ -1028,10 +1049,11 @@ public class CheckoutPopupWindow {
             }
         });
     }
+
     public void fwscancelanOrder() {
         Map<String, String> params = new HashMap<>();
         params.put("outTradeNo", out_trade_no);
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
         FormBody.Builder formBuilder = new FormBody.Builder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
             formBuilder.add(entry.getKey(), entry.getValue());
@@ -1063,7 +1085,7 @@ public class CheckoutPopupWindow {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
+                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected), true).show();
                     }
                 });
             }
@@ -1072,7 +1094,7 @@ public class CheckoutPopupWindow {
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if (response.isSuccessful()) {
                     try {
-                        String success=response.body().string();
+                        String success = response.body().string();
                         context.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -1090,10 +1112,11 @@ public class CheckoutPopupWindow {
             }
         });
     }
+
     public void revokeOrder() {
         Map<String, String> params = new HashMap<>();
         params.put("out_trade_no", out_trade_no);
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
         FormBody.Builder formBuilder = new FormBody.Builder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
             formBuilder.add(entry.getKey(), entry.getValue());
@@ -1125,7 +1148,7 @@ public class CheckoutPopupWindow {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
+                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected), true).show();
                     }
                 });
             }
@@ -1134,12 +1157,12 @@ public class CheckoutPopupWindow {
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if (response.isSuccessful()) {
                     try {
-                        String success=response.body().string();
+                        String success = response.body().string();
                         context.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                order_sn="";
-                                out_trade_no="";
+                                order_sn = "";
+                                out_trade_no = "";
                                 DialogUIUtils.dismiss(buildBean);
                                 new DeleteShopPopupWindow(context, context.getString(R.string.order_canceled), true).show();
                             }
@@ -1154,6 +1177,7 @@ public class CheckoutPopupWindow {
             }
         });
     }
+
     public void pushorders(CheckoutBean checkoutBean) {
         String url = POSApiSerview.POS_URL + POSApiSerview.pushorders;
         Gson gson = new Gson();
@@ -1183,7 +1207,7 @@ public class CheckoutPopupWindow {
                     @Override
                     public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
+                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected), true).show();
                     }
                 });
             }
@@ -1200,40 +1224,47 @@ public class CheckoutPopupWindow {
                                 try {
                                     if (jsonObject.getString("msg").contains("成功") || jsonObject.getString("msg").contains("Success")) {
                                         DialogUIUtils.dismiss(buildBean);
+                                        // 初始化MediaPlayer
+                                        MediaPlayer mediaPlayer = MediaPlayer.create(context, R.raw.yidong);
+                                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                                        mediaPlayer.setOnCompletionListener(mp -> mp.release());
+//                    mediaPlayer.pause();  // 暂停
+//                    mediaPlayer.stop();   // 停止(需重新prepare)
 
-                                        if (pay_type.equals("wechat")){
-                                            weixin_pice=shoukuan_tv.getText().toString();
+                                        // 播放控制
+                                        mediaPlayer.start();  // 开始播放
+                                        if (pay_type.equals("wechat")) {
+                                            weixin_pice = shoukuan_tv.getText().toString();
 //                                            weixin_type=true;
                                         }
-                                        if (pay_type.equals("alipay")){
-                                            zhifubao_pice=shoukuan_tv.getText().toString();
+                                        if (pay_type.equals("alipay")) {
+                                            zhifubao_pice = shoukuan_tv.getText().toString();
 //                                            zhifubao_type=true;
                                         }
-                                        yinshou=new BigDecimal(yinshou).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
+                                        yinshou = new BigDecimal(yinshou).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
                                         yishou_tv.setText(yinshou);
 
-                                        if (order_status==2){
+                                        if (order_status == 2) {
 
                                             deleteShopPopupWindow.dismiss();
                                             popupWindow.dismiss();
-                                            checkoutOnClickListener.onClick(checkoutBean,xinjin_pice,weixin_pice,zhifubao_pice,huiyuanka_pice);
+                                            checkoutOnClickListener.onClick(checkoutBean, xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice);
 
-                                            MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,null,xinjin_pice,weixin_pice,zhifubao_pice,huiyuanka_pice,order_sn);
-                                            order_sn="";
-                                            out_trade_no="";
-                                        }else {
-                                            new DeleteShopPopupWindow(context,context.getString(R.string.Payment_succeeded),true).show();
+                                            MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, null, xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice, order_sn);
+                                            order_sn = "";
+                                            out_trade_no = "";
+                                        } else {
+                                            new DeleteShopPopupWindow(context, context.getString(R.string.Payment_succeeded), true).show();
                                             deleteShopPopupWindow.dismiss();
                                             xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
                                             weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
                                             zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
                                             huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
-                                            pay_type="cash";
+                                            pay_type = "cash";
                                             huiyuan_view.setVisibility(GONE);
                                             MyPresentation.setDaizhifu_tv(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
                                             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
                                         }
-
 
 
                                     }
@@ -1254,25 +1285,26 @@ public class CheckoutPopupWindow {
         });
     }
 
-    public void operateDetails(){
+    public void operateDetails() {
         Map<String, String> params = new HashMap<>();
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
         String url = POSApiSerview.POS_URL + POSApiSerview.operateDetails;
-        OkHttpUtil.postFormAsync(url, params,context, new OkHttpUtil.OkHttpCallback() {
+        OkHttpUtil.postFormAsync(url, params, context, new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {
-                Log.i("ttt",">>>>>>>>>>>>>");
+                Log.i("ttt", ">>>>>>>>>>>>>");
                 context.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            JSONObject jsonObject=new JSONObject(response);
-                            int code=jsonObject.getInt("code");
-                            if (code==1){
-                                ArrayList<PrintDataBean> printDataBeanArrayList = new Gson().fromJson(jsonObject.getString("data"),new TypeToken<ArrayList<PrintDataBean>>(){}.getType());
-                                MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,printDataBeanArrayList.get(0),xinjin_pice,weixin_pice,zhifubao_pice,order_sn);
-                            }else {
-                                MyPrinterHelper.getInstance().asyncPrintCheckout(context,checkoutBean,null,xinjin_pice,weixin_pice,zhifubao_pice,order_sn);
+                            JSONObject jsonObject = new JSONObject(response);
+                            int code = jsonObject.getInt("code");
+                            if (code == 1) {
+                                ArrayList<PrintDataBean> printDataBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<PrintDataBean>>() {
+                                }.getType());
+                                MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, printDataBeanArrayList.get(0), xinjin_pice, weixin_pice, zhifubao_pice, order_sn);
+                            } else {
+                                MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, null, xinjin_pice, weixin_pice, zhifubao_pice, order_sn);
                             }
                         } catch (JSONException e) {
                             Log.e("ttt", "Error occurred", e);
@@ -1287,8 +1319,10 @@ public class CheckoutPopupWindow {
             }
         });
     }
+
     private TimeCount time;
-    private boolean is_chaoshi=false;
+    private boolean is_chaoshi = false;
+
     class TimeCount extends CountDownTimer {
 
 
@@ -1307,7 +1341,7 @@ public class CheckoutPopupWindow {
         //时间定时器结束调用此方法
         @Override
         public void onFinish() {
-            is_chaoshi=true;
+            is_chaoshi = true;
 
         }
     }

@@ -27,7 +27,7 @@ public class HistoryOrderAdapter extends BaseQuickAdapter<LastOrderBean, BaseVie
         helper.setText(R.id.dingdanbianhao_tv, item.getOrder_sn());
         long time=item.getPaytime()* 1000L;
         Date date = new Date(time);
-        @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String formattedDate = sdf.format(date);
         helper.setText(R.id.dingdanshijian_tv, formattedDate);
         helper.setText(R.id.youhuijine_tv, item.getDiscount_fee()+"");

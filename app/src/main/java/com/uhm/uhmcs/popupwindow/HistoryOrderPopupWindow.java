@@ -136,6 +136,7 @@ public class HistoryOrderPopupWindow {
         // 自动获取焦点
         order_sn_et.postDelayed(() -> order_sn_et.requestFocus(), 100);
         order_sn_et.setOnInputCompleteListener(text -> {
+            page=1;
             getOrderList();
         });
         popupView.findViewById(R.id.time_btn).setOnClickListener(v -> {
@@ -362,9 +363,13 @@ public class HistoryOrderPopupWindow {
         Map<String, String> params = new HashMap<>();
         if (!TextUtils.isEmpty(order_sn_et.getText().toString())){
             params.put("order_sn", order_sn_et.getText().toString());
+            params.put("starttime","");
+            params.put("endtime", "");
+        }else {
+            params.put("starttime",starttime);
+            params.put("endtime", endtime);
+
         }
-        params.put("starttime",starttime);
-        params.put("endtime", endtime);
         params.put("page", page+"");
         params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
         params.put("strip", "10");

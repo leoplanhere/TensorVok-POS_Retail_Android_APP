@@ -55,7 +55,8 @@
                 android:id="@+id/zhifuxinxi_tv"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20dp"
+                android:textSize="30dp"
+                android:textStyle="bold"
                 android:textColor="@color/black"
                 android:text=""/>
 

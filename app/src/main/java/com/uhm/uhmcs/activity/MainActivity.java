@@ -11,7 +11,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.media.MediaRouter;
+import android.media.SoundPool;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -260,9 +263,11 @@ public class MainActivity extends Activity {
             imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
         }
     }
+
     TextView pingText;
     TextView httpText;
     NetworkLatencyMonitor monitor;
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -276,7 +281,6 @@ public class MainActivity extends Activity {
     boolean is_kuangjie = false;
     int allNum = 0;
     public MemberBean memberBean1;
-
     @SuppressLint({"SetTextI18n", "NotifyDataSetChanged", "SimpleDateFormat"})
     private void initView() {
         MediaRouter mediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
@@ -303,7 +307,6 @@ public class MainActivity extends Activity {
                     grouponGoods_page = 1;
                     getGrouponGoods();
                     OverviewList();
-
                 }
 
                 /*
@@ -575,7 +578,7 @@ public class MainActivity extends Activity {
 
                     CheckoutPopupWindow checkoutPopupWindow = new CheckoutPopupWindow(MainActivity.this, checkoutBean, new PopupWindowOnClickListener.CheckoutOnClickListener() {
                         @Override
-                        public void onClick(CheckoutBean checkoutBean,String xinjin_pice, String weixin_pice, String zhifubao_pice,String huiyuanka_pice) {
+                        public void onClick(CheckoutBean checkoutBean, String xinjin_pice, String weixin_pice, String zhifubao_pice, String huiyuanka_pice) {
                             have_paid_view.setVisibility(VISIBLE);
                             new Handler().postDelayed(new Runnable() {
                                 @Override
@@ -585,38 +588,38 @@ public class MainActivity extends Activity {
                             }, 3000);
                             onClickListener.onClick(qingkong_btn);
                             onClickListener.onClick(shanchuhuiyuan_btn);
-                            StringBuffer stringBuffer=new StringBuffer();
+                            StringBuffer stringBuffer = new StringBuffer();
                             stringBuffer.append("应付总计:").append(checkoutBean.getTotal_amount()).append("\n");
                             stringBuffer.append("优惠总计:-").append(checkoutBean.getDiscount_fee()).append("\n");
-                            stringBuffer.append("代金券抵扣:-").append(TextUtils.isEmpty(checkoutBean.getCoupon_fee())?"0.00":checkoutBean.getCoupon_fee()).append("\n");
-                            BigDecimal shifujine_pice=new BigDecimal("0.00");
-                            if (!TextUtils.isEmpty(xinjin_pice)){
-                                shifujine_pice=shifujine_pice.add(new BigDecimal(xinjin_pice));
+                            stringBuffer.append("代金券抵扣:-").append(TextUtils.isEmpty(checkoutBean.getCoupon_fee()) ? "0.00" : checkoutBean.getCoupon_fee()).append("\n");
+                            BigDecimal shifujine_pice = new BigDecimal("0.00");
+                            if (!TextUtils.isEmpty(xinjin_pice)) {
+                                shifujine_pice = shifujine_pice.add(new BigDecimal(xinjin_pice));
                             }
-                            if (!TextUtils.isEmpty(weixin_pice)){
-                                shifujine_pice=shifujine_pice.add(new BigDecimal(weixin_pice));
+                            if (!TextUtils.isEmpty(weixin_pice)) {
+                                shifujine_pice = shifujine_pice.add(new BigDecimal(weixin_pice));
                             }
-                            if (!TextUtils.isEmpty(zhifubao_pice)){
-                                shifujine_pice=shifujine_pice.add(new BigDecimal(zhifubao_pice));
+                            if (!TextUtils.isEmpty(zhifubao_pice)) {
+                                shifujine_pice = shifujine_pice.add(new BigDecimal(zhifubao_pice));
                             }
-                            if (!TextUtils.isEmpty(huiyuanka_pice)){
-                                shifujine_pice=shifujine_pice.add(new BigDecimal(huiyuanka_pice));
+                            if (!TextUtils.isEmpty(huiyuanka_pice)) {
+                                shifujine_pice = shifujine_pice.add(new BigDecimal(huiyuanka_pice));
                             }
                             stringBuffer.append("实付金额:").append(shifujine_pice.toString()).append("\n");
-                            if (!TextUtils.isEmpty(xinjin_pice)){
+                            if (!TextUtils.isEmpty(xinjin_pice)) {
                                 stringBuffer.append("现金:").append(xinjin_pice).append("\n");
                             }
-                            if (!TextUtils.isEmpty(weixin_pice)){
+                            if (!TextUtils.isEmpty(weixin_pice)) {
                                 stringBuffer.append("微信:").append(weixin_pice).append("\n");
                             }
-                            if (!TextUtils.isEmpty(zhifubao_pice)){
+                            if (!TextUtils.isEmpty(zhifubao_pice)) {
                                 stringBuffer.append("支付宝:").append(zhifubao_pice).append("\n");
                             }
-                            if (!TextUtils.isEmpty(huiyuanka_pice)){
+                            if (!TextUtils.isEmpty(huiyuanka_pice)) {
                                 stringBuffer.append("会员卡:").append(huiyuanka_pice).append("\n");
                             }
                             stringBuffer.append("找零:").append(checkoutBean.getCash_change()).append("\n");
-                            Log.i("ttt",stringBuffer.toString());
+                            Log.i("ttt", stringBuffer.toString());
                             zhifuxinxi_tv.setText(stringBuffer.toString());
 
 
@@ -976,7 +979,7 @@ public class MainActivity extends Activity {
             });
         });
 
-        zhifuxinxi_tv=findViewById(R.id.zhifuxinxi_tv);
+        zhifuxinxi_tv = findViewById(R.id.zhifuxinxi_tv);
 
         shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji() ? VISIBLE : GONE);
         bendin_view = findViewById(R.id.bendin_view);
@@ -1033,9 +1036,18 @@ public class MainActivity extends Activity {
         et_tiaoxingma.setOnInputCompleteListener(text -> {
             Log.i("ttt", ">>>>>>>>>>>>>>" + text);
             et_tiaoxingma.setText("");
-            if (TextUtils.isEmpty(text)){
+            if (TextUtils.isEmpty(text)) {
                 return;
             }
+            // 初始化MediaPlayer
+            MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.shaoma);
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mediaPlayer.setOnCompletionListener(mp -> mp.release());
+//                    mediaPlayer.pause();  // 暂停
+//                    mediaPlayer.stop();   // 停止(需重新prepare)
+
+            // 播放控制
+            mediaPlayer.start();  // 开始播放
             String textType = detectPaymentType(text);
             if (textType.equals("unknown")) {
                 //
@@ -1053,12 +1065,12 @@ public class MainActivity extends Activity {
                 if (grouponGoodsModelArrayList.isEmpty()) {
                     String PATTERN = "^\\d{5}\\d{3}.+$";
 //
-                    if(!text.matches(PATTERN)) {
+                    if (!text.matches(PATTERN)) {
                         new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
                         return;
                     }
-                    String weight = Integer.parseInt(text.substring(0, 5))+"";
-                    String discount = Integer.parseInt(text.substring(5, 8))+"";
+                    String weight = Integer.parseInt(text.substring(0, 5)) + "";
+                    String discount = Integer.parseInt(text.substring(5, 8)) + "";
                     String productId = text.substring(8);
 
                     ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelList = allGrouponGoodsModelList.stream()
@@ -1075,7 +1087,7 @@ public class MainActivity extends Activity {
                         grouponGoodsModel.setDiscount(discount);
                         grouponGoodsModel.setGoods_weight(weight);
                         BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
-                        BigDecimal zhehoujia = price.multiply(new BigDecimal(discount)).divide(new BigDecimal("100")).setScale(2, RoundingMode.DOWN);
+                        BigDecimal zhehoujia = price.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
 
 
                         BigDecimal heji = zhehoujia.divide(new BigDecimal(500)).multiply(new BigDecimal(weight)).setScale(2, RoundingMode.DOWN);
@@ -1542,6 +1554,7 @@ public class MainActivity extends Activity {
         if (start >= end) return new ArrayList<>();
         return new ArrayList<>(sourceList.subList(start, end)); // 避免直接使用 subList
     }
+
     private void updateColor(TextView view, int latency) {
         if (latency < 0) {
             view.setTextColor(0xFFFF0000); // 红色表示错误
@@ -1553,7 +1566,6 @@ public class MainActivity extends Activity {
             view.setTextColor(0xFFF44336); // 红色表示较差
         }
     }
-
 
 
     /**
@@ -1712,7 +1724,15 @@ public class MainActivity extends Activity {
                                         } else if (checkoutBean.getPay_type().equals("alipay")) {
                                             order_sn = jsonObject.getString("order_sn");
                                         }
+// 初始化MediaPlayer
+                                        MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.yidong);
+                                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                                        mediaPlayer.setOnCompletionListener(mp -> mp.release());
+//                    mediaPlayer.pause();  // 暂停
+//                    mediaPlayer.stop();   // 停止(需重新prepare)
 
+                                        // 播放控制
+                                        mediaPlayer.start();  // 开始播放
                                         DialogUIUtils.dismiss(buildBean);
                                         have_paid_view.setVisibility(VISIBLE);
                                         new Handler().postDelayed(new Runnable() {
@@ -2499,7 +2519,15 @@ public class MainActivity extends Activity {
                                 try {
                                     if (jsonObject.getString("msg").contains("成功") || jsonObject.getString("msg").contains("Success")) {
 
+// 初始化MediaPlayer
+                                        MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.yidong);
+                                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                                        mediaPlayer.setOnCompletionListener(mp -> mp.release());
+//                    mediaPlayer.pause();  // 暂停
+//                    mediaPlayer.stop();   // 停止(需重新prepare)
 
+                                        // 播放控制
+                                        mediaPlayer.start();  // 开始播放
                                         DialogUIUtils.dismiss(buildBean);
                                         have_paid_view.setVisibility(VISIBLE);
                                         new Handler().postDelayed(new Runnable() {
