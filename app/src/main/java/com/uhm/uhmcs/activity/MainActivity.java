@@ -58,6 +58,7 @@ import com.uhm.uhmcs.bean.MemberBean;
 import com.uhm.uhmcs.bean.PrintDataBean;
 import com.uhm.uhmcs.bean.RegistrationShopBean;
 import com.uhm.uhmcs.http.NetworkErrorInterceptor;
+import com.uhm.uhmcs.http.NetworkLatencyMonitor;
 import com.uhm.uhmcs.http.OkHttpUtil;
 import com.uhm.uhmcs.http.POSApiSerview;
 import com.uhm.uhmcs.popupwindow.AddNoCodePopupWindow;
@@ -146,10 +147,14 @@ public class MainActivity extends Activity {
     private LinearLayout have_paid_view, wangluo_view;
     private TextView bendin_view;
 
-    private TextView caozuo_view;
+    private TextView caozuo_view,tv_nickname,tv_phone;
 
     private View shop_mocheng;
 
+
+    TextView pingText;
+    TextView httpText;
+    NetworkLatencyMonitor monitor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -262,6 +267,18 @@ public class MainActivity extends Activity {
     boolean is_kuangjie = false;
     int allNum = 0;
 
+    private void updateColor(TextView view, int latency) {
+        if (latency < 0) {
+            view.setTextColor(0xFFFF0000); // 红色表示错误
+        } else if (latency < 100) {
+            view.setTextColor(0xFF4CAF50); // 绿色表示优秀
+        } else if (latency < 300) {
+            view.setTextColor(0xFFFFC107); // 黄色表示一般
+        } else {
+            view.setTextColor(0xFFF44336); // 红色表示较差
+        }
+    }
+
     private void initView() {
         MediaRouter mediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
         MediaRouter.RouteInfo route = mediaRouter.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_VIDEO);
@@ -272,6 +289,24 @@ public class MainActivity extends Activity {
                 presentation.show();
             }
         }
+
+        pingText = findViewById(R.id.pingValue);
+        httpText = findViewById(R.id.httpValue);
+        tv_nickname = findViewById(R.id.tv_nickname);
+        tv_phone = findViewById(R.id.tv_phone);
+
+        monitor = new NetworkLatencyMonitor();
+        monitor.startMonitoring((pingMs, httpMs) -> {
+            runOnUiThread(() -> {
+                pingText.setText(String.valueOf(pingMs));
+                httpText.setText(String.valueOf(httpMs));
+                updateColor(pingText, pingMs);
+                updateColor(httpText, httpMs);
+            });
+        });
+        tv_nickname.setText(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname());
+        tv_phone.setText(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getMobile());
+
 
 
         onClickListener = new View.OnClickListener() {
