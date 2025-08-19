@@ -1083,30 +1083,58 @@ public class MainActivity extends Activity {
                         GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = SerializableUtils.deepCopy(grouponGoodsModelList.get(0));
                         Glide.with(MainActivity.this).clear(shop_image);  // 先清空ImageView
                         Glide.with(MainActivity.this).load(grouponGoodsModel.getImage()).into(shop_image);  // 再加载新图片
-                        allNum++;
-                        grouponGoodsModel.setDiscount(discount);
-                        grouponGoodsModel.setGoods_weight(weight);
-                        BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
-                        BigDecimal zhehoujia = price.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
+                        if (grouponGoodsModel.getOnline_type().equals("weight")){
+                            allNum++;
+                            grouponGoodsModel.setDiscount(discount);
+                            grouponGoodsModel.setGoods_weight(weight);
+                            BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
+                            BigDecimal zhehoujia = price.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
 
 
-                        BigDecimal heji = zhehoujia.divide(new BigDecimal(500)).multiply(new BigDecimal(weight)).setScale(2, RoundingMode.DOWN);
+                            BigDecimal heji = zhehoujia.divide(new BigDecimal(500)).multiply(new BigDecimal(weight)).setScale(2, RoundingMode.DOWN);
 
-                        grouponGoodsModel.setHeji(heji);
-                        grouponGoodsModel.setShuliang(1);
-                        grouponGoodsModel.setDiscounted_price(price.subtract(zhehoujia).divide(new BigDecimal(500)).multiply(new BigDecimal(weight)).setScale(2, RoundingMode.DOWN));
-                        selectedShopList.add(0, grouponGoodsModel);
-                        have_paid_view.setVisibility(GONE);
-                        selectedShopAdapter.setNewData(selectedShopList);
-                        MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
+                            grouponGoodsModel.setHeji(heji);
+                            grouponGoodsModel.setShuliang(1);
+                            grouponGoodsModel.setDiscounted_price(price.subtract(zhehoujia).divide(new BigDecimal(500)).multiply(new BigDecimal(weight)).setScale(2, RoundingMode.DOWN));
+                            selectedShopList.add(0, grouponGoodsModel);
+                            have_paid_view.setVisibility(GONE);
+                            selectedShopAdapter.setNewData(selectedShopList);
+                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
 
-                        // 滚动到位置 0（第一条）
-                        selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
-                        tv_zongjian.setText(allNum + "");
-                        zongjia = zongjia.add(heji);
-                        tv_zongjia.setText(zongjia + "");
-                        MyPresentation.setZongjia(zongjia.toString());
-                        availableAmount();
+                            // 滚动到位置 0（第一条）
+                            selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
+                            tv_zongjian.setText(allNum + "");
+                            zongjia = zongjia.add(heji);
+                            tv_zongjia.setText(zongjia + "");
+                            MyPresentation.setZongjia(zongjia.toString());
+                            availableAmount();
+                        }else {
+                            allNum+=Integer.parseInt(weight);
+                            grouponGoodsModel.setDiscount(discount);
+                            grouponGoodsModel.setGoods_weight("0");
+                            BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
+                            BigDecimal zhehoujia = price.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
+
+
+                            BigDecimal heji = zhehoujia.multiply(new BigDecimal(weight)).setScale(2, RoundingMode.DOWN);
+
+                            grouponGoodsModel.setHeji(heji);
+                            grouponGoodsModel.setShuliang(Integer.parseInt(weight));
+                            grouponGoodsModel.setDiscounted_price(price.subtract(zhehoujia).multiply(new BigDecimal(weight)).setScale(2, RoundingMode.DOWN));
+                            selectedShopList.add(0, grouponGoodsModel);
+                            have_paid_view.setVisibility(GONE);
+                            selectedShopAdapter.setNewData(selectedShopList);
+                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
+
+                            // 滚动到位置 0（第一条）
+                            selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
+                            tv_zongjian.setText(allNum + "");
+                            zongjia = zongjia.add(heji);
+                            tv_zongjia.setText(zongjia + "");
+                            MyPresentation.setZongjia(zongjia.toString());
+                            availableAmount();
+                        }
+
                         return;
                     }
 
@@ -1127,7 +1155,7 @@ public class MainActivity extends Activity {
                             model.setShuliang(model.getShuliang() + 1);
                             BigDecimal price = new BigDecimal(model.getPrice());
                             if (!TextUtils.isEmpty(model.getDiscount())) {
-                                price = price.multiply(new BigDecimal(model.getDiscount())).divide(new BigDecimal(100));
+                                price = price.multiply(new BigDecimal(model.getDiscount())).divide(new BigDecimal("100"));
                                 model.setDiscounted_price(model.getDiscounted_price().add(new BigDecimal(model.getPrice()).subtract(price)));
                             }
                             BigDecimal heji = price.add(model.getHeji()).setScale(2, RoundingMode.DOWN);
