@@ -1039,15 +1039,7 @@ public class MainActivity extends Activity {
             if (TextUtils.isEmpty(text)) {
                 return;
             }
-            // 初始化MediaPlayer
-            MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.shaoma);
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mediaPlayer.setOnCompletionListener(mp -> mp.release());
-//                    mediaPlayer.pause();  // 暂停
-//                    mediaPlayer.stop();   // 停止(需重新prepare)
 
-            // 播放控制
-            mediaPlayer.start();  // 开始播放
             String textType = detectPaymentType(text);
             if (textType.equals("unknown")) {
                 //
@@ -1066,6 +1058,15 @@ public class MainActivity extends Activity {
                     String PATTERN = "^\\d{5}\\d{3}.+$";
 //
                     if (!text.matches(PATTERN)) {
+                        // 初始化MediaPlayer
+                        MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.cuowu);
+                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                        mediaPlayer.setOnCompletionListener(mp -> mp.release());
+//                    mediaPlayer.pause();  // 暂停
+//                    mediaPlayer.stop();   // 停止(需重新prepare)
+
+                        // 播放控制
+                        mediaPlayer.start();  // 开始播放
                         new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
                         return;
                     }
@@ -1077,9 +1078,27 @@ public class MainActivity extends Activity {
                             .filter(grouponGoodsModel -> grouponGoodsModel.getId().equals(productId))
                             .collect(Collectors.toCollection(ArrayList::new));
                     if (grouponGoodsModelList.isEmpty()) {
+                        // 初始化MediaPlayer
+                        MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.cuowu);
+                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                        mediaPlayer.setOnCompletionListener(mp -> mp.release());
+//                    mediaPlayer.pause();  // 暂停
+//                    mediaPlayer.stop();   // 停止(需重新prepare)
+
+                        // 播放控制
+                        mediaPlayer.start();  // 开始播放
                         new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
                         return;
                     } else {
+                        // 初始化MediaPlayer
+                        MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.shaoma);
+                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                        mediaPlayer.setOnCompletionListener(mp -> mp.release());
+//                    mediaPlayer.pause();  // 暂停
+//                    mediaPlayer.stop();   // 停止(需重新prepare)
+
+                        // 播放控制
+                        mediaPlayer.start();  // 开始播放
                         GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = SerializableUtils.deepCopy(grouponGoodsModelList.get(0));
                         Glide.with(MainActivity.this).clear(shop_image);  // 先清空ImageView
                         Glide.with(MainActivity.this).load(grouponGoodsModel.getImage()).into(shop_image);  // 再加载新图片
@@ -1139,6 +1158,15 @@ public class MainActivity extends Activity {
                     }
 
                 }
+                // 初始化MediaPlayer
+                MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.shaoma);
+                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                mediaPlayer.setOnCompletionListener(mp -> mp.release());
+//                    mediaPlayer.pause();  // 暂停
+//                    mediaPlayer.stop();   // 停止(需重新prepare)
+
+                // 播放控制
+                mediaPlayer.start();  // 开始播放
                 allNum++;
                 GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = grouponGoodsModelArrayList.get(0);
                 Glide.with(MainActivity.this).clear(shop_image);  // 先清空ImageView
