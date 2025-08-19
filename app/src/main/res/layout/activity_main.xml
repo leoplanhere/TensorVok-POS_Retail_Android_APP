@@ -286,7 +286,7 @@
                     android:textSize="20sp"
                     android:textColor="@color/black"
                     android:format24Hour="yyyy-MM-dd \n HH:mm:ss a"
-                    android:format12Hour="yyyy-MM-dd \n HH:mm:ss a"
+                    android:format12Hour="yyyy-MM-dd \n HH:mm:ss"
                     android:gravity="right"
                     android:layout_gravity="center_vertical"
                     android:layout_marginLeft="7dp"
