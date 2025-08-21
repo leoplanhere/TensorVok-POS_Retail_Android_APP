@@ -1029,6 +1029,7 @@ public class MainActivity extends Activity {
 
         animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.scale_click);
 
+
         et_tiaoxingma = findViewById(R.id.et_tiaoxingma);
         et_tiaoxingma.setOnClickListener(v -> et_tiaoxingma.postDelayed(() -> et_tiaoxingma.requestFocus(), 100));
         buildBean = DialogUIUtils.showLoading(this, getString(R.string.paying), true, true, false, false);

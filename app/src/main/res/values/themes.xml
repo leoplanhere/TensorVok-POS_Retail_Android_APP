@@ -6,6 +6,10 @@
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="colorControlActivated">@color/black</item> <!-- 光标颜色 -->
+<!--        <item name="android:fontFamily">@font/font3</item>&ndash;&gt;-->
+<!--        <item name="fontFamily">@font/font3</item>&ndash;&gt;-->
+<!--        <item name="android:includeFontPadding">false</item>-->
+<!--        <item name="android:lineSpacingMultiplier">0.9</item>-->
     </style>
 
     <style name="Theme.UHMCS" parent="Base.Theme.UHMCS" />

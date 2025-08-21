@@ -168,6 +168,6 @@ public class StartActivity extends Activity {
                     finish();
                 }
             }
-        }, 2000);
+        }, 2100);
     }
 }
