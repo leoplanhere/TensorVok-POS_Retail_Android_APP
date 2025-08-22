@@ -965,7 +965,15 @@ public class MainActivity extends Activity {
                         .filter(grouponGoodsModel -> !TextUtils.isEmpty(grouponGoodsModel.getSn()) && grouponGoodsModel.getSn().equals(text))
                         .collect(Collectors.toCollection(ArrayList::new));
                 if (grouponGoodsModelArrayList.isEmpty()) {
-                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
+
+                    ArrayList<GrouponGoodsBean.GrouponGoodsModel> indexArrayList = allGrouponGoodsModelList.stream()
+                            .filter(grouponGoodsModel -> !TextUtils.isEmpty(grouponGoodsModel.getSn()) && grouponGoodsModel.getSn().contains(text))
+                            .collect(Collectors.toCollection(ArrayList::new));
+                    indexGrouponGoodsModelList = indexArrayList;
+                    grouponGoods_page = 1;
+                    grouponGoodsAdapter.hasMore = true;
+                    grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+
                     return;
                 }
                 allNum++;
