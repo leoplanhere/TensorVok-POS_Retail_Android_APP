@@ -967,7 +967,7 @@ public class MainActivity extends Activity {
                 if (grouponGoodsModelArrayList.isEmpty()) {
 
                     ArrayList<GrouponGoodsBean.GrouponGoodsModel> indexArrayList = allGrouponGoodsModelList.stream()
-                            .filter(grouponGoodsModel -> !TextUtils.isEmpty(grouponGoodsModel.getSn()) && grouponGoodsModel.getSn().contains(text))
+                            .filter(grouponGoodsModel -> !TextUtils.isEmpty(grouponGoodsModel.getSn()) && grouponGoodsModel.getSn().startsWith(text))
                             .collect(Collectors.toCollection(ArrayList::new));
                     indexGrouponGoodsModelList = indexArrayList;
                     grouponGoods_page = 1;
