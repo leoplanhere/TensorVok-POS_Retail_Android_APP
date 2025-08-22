@@ -1215,13 +1215,14 @@ public class CheckoutPopupWindow {
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if (response.isSuccessful()) {
-                    try {
+
                         String success = response.body().string();
-                        JSONObject jsonObject = new JSONObject(success);
+
                         context.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 try {
+                                    JSONObject jsonObject = new JSONObject(success);
                                     if (jsonObject.getString("msg").contains("成功") || jsonObject.getString("msg").contains("Success")) {
                                         DialogUIUtils.dismiss(buildBean);
                                         // 初始化MediaPlayer
@@ -1275,9 +1276,6 @@ public class CheckoutPopupWindow {
                             }
                         });
 
-                    } catch (JSONException e) {
-                        Log.e("ttt", "Error occurred", e);
-                    }
                 } else {
 
                 }
