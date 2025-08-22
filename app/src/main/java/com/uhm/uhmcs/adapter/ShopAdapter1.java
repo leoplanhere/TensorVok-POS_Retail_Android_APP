@@ -15,7 +15,14 @@ public class ShopAdapter1 extends BaseQuickAdapter<GrouponGoodsBean.GrouponGoods
     @Override
     protected void convert(BaseViewHolder helper, GrouponGoodsBean.GrouponGoodsModel item) {
         helper.setText(R.id.shop_name,item.getTitle());
-        helper.setText(R.id.shop_num,"x"+item.getShuliang());
+
+        if (!item.getOnline_type().equals("weight")){
+            helper.setText(R.id.shop_num,"x"+item.getShuliang());
+        }else {
+            helper.setText(R.id.shop_num,item.getGoods_weight()+"g");
+
+        }
+
         helper.setText(R.id.shop_all_price,"￥"+item.getHeji().toString());
 
     }

@@ -50,6 +50,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.lxj.xpopup.XPopup;
 import com.lxj.xpopup.impl.LoadingPopupView;
+import com.makeramen.roundedimageview.RoundedImageView;
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.adapter.GrouponGoodsAdapter;
 import com.uhm.uhmcs.adapter.SelectedShopAdapter;
@@ -130,7 +131,7 @@ public class MainActivity extends Activity {
     private Animation animation;
     private TextView tv_zongjia, tv_zongjian, qingkong_btn, qudan_btn, guadan_btn, dazhe_one_btn, dazhe_all_btn, checkout_btn, daying_btn;
     private LinearLayout huiyuan_btn;
-    private TextView huiyuan_name, shuaxin_btn;
+    private TextView huiyuan_name;
 
     private ImageView shanchuhuiyuan_btn;
 
@@ -160,9 +161,13 @@ public class MainActivity extends Activity {
 
     private View shop_mocheng;
 
-    private ImageView shop_image;
+    private RoundedImageView shop_image;
 
-    private TextView zhifuxinxi_tv;
+
+    private TextView yingfu_tv,shifu_tv,youhui_tv,daijinquan_tv,xianjin_tv,huiyuanka_tv,weixin_tv,zhifubao_tv,zhaolin_tv;
+    private LinearLayout zhifuxinxi_view;
+
+
 
 
     @Override
@@ -292,6 +297,16 @@ public class MainActivity extends Activity {
                 presentation.show();
             }
         }
+        yingfu_tv=findViewById(R.id.yingfu_tv);
+        shifu_tv=findViewById(R.id.shifu_tv);
+        youhui_tv=findViewById(R.id.youhui_tv);
+        daijinquan_tv=findViewById(R.id.daijinquan_tv);
+        xianjin_tv=findViewById(R.id.xianjin_tv);
+        huiyuanka_tv=findViewById(R.id.huiyuanka_tv);
+        weixin_tv=findViewById(R.id.weixin_tv);
+        zhifubao_tv=findViewById(R.id.zhifubao_tv);
+        zhaolin_tv=findViewById(R.id.zhaolin_tv);
+        zhifuxinxi_view=findViewById(R.id.zhifuxinxi_view);
 
 
         onClickListener = new View.OnClickListener() {
@@ -588,10 +603,8 @@ public class MainActivity extends Activity {
                             }, 3000);
                             onClickListener.onClick(qingkong_btn);
                             onClickListener.onClick(shanchuhuiyuan_btn);
-                            StringBuffer stringBuffer = new StringBuffer();
-                            stringBuffer.append("应付总计:").append(checkoutBean.getTotal_amount()).append("\n");
-                            stringBuffer.append("优惠总计:-").append(checkoutBean.getDiscount_fee()).append("\n");
-                            stringBuffer.append("代金券抵扣:-").append(TextUtils.isEmpty(checkoutBean.getCoupon_fee()) ? "0.00" : checkoutBean.getCoupon_fee()).append("\n");
+
+
                             BigDecimal shifujine_pice = new BigDecimal("0.00");
                             if (!TextUtils.isEmpty(xinjin_pice)) {
                                 shifujine_pice = shifujine_pice.add(new BigDecimal(xinjin_pice));
@@ -605,23 +618,17 @@ public class MainActivity extends Activity {
                             if (!TextUtils.isEmpty(huiyuanka_pice)) {
                                 shifujine_pice = shifujine_pice.add(new BigDecimal(huiyuanka_pice));
                             }
-                            stringBuffer.append("实付金额:").append(shifujine_pice.toString()).append("\n");
-                            if (!TextUtils.isEmpty(xinjin_pice)) {
-                                stringBuffer.append("现金:").append(xinjin_pice).append("\n");
-                            }
-                            if (!TextUtils.isEmpty(weixin_pice)) {
-                                stringBuffer.append("微信:").append(weixin_pice).append("\n");
-                            }
-                            if (!TextUtils.isEmpty(zhifubao_pice)) {
-                                stringBuffer.append("支付宝:").append(zhifubao_pice).append("\n");
-                            }
-                            if (!TextUtils.isEmpty(huiyuanka_pice)) {
-                                stringBuffer.append("会员卡:").append(huiyuanka_pice).append("\n");
-                            }
-                            stringBuffer.append("找零:").append(checkoutBean.getCash_change()).append("\n");
-                            Log.i("ttt", stringBuffer.toString());
-                            zhifuxinxi_tv.setText(stringBuffer.toString());
 
+                            yingfu_tv.setText(checkoutBean.getTotal_amount());
+                            youhui_tv.setText("-"+checkoutBean.getDiscount_fee());
+                            daijinquan_tv.setText("-"+(TextUtils.isEmpty(checkoutBean.getCoupon_fee()) ? "0.00" : checkoutBean.getCoupon_fee()));
+                            shifu_tv.setText(shifujine_pice.toString());
+                            xianjin_tv.setText(TextUtils.isEmpty(xinjin_pice) ? "0.00" : xinjin_pice);
+                            huiyuanka_tv.setText(TextUtils.isEmpty(huiyuanka_pice) ? "0.00" : huiyuanka_pice);
+                            weixin_tv.setText(TextUtils.isEmpty(weixin_pice) ? "0.00" : weixin_pice);
+                            zhifubao_tv.setText(TextUtils.isEmpty(zhifubao_pice) ? "0.00" : zhifubao_pice);
+                            zhaolin_tv.setText(TextUtils.isEmpty(checkoutBean.getCash_change()) ? "0.00" : checkoutBean.getCash_change());
+                            zhifuxinxi_view.setVisibility(VISIBLE);
 
                         }
                     });
@@ -979,7 +986,7 @@ public class MainActivity extends Activity {
             });
         });
 
-        zhifuxinxi_tv = findViewById(R.id.zhifuxinxi_tv);
+
 
         shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji() ? VISIBLE : GONE);
         bendin_view = findViewById(R.id.bendin_view);
@@ -1040,6 +1047,7 @@ public class MainActivity extends Activity {
             if (TextUtils.isEmpty(text)) {
                 return;
             }
+            zhifuxinxi_view.setVisibility(GONE);
 
             String textType = detectPaymentType(text);
             if (textType.equals("unknown")) {

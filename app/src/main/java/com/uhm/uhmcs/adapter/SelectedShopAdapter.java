@@ -37,11 +37,20 @@ public class SelectedShopAdapter extends BaseQuickAdapter<GrouponGoodsBean.Group
 //            helper.setBackgroundRes(R.id.item_shop_type_view,R.drawable.menu_bg);
 //        }
         helper.setGone(R.id.zengsong, UserUtils.getInstance().isDazhe());
+        helper.setGone(R.id.zengsong_view, UserUtils.getInstance().isDazhe());
         helper.setText(R.id.xuhao,(helper.getLayoutPosition()+1)+"");
         helper.setText(R.id.pinming,item.getTitle());
-        helper.setText(R.id.guige,"暂无规格");
+
 
         helper.setText(R.id.heji,item.getHeji()+"");
+
+        if (item.isIs_zengsong()){
+            helper.setTextColor(R.id.zengsong,Color.parseColor("#FFEF4444"));
+            helper.setBackgroundRes(R.id.zengsong,R.drawable.red_line1);
+        }else {
+            helper.setTextColor(R.id.zengsong,Color.parseColor("#FF3B82F6"));
+            helper.setBackgroundRes(R.id.zengsong,R.drawable.blue_line1);
+        }
 
         helper.setText(R.id.zengsong,item.isIs_zengsong()?context.getString(R.string.cancel_give_away):context.getString(R.string.give_away));
         if (!item.getOnline_type().equals("weight")){
@@ -60,15 +69,10 @@ public class SelectedShopAdapter extends BaseQuickAdapter<GrouponGoodsBean.Group
         helper.addOnClickListener(R.id.zengsong);
 
         TextView zhekou_view=helper.getView(R.id.zhekou_view);
-        if (TextUtils.isEmpty(item.getDiscount())||item.getDiscount().equals("100")){
-            zhekou_view.setVisibility(GONE);
-        }else {
-            zhekou_view.setVisibility(VISIBLE);
-            zhekou_view.setText(context.getString(R.string.fold)+item.getDiscount()+"%");
-        }
+        zhekou_view.setText(context.getString(R.string.fold)+item.getDiscount()+"%");
 
         if (item.isSelected()){
-            helper.setBackgroundColor(R.id.all_view,Color.parseColor("#65755a"));
+            helper.setBackgroundRes(R.id.all_view,R.drawable.blue_line2);
         }else {
             helper.getView(R.id.all_view).setBackgroundColor(Color.TRANSPARENT);
         }

@@ -54,6 +54,7 @@ dependencies {
     implementation libs.convenientbanner  // 轮播图核心库‌:ml-citation{ref="5" data="citationList"}
     implementation libs.updateapputilsx
     implementation libs.xpopup
+    implementation libs.roundedimageview
 
 
 

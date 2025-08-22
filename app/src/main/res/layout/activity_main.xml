@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#e2e2e2"
+    android:background="#FFE0E3EA"
     android:orientation="vertical">
+
     <LinearLayout
         android:padding="@dimen/dp_10"
         android:layout_width="match_parent"
@@ -18,12 +20,15 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:background="@drawable/white_bg">
+
             <LinearLayout
+                android:visibility="gone"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1">
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/shop_rv"
                     android:layout_width="match_parent"
@@ -35,56 +40,325 @@
                     android:scrollbarThumbVertical="@drawable/scrollbar_vertical_thumb"
                     android:scrollbars="vertical"
                     android:visibility="gone" />
+
                 <View
                     android:visibility="gone"
                     android:id="@+id/shop_mocheng"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
+                    android:layout_height="match_parent" />
 
-                <ImageView
-                    android:visibility="visible"
-                    android:id="@+id/shop_image"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
 
 
 
             </LinearLayout>
-            <TextView
-                android:gravity="center"
-                android:id="@+id/zhifuxinxi_tv"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="30dp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:text=""/>
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <com.makeramen.roundedimageview.RoundedImageView
+                    android:visibility="visible"
+                    android:id="@+id/shop_image"
+                    android:layout_margin="15dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="330dp"
+                    app:riv_corner_radius="10dp"/>
+                <LinearLayout
+                    android:visibility="gone"
+                    android:id="@+id/zhifuxinxi_view"
+                    android:padding="25dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="应付总计:"
+                            android:textColor="@color/black"
+                            android:textSize="28dp"
+                            android:textStyle="bold"/>
+                        <TextView
+                            android:fontFamily="@font/font2"
+                            android:includeFontPadding="false"
+                            android:id="@+id/yingfu_tv"
+                            android:layout_marginStart="20dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textStyle="bold"
+                            android:textSize="60dp"
+                            android:textColor="#FF00AB1D"
+                            android:text="0.00"/>
+                    </LinearLayout>
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#FFD4D8E2"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginBottom="20dp"/>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                       <LinearLayout
+                           android:layout_width="0dp"
+                           android:layout_height="wrap_content"
+                           android:layout_weight="1"
+                           android:orientation="horizontal">
+                           <TextView
+                               android:layout_width="wrap_content"
+                               android:layout_height="wrap_content"
+                               android:text="优惠总计:"
+                               android:textColor="@color/black"
+                               android:textSize="18dp" />
+                           <TextView
+                               android:fontFamily="@font/font2"
+                               android:includeFontPadding="false"
+                               android:id="@+id/youhui_tv"
+                               android:layout_marginStart="10dp"
+                               android:layout_width="wrap_content"
+                               android:layout_height="wrap_content"
+                               android:textStyle="bold"
+                               android:textSize="24dp"
+                               android:textColor="#FFEF4444"
+                               android:text="-0.00"/>
+                       </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="代金券抵扣:"
+                                android:textColor="@color/black"
+                                android:textSize="18dp" />
+                            <TextView
+                                android:fontFamily="@font/font2"
+                                android:includeFontPadding="false"
+                                android:id="@+id/daijinquan_tv"
+                                android:layout_marginStart="10dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textStyle="bold"
+                                android:textSize="24dp"
+                                android:textColor="#FFEF4444"
+                                android:text="-0.00"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_marginTop="20dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="实付:"
+                            android:textColor="@color/black"
+                            android:textSize="24dp" />
+                        <TextView
+                            android:fontFamily="@font/font2"
+                            android:includeFontPadding="false"
+                            android:id="@+id/shifu_tv"
+                            android:layout_marginStart="10dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="40dp"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:text="0.00"/>
+                    </LinearLayout>
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#FFD4D8E2"
+                        android:layout_marginTop="15dp"
+                        android:layout_marginBottom="15dp"/>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="现金:"
+                                android:textColor="@color/black"
+                                android:textSize="24dp" />
+                            <TextView
+                                android:fontFamily="@font/font2"
+                                android:includeFontPadding="false"
+                                android:id="@+id/xianjin_tv"
+                                android:layout_marginStart="10dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="30dp"
+                                android:textStyle="bold"
+                                android:textColor="@color/black"
+                                android:text="0.00"/>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="会员卡:"
+                                android:textColor="@color/black"
+                                android:textSize="24dp" />
+                            <TextView
+                                android:fontFamily="@font/font2"
+                                android:includeFontPadding="false"
+                                android:id="@+id/huiyuanka_tv"
+                                android:layout_marginStart="10dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="30dp"
+                                android:textStyle="bold"
+                                android:textColor="@color/black"
+                                android:text="0.00"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#FFD4D8E2"
+                        android:layout_marginTop="15dp"
+                        android:layout_marginBottom="15dp"/>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="微信:"
+                                android:textColor="@color/black"
+                                android:textSize="24dp" />
+                            <TextView
+                                android:fontFamily="@font/font2"
+                                android:includeFontPadding="false"
+                                android:id="@+id/weixin_tv"
+                                android:layout_marginStart="10dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="30dp"
+                                android:textStyle="bold"
+                                android:textColor="@color/black"
+                                android:text="0.00"/>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="支付宝:"
+                                android:textColor="@color/black"
+                                android:textSize="24dp" />
+                            <TextView
+                                android:fontFamily="@font/font2"
+                                android:includeFontPadding="false"
+                                android:id="@+id/zhifubao_tv"
+                                android:layout_marginStart="10dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="30dp"
+                                android:textStyle="bold"
+                                android:textColor="@color/black"
+                                android:text="0.00"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#FFD4D8E2"
+                        android:layout_marginTop="15dp"
+                        android:layout_marginBottom="15dp"/>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="找零:"
+                            android:textColor="@color/black"
+                            android:textSize="24dp" />
+                        <TextView
+                            android:fontFamily="@font/font2"
+                            android:includeFontPadding="false"
+                            android:id="@+id/zhaolin_tv"
+                            android:layout_marginStart="10dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="40dp"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:text="0.00"/>
+                    </LinearLayout>
+                    
+                </LinearLayout>
+            </LinearLayout>
 
             <LinearLayout
+                android:layout_marginBottom="13dp"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="80dp">
+                android:layout_height="65dp">
+
                 <ImageView
                     android:layout_centerVertical="true"
                     android:id="@+id/more_function_btn"
-                    android:paddingLeft="10dp"
-                    android:layout_width="70dp"
-                    android:paddingRight="10dp"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/more_function" />
-
-                <TextView
-                    android:layout_centerVertical="true"
+                    android:paddingLeft="20dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:layout_width="wrap_content"
+                    android:paddingRight="13dp"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/gengduo" />
+                <LinearLayout
                     android:id="@+id/shuaxin_btn"
-                    android:layout_marginStart="10dp"
-                    android:layout_width="100dp"
-                    android:text="刷新"
-                    android:textSize="30dp"
-                    android:gravity="center"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
+                    android:layout_width="116dp"
                     android:layout_height="match_parent"
-                    android:background="@drawable/blue_bg4"/>
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:background="@drawable/blue_bg5">
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/shuaxin_iv"/>
+                    <TextView
+                        android:layout_marginStart="8dp"
+                        android:layout_width="wrap_content"
+                        android:text="刷新"
+                        android:textSize="20dp"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/white"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
 
                 <View
                     android:layout_width="0dp"
@@ -132,19 +406,20 @@
                     android:textColor="@color/color_login_079752"
                     android:textSize="24dp"/>
                 <LinearLayout
+                    android:layout_marginEnd="12dp"
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:layout_alignParentRight="true"
-                    android:layout_margin="5dp"
-                    android:layout_width="280dp"
+                    android:layout_marginStart="13dp"
+                    android:layout_width="253dp"
                     android:layout_height="match_parent"
-                    android:background="@drawable/rounded_border"
+                    android:background="@drawable/rounded_border2"
                     android:orientation="horizontal">
                     <com.uhm.uhmcs.view.CustomInputTextView
                         android:id="@+id/et_tiaoxingma"
                         android:hint="@string/barcode"
                         android:textColorHint="#c1c1c1"
-                        android:textSize="24dp"
+                        android:textSize="22dp"
                         android:textColor="@color/black"
                         android:layout_margin="10dp"
                         android:layout_width="0dp"
@@ -171,25 +446,16 @@
             <LinearLayout
                 android:layout_marginStart="10dp"
                 android:layout_width="match_parent"
-                android:layout_height="88dp"
+                android:layout_height="95dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
                 <ImageView
-                    android:layout_width="136dp"
-                    android:layout_height="40dp"
+                    android:layout_width="144dp"
+                    android:layout_height="42dp"
                     android:scaleType="fitCenter"
                     android:layout_gravity="center_vertical"
                     android:src="@mipmap/pos_ui_logo_01"/>
-                <androidx.appcompat.widget.AppCompatTextView
-                    android:visibility="visible"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/black"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginLeft="5dp"
-                    android:text="优道佳家福会员超市" />
+
                 <LinearLayout
                     android:layout_weight="1"
                     android:layout_width="wrap_content"
@@ -198,31 +464,55 @@
                     android:layout_gravity="center_vertical"
                     android:orientation="vertical">
                     <TextView
-                        android:id="@+id/tv_main_shop_name"
+                        android:visibility="visible"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="20dp"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
                         android:textColor="@color/black"
                         android:layout_gravity="center_vertical"
-                        android:layout_marginLeft="7dp"
-                        android:text="" />
-                    <TextView
-                        android:id="@+id/tv_nickname"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="20dp"
-                        android:textColor="#FF999999"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginLeft="7dp"
-                        android:text="" />
+                        android:layout_marginLeft="5dp"
+                        android:text="优道佳家福会员超市" />
+                   <LinearLayout
+                       android:layout_width="match_parent"
+                       android:layout_height="wrap_content"
+                       android:orientation="horizontal">
+                       <TextView
+                           android:id="@+id/tv_main_shop_name"
+                           android:layout_width="wrap_content"
+                           android:layout_height="wrap_content"
+                           android:textSize="18dp"
+                           android:textColor="@color/black"
+                           android:layout_gravity="center_vertical"
+                           android:layout_marginLeft="7dp"
+                           android:text="优海猫" />
+                       <TextView
+                           android:id="@+id/tv_nickname"
+                           android:layout_width="wrap_content"
+                           android:layout_height="wrap_content"
+                           android:textSize="18dp"
+                           android:textColor="@color/black"
+                           android:layout_gravity="center_vertical"
+                           android:layout_marginLeft="7dp"
+                           android:text="12321414" />
+                   </LinearLayout>
                 </LinearLayout>
                 <LinearLayout
+                    android:paddingStart="22dp"
+                    android:paddingEnd="22dp"
+                    android:background="@drawable/blue_bg"
                     android:layout_marginStart="@dimen/dp_10"
-                    android:layout_marginEnd="@dimen/dp_10"
+                    android:layout_marginEnd="30dp"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:layout_height="59dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/yanchi_iv"/>
                     <LinearLayout
+                        android:layout_marginStart="20dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
@@ -251,7 +541,7 @@
                     </LinearLayout>
 
                     <LinearLayout
-
+                        android:layout_marginStart="30dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
@@ -279,31 +569,41 @@
                             android:textSize="20dp"/>
                     </LinearLayout>
                 </LinearLayout>
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/shijian_iv"/>
                 <TextClock
-                    android:layout_marginEnd="20dp"
+                    android:layout_marginEnd="30dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="20sp"
                     android:textColor="@color/black"
-                    android:format24Hour="yyyy-MM-dd \n HH:mm:ss"
-                    android:format12Hour="yyyy-MM-dd \n HH:mm:ss a"
-                    android:gravity="right"
+                    android:format24Hour="yyyy-MM-dd\nHH:mm:ss a"
+                    android:format12Hour="yyyy-MM-dd\nHH:mm:ss a"
+                    android:gravity="left"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginLeft="7dp"
+                    android:layout_marginStart="14dp"
                     android:timeZone="GMT+8"/>
 
             </LinearLayout>
-            <LinearLayout
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
+                android:layout_height="1dp"
+                android:background="#FFE4E4E7"/>
+            <LinearLayout
+                android:layout_marginTop="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
                 android:orientation="horizontal">
                 <LinearLayout
+                    android:layout_marginEnd="12dp"
+                    android:layout_marginStart="22dp"
                     android:gravity="center_vertical"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:orientation="horizontal"
                     android:layout_weight="1"
-                    android:layout_margin="5dp"
                     android:background="@drawable/blue_bg">
                     <TextView
                         android:layout_width="wrap_content"
@@ -319,12 +619,13 @@
                         android:orientation="horizontal">
                         <TextView
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/mr_red_000"
+                            android:layout_height="match_parent"
+                            android:textColor="#FFD9001B"
                             android:textSize="25dp"
+                            android:gravity="bottom"
                             android:text="￥"
                             android:textStyle="bold"
-                            android:paddingBottom="10dp"
+                            android:paddingBottom="5dp"
                             android:layout_marginLeft="@dimen/dp_10"/>
                         <TextView
                             android:fontFamily="@font/font2"
@@ -332,19 +633,19 @@
                             android:id="@+id/tv_zongjia"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textColor="@color/mr_red_000"
+                            android:textColor="#FFD9001B"
                             android:textSize="45dp"
                             android:textStyle="bold"
                             android:text="0.00" />
                     </LinearLayout>
                 </LinearLayout>
                 <LinearLayout
+                    android:layout_marginEnd="17dp"
                     android:gravity="center_vertical"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:orientation="horizontal"
                     android:layout_weight="1"
-                    android:layout_margin="5dp"
                     android:background="@drawable/blue_bg">
                     <TextView
                         android:layout_width="wrap_content"
@@ -363,7 +664,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/dp_10"
                         android:text="0"
-                        android:textColor="@color/mr_red_000"
+                        android:textColor="#FFD9001B"
                         android:textSize="45dp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -371,9 +672,11 @@
 
 
             <LinearLayout
-                android:padding="5dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginStart="22dp"
+                android:layout_marginEnd="17dp"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
+                android:layout_height="60dp"
                 android:orientation="horizontal">
                 <LinearLayout
                     android:layout_width="0dp"
@@ -382,28 +685,28 @@
                     android:layout_weight="2">
                     <TextView
                         android:id="@+id/delete_shop"
-                        android:background="@drawable/red_bg"
+                        android:background="@drawable/home_red_bg"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:text="@string/delete_item"
                         android:textSize="20dp"
-                        android:textColor="@color/white"
+                        android:textColor="#FFEF4444"
                         android:gravity="center"
                         android:textStyle="bold"
-                        android:layout_marginRight="@dimen/dp_10"/>
+                        android:layout_marginRight="16dp"/>
                     <TextView
                         android:id="@+id/qingkong_btn"
-                        android:background="@drawable/red_bg"
+                        android:background="@drawable/home_red_bg"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:text="@string/clear_all"
                         android:textSize="20dp"
-                        android:textColor="@color/white"
+                        android:textColor="#FFEF4444"
                         android:gravity="center"
                         android:textStyle="bold"
-                        android:layout_marginRight="@dimen/dp_10"/>
+                        android:layout_marginRight="16dp"/>
                 </LinearLayout>
                 <LinearLayout
                     android:id="@+id/huiyuan_btn"
@@ -412,112 +715,117 @@
                     android:layout_weight="3"
                     android:layout_height="match_parent"
                     android:orientation="horizontal"
-                    android:background="@drawable/rounded_border">
+                    android:background="@drawable/rounded_border2">
                     <ImageView
-                        android:layout_marginLeft="5dp"
-                        android:layout_width="40dp"
-                        android:layout_height="match_parent"
-                        android:src="@drawable/huiyuan"/>
+                        android:layout_marginStart="25dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/huiyuan_iv"/>
                     <TextView
                         android:id="@+id/huiyuan_name"
-                        android:layout_marginLeft="5dp"
+                        android:layout_marginLeft="10dp"
                         android:layout_width="0dp"
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
                         android:text="@string/member_nickname"
                         android:textColor="@color/black"
-                        android:textSize="20dp"/>
+                        android:textSize="18dp"/>
                     <ImageView
-                        android:paddingLeft="20dp"
+                        android:padding="20dp"
                         android:id="@+id/shanchuhuiyuan_btn"
                         android:layout_marginRight="5dp"
-                        android:layout_width="65dp"
-                        android:layout_height="match_parent"
-                        android:src="@drawable/shanchu" />
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/shanchu_iv" />
                 </LinearLayout>
             </LinearLayout>
             <LinearLayout
-                android:padding="5dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginStart="22dp"
+                android:layout_marginEnd="17dp"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
+                android:layout_height="60dp"
                 android:orientation="horizontal">
                 <TextView
                     android:id="@+id/guadan_btn"
-                    android:background="@drawable/blue_bg1"
+                    android:background="@drawable/home_blue_bg"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="@string/hold_order"
                     android:textSize="18dp"
-                    android:textColor="@color/white"
+                    android:textColor="#FF3B82F6"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
+                    android:layout_marginRight="12dp"/>
                 <TextView
                     android:id="@+id/qudan_btn"
-                    android:background="@drawable/blue_bg1"
+                    android:background="@drawable/home_blue_bg"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="@string/qudan_null"
                     android:textSize="18dp"
-                    android:textColor="@color/white"
+                    android:textColor="#FF3B82F6"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
+                    android:layout_marginRight="12dp"/>
                 <TextView
                     android:id="@+id/dazhe_one_btn"
-                    android:background="@drawable/yellow_bg"
+                    android:background="@drawable/home_green_bg"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="@string/item_discount"
                     android:textSize="18dp"
-                    android:textColor="@color/white"
+                    android:textColor="#FF00AB1D"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
+                    android:layout_marginRight="12dp"/>
                 <TextView
                     android:id="@+id/dazhe_all_btn"
-                    android:background="@drawable/yellow_bg"
+                    android:background="@drawable/home_green_bg"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="@string/order_discount"
                     android:textSize="18dp"
-                    android:textColor="@color/white"
+                    android:textColor="#FF00AB1D"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
+                    android:layout_marginRight="12dp"/>
                 <TextView
                     android:id="@+id/daying_btn"
-                    android:background="@drawable/black_bg"
+                    android:background="@drawable/home_black_bg"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="@string/print_receipt"
                     android:textSize="18dp"
-                    android:textColor="@color/white"
+                    android:textColor="@color/black"
                     android:gravity="center"
                     android:textStyle="bold" />
             </LinearLayout>
             <LinearLayout
-                android:layout_margin="5dp"
+                android:layout_marginStart="22dp"
+                android:layout_marginEnd="17dp"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:orientation="vertical">
                 <LinearLayout
+                    android:background="#FFF6F7FB"
+                    android:layout_marginTop="22dp"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
+                    android:layout_height="42dp"
                     android:orientation="horizontal">
                     <TextView
                         android:gravity="center"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_weight="1"
+                        android:layout_weight="0.5"
                         android:textSize="20dp"
-                        android:textColor="@color/black"
+                        android:textColor="#FF71717A"
                         android:text="@string/No"/>
                     <TextView
                         android:gravity="center"
@@ -525,32 +833,32 @@
                         android:layout_height="match_parent"
                         android:layout_weight="2"
                         android:textSize="20dp"
-                        android:textColor="@color/black"
+                        android:textColor="#FF71717A"
                         android:text="@string/product_name"/>
                     <TextView
-                        android:visibility="gone"
+                        android:visibility="visible"
                         android:gravity="center"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_weight="1.5"
+                        android:layout_weight="0.5"
                         android:textSize="20dp"
-                        android:textColor="@color/black"
-                        android:text="规格"/>
-                    <TextView
-                        android:gravity="center"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1.5"
-                        android:textSize="20dp"
-                        android:textColor="@color/black"
-                        android:text="@string/qty"/>
+                        android:textColor="#FF71717A"
+                        android:text="折扣"/>
                     <TextView
                         android:gravity="center"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:textSize="20dp"
-                        android:textColor="@color/black"
+                        android:textColor="#FF71717A"
+                        android:text="@string/qty"/>
+                    <TextView
+                        android:gravity="center"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="0.5"
+                        android:textSize="20dp"
+                        android:textColor="#FF71717A"
                         android:text="@string/total"/>
                     <TextView
                         android:id="@+id/caozuo_view"
@@ -559,7 +867,7 @@
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:textSize="20dp"
-                        android:textColor="@color/black"
+                        android:textColor="#FF71717A"
                         android:text="@string/action"/>
                 </LinearLayout>
                 <RelativeLayout
@@ -593,61 +901,16 @@
 
             </LinearLayout>
             <LinearLayout
-                android:padding="5dp"
+                android:layout_marginBottom="13dp"
+                android:layout_marginStart="22dp"
+                android:layout_marginEnd="17dp"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
+                android:layout_height="62dp"
                 android:orientation="horizontal">
-                <TextView
-                    android:visibility="invisible"
-                    android:background="@drawable/blue_bg1"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="挂单(F2)"
-                    android:textSize="20dp"
-                    android:textColor="@color/white"
-                    android:gravity="center"
-                    android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
-                <TextView
-                    android:visibility="invisible"
-                    android:background="@drawable/blue_bg1"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="取单(F3)"
-                    android:textSize="20dp"
-                    android:textColor="@color/white"
-                    android:gravity="center"
-                    android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
-                <TextView
-                    android:visibility="invisible"
-                    android:background="@drawable/yellow_bg"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="改价/打折(F4)"
-                    android:textSize="20dp"
-                    android:textColor="@color/white"
-                    android:gravity="center"
-                    android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
-                <TextView
-                    android:visibility="invisible"
-                    android:background="@drawable/yellow_bg"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="整单打折(F6)"
-                    android:textSize="20dp"
-                    android:textColor="@color/white"
-                    android:gravity="center"
-                    android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
+
                 <TextView
                     android:id="@+id/checkout_btn"
-                    android:background="@drawable/blue_bg1"
+                    android:background="@drawable/home_blue_bg1"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
