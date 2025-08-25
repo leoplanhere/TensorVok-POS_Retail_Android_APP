@@ -839,7 +839,7 @@ public class MainActivity extends Activity {
                                  * 商品点击设置
                                  */
                                 case 12:
-                                    new DeleteShopPopupWindow(true,MainActivity.this, UserUtils.getInstance().isDianji()?getString(R.string.shangpinkaiguan_hint,getString(R.string.off)):getString(R.string.shangpinkaiguan_hint,getString(R.string.on)), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                                    new DeleteShopPopupWindow(MainActivity.this, UserUtils.getInstance().isDianji()?getString(R.string.shangpinkaiguan_hint,getString(R.string.off)):getString(R.string.shangpinkaiguan_hint,getString(R.string.on)), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
                                         @Override
                                         public void onClick(String text) {
                                             UserUtils.getInstance().setDianji(MainActivity.this,!UserUtils.getInstance().isDianji());
@@ -969,6 +969,12 @@ public class MainActivity extends Activity {
                     ArrayList<GrouponGoodsBean.GrouponGoodsModel> indexArrayList = allGrouponGoodsModelList.stream()
                             .filter(grouponGoodsModel -> !TextUtils.isEmpty(grouponGoodsModel.getSn()) && grouponGoodsModel.getSn().startsWith(text))
                             .collect(Collectors.toCollection(ArrayList::new));
+
+
+                    if (indexArrayList.isEmpty()){
+                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
+                        return;
+                    }
                     indexGrouponGoodsModelList = indexArrayList;
                     grouponGoods_page = 1;
                     grouponGoodsAdapter.hasMore = true;

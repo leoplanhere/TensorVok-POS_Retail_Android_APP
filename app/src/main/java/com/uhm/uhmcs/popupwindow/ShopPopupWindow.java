@@ -4,6 +4,7 @@ import static android.view.KeyEvent.KEYCODE_NUMPAD_ENTER;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
@@ -31,6 +32,7 @@ import com.uhm.uhmcs.utils.UserUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class ShopPopupWindow {
@@ -70,14 +72,7 @@ public class ShopPopupWindow {
 //        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         popupView.setBackgroundColor(context.getColor(R.color.black60));
         popupWindow.setOutsideTouchable(true);
-        // 计算居中位置
-        popupView.post(() -> {
-            DisplayMetrics metrics = new DisplayMetrics();
-            ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(metrics);
-            int x = (metrics.widthPixels - popupView.getWidth()) / 2;
-            int y = (metrics.heightPixels - popupView.getHeight()) / 2;
-            popupWindow.update(x, y, -1, -1); // 更新位置
-        });
+
         // 绑定子 View 事件
         popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
             popupWindow.dismiss();
@@ -117,20 +112,22 @@ public class ShopPopupWindow {
             shopAdapter.notifyDataSetChanged();
         });
         sousuo_tv=popupView.findViewById(R.id.sousuo_tv);
-        sousuo_tv.postDelayed(() -> sousuo_tv.requestFocus(), 100);
+
         sousuo_tv.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() == KeyEvent.ACTION_DOWN && (keyCode == KeyEvent.KEYCODE_ENTER|| keyCode ==KEYCODE_NUMPAD_ENTER)) {
                 // 处理 Enter 键
-                // 滚动到位置 0（第一条）
-                shopTypeLinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
                 category_ids="";
-                if (TextUtils.isEmpty(sousuo_tv.getText().toString())){
+                // 预取搜索文本提高可读性
+                String searchText = sousuo_tv.getText().toString().trim();
+
+                if (TextUtils.isEmpty(searchText)){
                     shopAdapter.setNewData(allGrouponGoodsModelList);
                     return true;
                 }
                 shopAdapter.setNewData(allGrouponGoodsModelList.stream()
-                        .filter(grouponGoodsModel -> grouponGoodsModel.getTitle().contains(sousuo_tv.getText().toString())||(!TextUtils.isEmpty(grouponGoodsModel.getSn())&&grouponGoodsModel.getSn().equals(sousuo_tv.getText().toString())))
+                        .filter(grouponGoodsModel -> grouponGoodsModel.getTitle().contains(searchText)||(!TextUtils.isEmpty(grouponGoodsModel.getSn())&&grouponGoodsModel.getSn().equals(searchText)))
                         .collect(Collectors.toCollection(ArrayList::new)));
+                shopTypeLinearLayoutManager.scrollToPositionWithOffset(0, 0); // 更平滑的滚动
                 sousuo_tv.setText("");
                 return true; // 消费事件
             }
@@ -139,15 +136,18 @@ public class ShopPopupWindow {
 
         popupView.findViewById(R.id.sousuo_btn).setOnClickListener(v -> {
             // 滚动到位置 0（第一条）
-            shopTypeLinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
             category_ids="";
-            if (TextUtils.isEmpty(sousuo_tv.getText().toString())){
+            // 预取搜索文本提高可读性
+            String searchText = sousuo_tv.getText().toString().trim();
+
+            if (TextUtils.isEmpty(searchText)){
                 shopAdapter.setNewData(allGrouponGoodsModelList);
-                return;
+                return ;
             }
             shopAdapter.setNewData(allGrouponGoodsModelList.stream()
-                    .filter(grouponGoodsModel -> grouponGoodsModel.getTitle().contains(sousuo_tv.getText().toString())||(!TextUtils.isEmpty(grouponGoodsModel.getSn())&&grouponGoodsModel.getSn().equals(sousuo_tv.getText().toString())))
+                    .filter(grouponGoodsModel -> grouponGoodsModel.getTitle().contains(searchText)||(!TextUtils.isEmpty(grouponGoodsModel.getSn())&&grouponGoodsModel.getSn().equals(searchText)))
                     .collect(Collectors.toCollection(ArrayList::new)));
+            shopTypeLinearLayoutManager.scrollToPositionWithOffset(0, 0); // 更平滑的滚动
             sousuo_tv.setText("");
 
         });
@@ -161,9 +161,6 @@ public class ShopPopupWindow {
             }
             popupWindow.dismiss();
         });
-
-
-
 
 
 
@@ -182,13 +179,7 @@ public class ShopPopupWindow {
 //            for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : allGrouponGoodsModelList) {
 //                grouponGoodsModel.setSelected(false);
 //            }
-            if (TextUtils.isEmpty(category_ids)) {
-                shopAdapter.setNewData(allGrouponGoodsModelList);
-            }else {
-                shopAdapter.setNewData(allGrouponGoodsModelList.stream()
-                        .filter(grouponGoodsModel -> grouponGoodsModel.getCategory_ids().equals(category_ids))
-                        .collect(Collectors.toCollection(ArrayList::new)));
-            }
+            shopAdapter.setNewData(allGrouponGoodsModelList);
 
         }
 
@@ -252,5 +243,6 @@ public class ShopPopupWindow {
     public void show() {
         View rootView = ((Activity) context).getWindow().getDecorView();
         popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
+        sousuo_tv.postDelayed(() -> sousuo_tv.requestFocus(), 100);
     }
 }
