@@ -1,23 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
     android:id="@+id/all_view">
+
     <LinearLayout
         android:clickable="true"
         android:focusable="true"
-        android:padding="40dp"
+        android:padding="30dp"
         android:layout_width="1100dp"
         android:layout_height="wrap_content"
         android:background="@drawable/white_bg"
         android:orientation="vertical">
 
         <RelativeLayout
-            android:layout_marginBottom="20dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
+
             <TextView
                 android:id="@+id/hint_tv"
                 android:layout_width="wrap_content"
@@ -27,340 +29,373 @@
                 android:text="@string/checkout1"
                 android:textStyle="bold"
                 android:layout_centerInParent="true" />
+
             <ImageView
                 android:id="@+id/guanbi_btn"
                 android:layout_centerVertical="true"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:padding="40dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:src="@drawable/guanbi"
-                android:layout_alignParentRight="true"/>
+                android:layout_alignParentEnd="true" />
         </RelativeLayout>
 
         <LinearLayout
-            android:layout_marginBottom="@dimen/dp_10"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:id="@+id/xianjin_btn"
-                android:layout_width="230dp"
-                android:layout_height="80dp"
-                android:background="@drawable/blue_bg2"
-                android:textSize="30dp"
-                android:textColor="@color/white"
-                android:text="@string/cash"
-                android:gravity="center" />
-            <TextView
-                android:id="@+id/weixin_btn"
-                android:layout_marginLeft="20dp"
-                android:layout_width="230dp"
-                android:layout_height="80dp"
-                android:background="@drawable/blue_bg3"
-                android:textSize="30dp"
-                android:textColor="@color/white"
-                android:text="@string/yidongzhifu"
-                android:gravity="center" />
-            <TextView
-                android:visibility="gone"
-                android:id="@+id/zhifubao_btn"
-                android:layout_marginLeft="20dp"
-                android:layout_width="230dp"
-                android:layout_height="80dp"
-                android:background="@drawable/blue_bg2"
-                android:textSize="30dp"
-                android:textColor="@color/white"
-                android:text="@string/alipay"
-                android:gravity="center" />
-            <TextView
-                android:id="@+id/huiyuanka_btn"
-                android:layout_marginLeft="20dp"
-                android:layout_width="230dp"
-                android:layout_height="80dp"
-                android:background="@drawable/blue_bg2"
-                android:textSize="30dp"
-                android:textColor="@color/white"
-                android:text="会员卡支付"
-                android:gravity="center" />
-        </LinearLayout>
-        
-        
-        <LinearLayout
-            android:visibility="gone"
-            android:id="@+id/youhuijuan_view"
-            android:layout_width="match_parent"
-            android:layout_height="90dp"
-            android:background="@drawable/rounded_border"
-            android:layout_marginBottom="@dimen/dp_10"
-            android:gravity="center_vertical">
-            <TextView
-                android:layout_marginStart="20dp"
-                android:layout_width="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="@dimen/dp_10">
+            <LinearLayout
+                android:layout_marginBottom="@dimen/dp_10"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/black"
-                android:textSize="25dp"
-                android:text="代金卷可用金额:"/>
-            <TextView
-                android:id="@+id/youhuijuan_jine"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="2.33"
-                android:textSize="25dp"
-                android:textColor="@color/black"/>
-            <TextView
-                android:layout_marginStart="20dp"
-                android:id="@+id/shiyong_btn"
-                android:layout_width="130dp"
-                android:layout_height="70dp"
-                android:background="@drawable/blue_bg3"
-                android:textSize="25dp"
-                android:textColor="@color/white"
-                android:text="使用"
-                android:gravity="center" />
-            <TextView
-                android:id="@+id/bushiyong_btn"
-                android:layout_marginLeft="20dp"
-                android:layout_width="130dp"
-                android:layout_height="70dp"
-                android:background="@drawable/blue_bg2"
-                android:textSize="25dp"
-                android:textColor="@color/white"
-                android:text="不使用"
-                android:gravity="center" />
-        </LinearLayout>
+                android:orientation="horizontal">
 
-        <LinearLayout
-            android:padding="@dimen/dp_10"
-            android:background="#98dbf9"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_weight="1"
-                android:gravity="center">
                 <TextView
+                    android:id="@+id/xianjin_btn"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/due"
+                    android:layout_height="62dp"
+                    android:drawablePadding="10dp"
+                    android:paddingStart="35dp"
+                    android:paddingEnd="35dp"
+                    android:background="@drawable/gray_line1"
+                    android:textSize="26dp"
                     android:textColor="@color/black"
-                    android:textSize="30dp"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:id="@+id/yingshou_tv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="￥1000.00"
-                    android:textColor="@color/mr_red_000"
-                    android:textSize="30dp"
-                    android:textStyle="bold"/>
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_weight="1"
-                android:gravity="center">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/discount"
-                    android:textColor="@color/black"
-                    android:textSize="30dp"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:id="@+id/youhui_tv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="￥1000"
-                    android:textColor="@color/black"
-                    android:textSize="30dp"
-                    android:textStyle="bold"/>
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_weight="1"
-                android:gravity="center">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/paid"
-                    android:textColor="@color/black"
-                    android:textSize="30dp"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:id="@+id/yishou_tv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="￥1000"
-                    android:textColor="@color/black"
-                    android:textSize="30dp"
-                    android:textStyle="bold"/>
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_weight="1"
-                android:gravity="center">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/received"
-                    android:textColor="@color/black"
-                    android:textSize="30dp"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:id="@+id/shijishou_tv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="￥1000"
-                    android:textColor="@color/black"
-                    android:textSize="30dp"
-                    android:textStyle="bold"/>
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_marginTop="20dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <LinearLayout
-                android:layout_marginRight="20dp"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_weight="1">
-                <LinearLayout
-                    android:layout_marginBottom="10dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="80dp"
-                    android:background="@drawable/rounded_border">
-                    <TextView
-                        android:layout_width="100dp"
-                        android:layout_height="match_parent"
-                        android:text="@string/payment"
-                        android:textSize="20dp"
-                        android:textColor="@color/black"
-                        android:gravity="center"/>
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="match_parent"
-                        android:background="@color/black"/>
-                    <com.uhm.uhmcs.view.CustomInputTextView
-                        android:id="@+id/shoukuan_tv"
-                        android:hint="@string/enter_payment_amount"
-                        android:paddingLeft="20dp"
-                        android:gravity="center_vertical"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:textColor="@color/black"
-                        android:textSize="20dp"
-                        android:text=""
-                        android:textColorHint="@color/mr_gray_80"/>
-                </LinearLayout>
-                <LinearLayout
-                    android:layout_marginBottom="10dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="80dp"
-                    android:background="@drawable/rounded_border">
-                    <TextView
-                        android:layout_width="100dp"
-                        android:layout_height="match_parent"
-                        android:text="@string/change"
-                        android:textSize="20dp"
-                        android:textColor="@color/black"
-                        android:gravity="center"/>
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="match_parent"
-                        android:background="@color/black"/>
-                    <TextView
-                        android:id="@+id/zhaolin_tv"
-                        android:hint=""
-                        android:paddingLeft="20dp"
-                        android:gravity="center_vertical"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:textColor="@color/black"
-                        android:textSize="20dp"
-                        android:text="0"
-                        android:textColorHint="@color/mr_gray_80"/>
-                </LinearLayout>
-                <TextView
-                    android:visibility="gone"
-                    android:id="@+id/qufen_btn"
-                    android:layout_marginTop="20dp"
-                    android:layout_width="200dp"
-                    android:layout_height="80dp"
-                    android:text="去分"
-                    android:textColor="@color/white"
-                    android:textSize="30dp"
+                    android:text="@string/cash"
                     android:gravity="center"
-                    android:background="@drawable/blue_bg4" />
-                <LinearLayout
+                    android:drawableStart="@drawable/xianjin_iv" />
+                <TextView
+                    android:drawableStart="@drawable/yidong_iv"
+                    android:drawablePadding="10dp"
+                    android:id="@+id/weixin_btn"
+                    android:layout_marginStart="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="62dp"
+                    android:paddingStart="35dp"
+                    android:paddingEnd="35dp"
+                    android:background="@drawable/blue_bg8"
+                    android:textSize="26dp"
+                    android:textColor="#FF3B82F6"
+                    android:text="@string/yidongzhifu"
+                    android:gravity="center" />
+                <TextView
                     android:visibility="gone"
-                    android:id="@+id/huiyuan_view"
-                    android:layout_width="match_parent"
+                    android:id="@+id/zhifubao_btn"
+                    android:layout_marginLeft="20dp"
+                    android:layout_width="230dp"
+                    android:layout_height="80dp"
+                    android:background="@drawable/blue_bg2"
+                    android:textSize="30dp"
+                    android:textColor="@color/white"
+                    android:text="@string/alipay"
+                    android:gravity="center" />
+                <TextView
+                    android:drawableStart="@drawable/huiyuanka_iv"
+                    android:drawablePadding="10dp"
+                    android:id="@+id/huiyuanka_btn"
+                    android:layout_marginStart="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="62dp"
+                    android:paddingStart="35dp"
+                    android:paddingEnd="35dp"
+                    android:background="@drawable/gray_line1"
+                    android:textSize="26dp"
+                    android:textColor="@color/black"
+                    android:text="会员卡支付"
+                    android:gravity="center" />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:visibility="gone"
+                android:id="@+id/youhuijuan_view"
+                android:layout_width="match_parent"
+                android:layout_height="86dp"
+                android:background="@drawable/gray_line1"
+                android:layout_marginBottom="@dimen/dp_10"
+                android:gravity="center_vertical">
+                <TextView
+                    android:layout_marginStart="30dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                    <LinearLayout
-                        android:layout_marginTop="20dp"
-                        android:layout_width="match_parent"
+                    android:textColor="@color/black"
+                    android:textSize="24dp"
+                    android:text="代金券可用金额:"/>
+                <TextView
+                    android:layout_weight="1"
+                    android:id="@+id/youhuijuan_jine"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="2.33"
+                    android:textSize="33dp"
+                    android:textStyle="bold"
+                    android:textColor="#FFEF4444"/>
+                <TextView
+                    android:layout_marginStart="20dp"
+                    android:id="@+id/shiyong_btn"
+                    android:layout_width="163dp"
+                    android:layout_height="64dp"
+                    android:background="@drawable/blue_bg5"
+                    android:textSize="25dp"
+                    android:textColor="@color/white"
+                    android:text="使用"
+                    android:gravity="center" />
+                <TextView
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="@dimen/dp_40"
+                    android:id="@+id/bushiyong_btn"
+                    android:layout_marginLeft="20dp"
+                    android:layout_width="163dp"
+                    android:layout_height="64dp"
+                    android:background="@drawable/blue_line"
+                    android:textSize="25dp"
+                    android:textColor="#FF1359FE"
+                    android:text="不使用"
+                    android:gravity="center" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:padding="@dimen/dp_10"
+                android:background="@drawable/blue_bg9"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_weight="1"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/yingshou_tv"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:text="￥1000.00"
+                        android:textColor="#FF00AB1D"
+                        android:textSize="33dp"
+                        android:textStyle="bold"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/due"
+                        android:textColor="@color/black"
+                        android:textSize="24dp" />
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_weight="1"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/youhui_tv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="￥1000"
+                        android:textColor="@color/black"
+                        android:textSize="33dp"
+                        android:textStyle="bold"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/discount"
+                        android:textColor="@color/black"
+                        android:textSize="24dp" />
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_weight="1"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/yishou_tv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="￥1000"
+                        android:textColor="@color/black"
+                        android:textSize="33dp"
+                        android:textStyle="bold"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/paid"
+                        android:textColor="@color/black"
+                        android:textSize="24dp" />
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_weight="1"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/shijishou_tv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="￥1000"
+                        android:textColor="#FFEF4444"
+                        android:textSize="33dp"
+                        android:textStyle="bold"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/received"
+                        android:textColor="@color/black"
+                        android:textSize="24dp" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_marginTop="20dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <LinearLayout
+                    android:layout_marginRight="20dp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_weight="1">
+                    <LinearLayout
+                        android:layout_marginBottom="10dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        android:background="@drawable/gray_line1">
                         <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="26dp"
+                            android:layout_width="100dp"
+                            android:layout_height="match_parent"
+                            android:text="@string/payment"
+                            android:textSize="20dp"
                             android:textColor="@color/black"
-                            android:text="会员卡号:"/>
-                        <TextView
-                            android:layout_marginStart="10dp"
-                            android:id="@+id/huiyuankahao_tv"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="26dp"
-                            android:textColor="@color/mr_red_000"
-                            android:text=""/>
-                        <TextView
-                            android:layout_marginStart="30dp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="26dp"
+                            android:gravity="center"/>
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:background="#FFD4D8E2"/>
+                        <com.uhm.uhmcs.view.CustomInputTextView
+                            android:id="@+id/shoukuan_tv"
+                            android:hint="@string/enter_payment_amount"
+                            android:paddingLeft="20dp"
+                            android:gravity="center_vertical"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:textColor="@color/black"
-                            android:text="卡内余额:"/>
+                            android:textSize="20dp"
+                            android:text=""
+                            android:textColorHint="@color/mr_gray_80"/>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_marginBottom="10dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        android:background="@drawable/gray_line1">
                         <TextView
-                            android:layout_marginStart="10dp"
-                            android:id="@+id/huiyuanyue_tv"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="26dp"
-                            android:textColor="@color/mr_red_000"
-                            android:text=""/>
+                            android:layout_width="100dp"
+                            android:layout_height="match_parent"
+                            android:text="@string/change"
+                            android:textSize="20dp"
+                            android:textColor="@color/black"
+                            android:gravity="center"/>
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:background="#FFD4D8E2"/>
+                        <TextView
+                            android:id="@+id/zhaolin_tv"
+                            android:hint=""
+                            android:paddingLeft="20dp"
+                            android:gravity="center_vertical"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:textColor="@color/black"
+                            android:textSize="20dp"
+                            android:text="0"
+                            android:textColorHint="@color/mr_gray_80"/>
                     </LinearLayout>
                     <TextView
-                        android:id="@+id/huiyuanchaxun_btn"
+                        android:visibility="gone"
+                        android:id="@+id/qufen_btn"
                         android:layout_marginTop="20dp"
                         android:layout_width="200dp"
-                        android:layout_height="80dp"
-                        android:text="会员查询"
+                        android:layout_height="70dp"
+                        android:text="去分"
                         android:textColor="@color/white"
-                        android:textSize="30dp"
+                        android:textSize="26dp"
                         android:gravity="center"
-                        android:background="@drawable/blue_bg4" />
+                        android:background="@drawable/home_blue_bg1" />
+                    <LinearLayout
+                        android:visibility="gone"
+                        android:id="@+id/huiyuan_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <LinearLayout
+                            android:layout_marginTop="20dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="22dp"
+                                android:textColor="@color/black"
+                                android:text="会员卡号:"/>
+                            <TextView
+                                android:layout_marginStart="10dp"
+                                android:id="@+id/huiyuankahao_tv"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="22dp"
+                                android:textColor="#FF1359FE"
+                                android:text=""/>
+
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_marginTop="20dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="22dp"
+                                android:textColor="@color/black"
+                                android:text="卡内余额:"/>
+                            <TextView
+                                android:layout_marginStart="10dp"
+                                android:id="@+id/huiyuanyue_tv"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="22dp"
+                                android:textColor="#FF1359FE"
+                                android:text=""/>
+                        </LinearLayout>
+                        <TextView
+                            android:id="@+id/huiyuanchaxun_btn"
+                            android:layout_marginTop="20dp"
+                            android:layout_width="200dp"
+                            android:layout_height="70dp"
+                            android:text="会员查询"
+                            android:textColor="@color/white"
+                            android:textSize="26dp"
+                            android:gravity="center"
+                            android:background="@drawable/home_blue_bg1" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_weight="1">
-                <include layout="@layout/discount_keyboard"/>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_weight="1">
+                    <include layout="@layout/discount_keyboard"/>
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 

@@ -2,117 +2,122 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/rlMainArea">
+    android:id="@+id/rlMainArea"
+    android:background="#FFE8EAF0">
+
+
+
 
     <LinearLayout
         android:id="@+id/llLoginArea"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/pos_drawable_rect_round_gray_01"
-        android:elevation="10dp"
-        android:paddingLeft="30dp"
-        android:paddingRight="30dp"
-        android:layout_margin="120dp">
+        android:layout_height="match_parent">
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:paddingTop="20dp"
-            android:paddingBottom="20dp"
-            android:paddingLeft="20dp"
+            android:layout_weight="1"
             android:gravity="center"
-            android:paddingRight="40dp"
             android:orientation="vertical">
-            <ImageView
-                android:layout_width="240dp"
-                android:layout_height="80dp"
-                android:scaleType="fitCenter"
-                android:src="@mipmap/pos_ui_logo_01"/>
             <LinearLayout
+                android:layout_margin="40dp"
+                android:gravity="center_horizontal"
+                android:background="@drawable/white_bg1"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:gravity="center">
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:layout_width="70dp"
-                    android:layout_height="50dp"
-                    android:padding="10dp"
-                    android:src="@mipmap/pos_ui_login_user_bg_01"
-                    android:background="@drawable/pos_drawable_login_button_03"/>
-                <androidx.appcompat.widget.AppCompatEditText
-                    android:id="@+id/etUserName"
-                    android:text=""
-                    style="@style/EditTextUnderlineColor"
+                android:layout_height="716dp"
+                android:orientation="vertical">
+                <ImageView
+                    android:layout_marginTop="139dp"
+                    android:layout_width="270dp"
+                    android:layout_height="80dp"
+                    android:scaleType="fitCenter"
+                    android:src="@mipmap/pos_ui_logo_01"/>
+                <LinearLayout
+                    android:layout_marginStart="130dp"
+                    android:layout_marginEnd="130dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:focusable="true"
-                    android:importantForAutofill="yes"
-                    android:imeOptions="actionNext"
-                    android:inputType="number"
-                    android:paddingLeft="15dp"
-                    android:paddingRight="15dp"
-                    android:textColor="@color/black"
-                    android:textSize="30sp"
-                    android:hint="@string/usr"
-                    android:textColorHint="@color/black"/>
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:gravity="center">
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:layout_width="70dp"
-                    android:layout_height="50dp"
-                    android:src="@mipmap/pos_ui_login_pwd_bg_01"
-                    android:padding="10dp"
-                    android:background="@drawable/pos_drawable_login_button_03"/>
-                <androidx.appcompat.widget.AppCompatEditText
-                    android:text=""
-                    android:id="@+id/etUserPwd"
-                    style="@style/EditTextUnderlineColor"
+                    android:layout_marginTop="60dp"
+                    android:gravity="center">
+
+                    <androidx.appcompat.widget.AppCompatEditText
+                        android:gravity="center_vertical"
+                        android:drawableStart="@drawable/zhanghao_iv"
+                        android:id="@+id/etUserName"
+                        android:text=""
+                        android:drawablePadding="20dp"
+                        style="@style/EditTextUnderlineColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp"
+                        android:focusable="true"
+                        android:importantForAutofill="yes"
+                        android:imeOptions="actionNext"
+                        android:inputType="number"
+                        android:textColor="@color/black"
+                        android:textSize="25dp"
+                        android:hint="@string/usr"
+                        android:textColorHint="@color/black"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_marginStart="130dp"
+                    android:layout_marginEnd="130dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:focusable="true"
-                    android:importantForAutofill="yes"
-                    android:imeOptions="actionNext"
-                    android:inputType="numberPassword"
-                    android:paddingLeft="15dp"
-                    android:paddingRight="15dp"
+                    android:gravity="center">
+
+                    <androidx.appcompat.widget.AppCompatEditText
+                        android:drawableStart="@drawable/mima_iv"
+                        android:drawablePadding="20dp"
+                        android:text=""
+                        android:id="@+id/etUserPwd"
+                        style="@style/EditTextUnderlineColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp"
+                        android:focusable="true"
+                        android:importantForAutofill="yes"
+                        android:imeOptions="actionNext"
+                        android:inputType="numberPassword"
+                        android:textSize="25dp"
+                        android:hint="@string/pwd"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black"/>
+                </LinearLayout>
+                <androidx.appcompat.widget.AppCompatButton
+                    android:layout_marginStart="110dp"
+                    android:layout_marginEnd="110dp"
+                    android:id="@+id/btnLogin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/black_bg"
+                    android:textColorHighlight="@color/posLoginButtonTextColor02"
+                    android:textStyle="bold"
                     android:textSize="30sp"
-                    android:hint="@string/pwd"
-                    android:textColor="@color/black"
-                    android:textColorHint="@color/black"/>
+                    android:stateListAnimator="@null"
+                    android:textColor="@color/white"
+                    android:padding="15dp"
+                    android:gravity="center"
+                    android:layout_marginTop="70dp"
+                    android:layout_marginBottom="80dp"
+                    android:text="@string/login"/>
             </LinearLayout>
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnLogin"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/pos_drawable_login_button_change_color_01"
-                android:textColorHighlight="@color/posLoginButtonTextColor02"
-                android:textStyle="bold"
-                android:textSize="30sp"
-                android:stateListAnimator="@null"
-                android:textColor="@color/posLoginButtonTextColor03"
-                android:padding="15dp"
-                android:gravity="center"
-                android:layout_marginTop="20dp"
-                android:text="@string/login"/>
         </LinearLayout>
 
         <LinearLayout
+            android:gravity="center"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1.8"
+            android:background="@color/white"
+            android:layout_weight="1"
             android:orientation="vertical"
-            android:paddingLeft="15dp"
-            android:paddingTop="75dp"
-            android:paddingRight="15dp"
-            android:paddingBottom="75dp">
+            android:paddingLeft="66dp"
+            android:paddingRight="66dp">
 
-            <include layout="@layout/pos_ui_component_keyboard" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="716dp"
+                android:orientation="vertical">
+                <include layout="@layout/pos_ui_component_keyboard" />
+            </LinearLayout>
         </LinearLayout>
-
     </LinearLayout>
 
 </RelativeLayout>

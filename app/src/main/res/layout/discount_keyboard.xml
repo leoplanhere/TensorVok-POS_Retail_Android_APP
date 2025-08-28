@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -10,11 +11,13 @@
         android:layout_weight="3"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+
         <LinearLayout
             android:tag="l"
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:orientation="horizontal">
+
             <TextView
                 android:id="@+id/btn_7"
                 android:layout_marginRight="@dimen/dp_10"
@@ -24,9 +27,10 @@
                 android:tag="7"
                 android:text="7"
                 android:gravity="center"
-                android:background="@drawable/rounded_border"
+                android:background="@drawable/num_btn_bg1"
                 android:textSize="20dp"
-                android:textColor="@color/black"/>
+                android:textColor="#FF3B82F6" />
+
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
@@ -35,9 +39,10 @@
                 android:tag="8"
                 android:text="8"
                 android:gravity="center"
-                android:background="@drawable/rounded_border"
+                android:background="@drawable/num_btn_bg1"
                 android:textSize="20dp"
-                android:textColor="@color/black"/>
+                android:textColor="#FF3B82F6" />
+
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
@@ -46,15 +51,17 @@
                 android:tag="9"
                 android:text="9"
                 android:gravity="center"
-                android:background="@drawable/rounded_border"
+                android:background="@drawable/num_btn_bg1"
                 android:textSize="20dp"
-                android:textColor="@color/black"/>
+                android:textColor="#FF3B82F6" />
         </LinearLayout>
+
         <LinearLayout
             android:layout_marginTop="10dp"
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:orientation="horizontal">
+
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
@@ -63,9 +70,10 @@
                 android:tag="4"
                 android:text="4"
                 android:gravity="center"
-                android:background="@drawable/rounded_border"
+                android:background="@drawable/num_btn_bg1"
                 android:textSize="20dp"
-                android:textColor="@color/black"/>
+                android:textColor="#FF3B82F6" />
+
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
@@ -74,9 +82,10 @@
                 android:tag="5"
                 android:text="5"
                 android:gravity="center"
-                android:background="@drawable/rounded_border"
+                android:background="@drawable/num_btn_bg1"
                 android:textSize="20dp"
-                android:textColor="@color/black"/>
+                android:textColor="#FF3B82F6" />
+
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
@@ -85,15 +94,17 @@
                 android:tag="6"
                 android:text="6"
                 android:gravity="center"
-                android:background="@drawable/rounded_border"
+                android:background="@drawable/num_btn_bg1"
                 android:textSize="20dp"
-                android:textColor="@color/black"/>
+                android:textColor="#FF3B82F6" />
         </LinearLayout>
+
         <LinearLayout
             android:layout_marginTop="10dp"
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:orientation="horizontal">
+
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
@@ -102,9 +113,10 @@
                 android:tag="1"
                 android:text="1"
                 android:gravity="center"
-                android:background="@drawable/rounded_border"
+                android:background="@drawable/num_btn_bg1"
                 android:textSize="20dp"
-                android:textColor="@color/black"/>
+                android:textColor="#FF3B82F6" />
+
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
@@ -113,9 +125,10 @@
                 android:tag="2"
                 android:text="2"
                 android:gravity="center"
-                android:background="@drawable/rounded_border"
+                android:background="@drawable/num_btn_bg1"
                 android:textSize="20dp"
-                android:textColor="@color/black"/>
+                android:textColor="#FF3B82F6" />
+
             <TextView
                 android:layout_marginRight="10dp"
                 android:layout_width="0dp"
@@ -124,16 +137,18 @@
                 android:tag="3"
                 android:text="3"
                 android:gravity="center"
-                android:background="@drawable/rounded_border"
+                android:background="@drawable/num_btn_bg1"
                 android:textSize="20dp"
-                android:textColor="@color/black"/>
+                android:textColor="#FF3B82F6" />
 
         </LinearLayout>
+
         <LinearLayout
             android:layout_marginTop="10dp"
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:orientation="horizontal">
+
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
@@ -142,9 +157,10 @@
                 android:tag="0"
                 android:text="0"
                 android:gravity="center"
-                android:background="@drawable/rounded_border"
+                android:background="@drawable/num_btn_bg1"
                 android:textSize="20dp"
-                android:textColor="@color/black"/>
+                android:textColor="#FF3B82F6" />
+
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
@@ -153,9 +169,10 @@
                 android:tag="."
                 android:text="."
                 android:gravity="center"
-                android:background="@drawable/rounded_border"
+                android:background="@drawable/num_btn_bg1"
                 android:textSize="20dp"
-                android:textColor="@color/black"/>
+                android:textColor="#FF3B82F6" />
+
             <TextView
                 android:layout_marginRight="10dp"
                 android:layout_width="0dp"
@@ -164,9 +181,9 @@
                 android:tag="-"
                 android:text="-"
                 android:gravity="center"
-                android:background="@drawable/rounded_border"
+                android:background="@drawable/num_btn_bg1"
                 android:textSize="20dp"
-                android:textColor="@color/black"/>
+                android:textColor="#FF3B82F6" />
 
         </LinearLayout>
     </LinearLayout>
@@ -176,15 +193,16 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:orientation="vertical">
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:tag="d"
             android:text="@string/delete"
             android:gravity="center"
-            android:background="@drawable/rounded_border"
+            android:background="@drawable/num_btn_bg1"
             android:textSize="20dp"
-            android:textColor="@color/black"/>
+            android:textColor="#FF3B82F6" />
         <TextView
             android:layout_marginTop="10dp"
             android:layout_width="match_parent"
@@ -192,9 +210,9 @@
             android:tag="c"
             android:text="@string/clear"
             android:gravity="center"
-            android:background="@drawable/rounded_border"
+            android:background="@drawable/num_btn_bg3"
             android:textSize="20dp"
-            android:textColor="@color/black"/>
+            android:textColor="#FFD9001B" />
         <TextView
             android:layout_marginTop="10dp"
             android:layout_width="match_parent"
@@ -205,7 +223,7 @@
             android:textSize="20dp"
             android:tag="submit"
             android:text="@string/confirm"
-            android:background="@drawable/rounded_border1"/>
+            android:background="@drawable/num_btn_bg2"/>
     </LinearLayout>
 
 

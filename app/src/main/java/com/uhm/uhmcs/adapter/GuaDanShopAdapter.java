@@ -27,9 +27,16 @@ public class GuaDanShopAdapter extends BaseQuickAdapter<GrouponGoodsBean.Groupon
 //            helper.setBackgroundRes(R.id.item_shop_type_view,R.drawable.menu_bg);
 //        }
         helper.setText(R.id.shop_name,(item.getTitle()));
-        helper.setText(R.id.shop_num,item.getShuliang()+"");
+
         helper.setText(R.id.shop_pice,item.getPrice());
         helper.setText(R.id.shop_heji,item.getHeji().toString());
+        if (!item.getOnline_type().equals("weight")){
+
+            helper.setText(R.id.shop_num,item.getShuliang()+"");
+        }else {
+
+            helper.setText(R.id.shop_num,item.getGoods_weight()+"g");
+        }
 
 
 

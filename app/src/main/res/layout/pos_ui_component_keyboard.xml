@@ -21,8 +21,8 @@
             android:textSize="@dimen/pos_key_button_font_size_01"
             android:textColor="@color/black"
             android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/num_btn_bg"
             android:stateListAnimator="@null"
             android:tag="1"
             android:text="1" />
@@ -36,8 +36,8 @@
             android:layout_weight="1"
             android:textSize="@dimen/pos_key_button_font_size_01"
             android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/num_btn_bg"
             android:tag="2"
             android:text="2" />
         <androidx.appcompat.widget.AppCompatButton
@@ -46,7 +46,7 @@
             android:id="@+id/btnNum_03"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
+            android:background="@drawable/num_btn_bg"
             android:layout_weight="1"
             android:textStyle="bold"
             android:textColor="@color/black"
@@ -57,8 +57,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
         android:layout_weight="1">
         <androidx.appcompat.widget.AppCompatButton
             android:stateListAnimator="@null"
@@ -69,9 +69,9 @@
             android:textSize="@dimen/pos_key_button_font_size_01"
             android:textColor="@color/black"
             android:textStyle="bold"
-            android:layout_marginRight="5dp"
+            android:layout_marginRight="10dp"
             android:gravity="center"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
+            android:background="@drawable/num_btn_bg"
             android:tag="4"
             android:text="4"
             tools:ignore="NestedWeights" />
@@ -85,8 +85,8 @@
             android:textColor="@color/black"
             android:textSize="@dimen/pos_key_button_font_size_01"
             android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/num_btn_bg"
             android:tag="5"
             android:text="5" />
         <androidx.appcompat.widget.AppCompatButton
@@ -96,7 +96,7 @@
             android:gravity="center"
             android:layout_height="match_parent"
             android:textColor="@color/black"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
+            android:background="@drawable/num_btn_bg"
             android:layout_weight="1"
             android:textStyle="bold"
             android:textSize="@dimen/pos_key_button_font_size_01"
@@ -106,7 +106,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="12dp"
         android:layout_weight="1">
         <androidx.appcompat.widget.AppCompatButton
             android:stateListAnimator="@null"
@@ -118,8 +118,8 @@
             android:layout_weight="1"
             android:textSize="@dimen/pos_key_button_font_size_01"
             android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/num_btn_bg"
             android:tag="7"
             android:text="7"
             tools:ignore="NestedWeights" />
@@ -134,8 +134,8 @@
             android:layout_weight="1"
             android:textSize="@dimen/pos_key_button_font_size_01"
             android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/num_btn_bg"
             android:tag="8"
             android:text="8" />
         <androidx.appcompat.widget.AppCompatButton
@@ -145,7 +145,7 @@
             android:layout_width="0dp"
             android:gravity="center"
             android:layout_height="match_parent"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
+            android:background="@drawable/num_btn_bg"
             android:layout_weight="1"
             android:textSize="@dimen/pos_key_button_font_size_01"
             android:textStyle="bold"
@@ -166,8 +166,8 @@
             android:layout_weight="1"
             android:textSize="@dimen/pos_key_button_font_size_01"
             android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/num_btn_bg"
             android:tag="0"
             android:text="0"
             tools:ignore="NestedWeights" />
@@ -175,14 +175,14 @@
             android:stateListAnimator="@null"
             android:id="@+id/btnNum_C"
             android:layout_width="0dp"
-            android:textColor="@color/black"
+            android:textColor="#FFFF2619"
             android:gravity="center"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:textSize="@dimen/pos_key_button_font_size_01"
             android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/num_btn_bg"
             android:tag="c"
             android:text="@string/clear" />
         <androidx.appcompat.widget.AppCompatButton
@@ -192,7 +192,7 @@
             android:textColor="@color/black"
             android:gravity="center"
             android:layout_height="match_parent"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
+            android:background="@drawable/num_btn_bg"
             android:layout_weight="1"
             android:textStyle="bold"
             android:textSize="@dimen/pos_key_button_font_size_01"

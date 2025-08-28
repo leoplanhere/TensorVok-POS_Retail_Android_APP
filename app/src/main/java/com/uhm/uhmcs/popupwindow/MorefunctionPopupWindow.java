@@ -2,6 +2,7 @@ package com.uhm.uhmcs.popupwindow;
 
 import static android.view.View.GONE;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
@@ -14,10 +15,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.activity.MainActivity;
 import com.uhm.uhmcs.utils.UserUtils;
@@ -38,9 +41,10 @@ public class MorefunctionPopupWindow {
 
 
     private Animation animation;
+    @SuppressLint({"StringFormatInvalid", "UseCompatLoadingForDrawables"})
     private void initPopup() {
         animation = AnimationUtils.loadAnimation(context, R.anim.scale_click);
-        View popupView = LayoutInflater.from(context).inflate(R.layout.popupwindow_more_function, null);
+        @SuppressLint("InflateParams") View popupView = LayoutInflater.from(context).inflate(R.layout.popupwindow_more_function, null);
         popupWindow = new PopupWindow(
                 popupView,
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -109,9 +113,12 @@ public class MorefunctionPopupWindow {
             morefunctionOnClickListener.onClick(9);
             popupWindow.dismiss();
         });
-        TextView textView=popupView.findViewById(R.id.dazhekaiguan_btn);
+        TextView textView=popupView.findViewById(R.id.dazhekaiguan_tv);
         textView.setText(!UserUtils.getInstance().isDazhe()?context.getString(R.string.discount_toggle,context.getString(R.string.off)):context.getString(R.string.discount_toggle,context.getString(R.string.on)));
-        textView.setOnClickListener(v -> {
+
+        ImageView imageView=popupView.findViewById(R.id.dazhekaiguan_iv);
+        imageView.setImageDrawable(context.getDrawable(!UserUtils.getInstance().isDazhe()?R.drawable.kaiguan_iv:R.drawable.kaiguan_iv1));
+        popupView.findViewById(R.id.dazhekaiguan_btn).setOnClickListener(v -> {
             v.startAnimation(animation);
             morefunctionOnClickListener.onClick(10);
             popupWindow.dismiss();

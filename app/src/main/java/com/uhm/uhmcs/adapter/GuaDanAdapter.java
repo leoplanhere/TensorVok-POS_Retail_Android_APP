@@ -41,9 +41,11 @@ public class GuaDanAdapter extends BaseQuickAdapter<RegistrationShopBean, BaseVi
         helper.setText(R.id.guadan_jine,item.getTotal_price().toString());
 
         if (helper.getLayoutPosition()==index){
-            helper.setBackgroundColor(R.id.all_view,Color.parseColor("#65755a"));
+            helper.setBackgroundRes(R.id.all_view,R.drawable.blue_line2);
+            helper.setGone(R.id.line_view,false);
         }else {
             helper.getView(R.id.all_view).setBackgroundColor(Color.TRANSPARENT);
+            helper.setVisible(R.id.line_view,true);
         }
 
 

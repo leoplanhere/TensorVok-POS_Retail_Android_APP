@@ -42,8 +42,8 @@
            android:layout_height="wrap_content"
            android:orientation="horizontal">
            <ImageView
-               android:layout_width="30dp"
-               android:layout_height="30dp"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
                android:src="@drawable/tishi"/>
            <TextView
                android:id="@+id/hint_tv"
@@ -66,9 +66,9 @@
            android:textSize="25dp"
            android:gravity="center_vertical"
            android:layout_marginTop="20dp"
-           android:background="@drawable/rounded_border"
+           android:background="@drawable/gray_line"
            android:layout_width="match_parent"
-           android:layout_height="50dp"
+           android:layout_height="60dp"
            android:text=""
            android:hint="@string/pwd1"
            android:textColorHint="@color/black"
@@ -85,7 +85,7 @@
                android:layout_width="0dp"
                android:layout_height="match_parent"
                android:layout_weight="1"
-               android:background="@drawable/black_line"
+               android:background="@drawable/black_line1"
                android:text="@string/cancel"
                android:gravity="center"
                android:textSize="30dp"
@@ -97,7 +97,7 @@
                android:layout_width="0dp"
                android:layout_height="match_parent"
                android:layout_weight="1"
-               android:background="@drawable/blue_bg1"
+               android:background="@drawable/home_blue_bg1"
                android:text="@string/confirm"
                android:gravity="center"
                android:textSize="30dp"

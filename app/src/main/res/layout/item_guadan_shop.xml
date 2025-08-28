@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
     <LinearLayout
+        android:layout_marginTop="25dp"
         android:gravity="center"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -49,8 +50,8 @@
 
     </LinearLayout>
     <View
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="25dp"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#ebeef5"/>
+        android:background="#FFD4D8E2"/>
 </LinearLayout>

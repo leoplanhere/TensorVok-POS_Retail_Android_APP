@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.CountDownTimer;
@@ -170,8 +171,10 @@ public class CheckoutPopupWindow {
                 return;
             }
             isyouhuijuan = true;
-            shiyong_btn.setBackgroundResource(R.drawable.blue_bg3);
-            bushiyong_btn.setBackgroundResource(R.drawable.blue_bg2);
+            shiyong_btn.setBackgroundResource(R.drawable.blue_bg5);
+            shiyong_btn.setTextColor(Color.parseColor("#FFFFFFFF"));
+            bushiyong_btn.setBackgroundResource(R.drawable.blue_line);
+            bushiyong_btn.setTextColor(Color.parseColor("#FF3B82F6"));
             youhui_tv.setText("￥" + new BigDecimal(checkoutBean.getDiscount_fee()).add(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
             checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
             shijishou_tv.setText("￥" + checkoutBean.getTotal_fee());
@@ -196,8 +199,10 @@ public class CheckoutPopupWindow {
             if (!isyouhuijuan) {
                 return;
             }
-            bushiyong_btn.setBackgroundResource(R.drawable.blue_bg3);
-            shiyong_btn.setBackgroundResource(R.drawable.blue_bg2);
+            bushiyong_btn.setBackgroundResource(R.drawable.blue_bg5);
+            bushiyong_btn.setTextColor(Color.parseColor("#FFFFFFFF"));
+            shiyong_btn.setBackgroundResource(R.drawable.blue_line);
+            shiyong_btn.setTextColor(Color.parseColor("#FF3B82F6"));
             isyouhuijuan = false;
             youhui_tv.setText("￥" + checkoutBean.getDiscount_fee());
             checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).add(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
@@ -367,10 +372,11 @@ public class CheckoutPopupWindow {
 //                return;
 //            }
             huiyuan_view.setVisibility(GONE);
-            weixin_btn.setBackgroundResource(R.drawable.blue_bg3);
-            xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
-            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
-            huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
+
+            cleadView();
+            weixin_btn.setBackgroundResource(R.drawable.blue_bg8);
+            weixin_btn.setTextColor(Color.parseColor("#FF3B82F6"));
+
             pay_type = "wechat";
             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
             zhaolin_tv.setText("0.00");
@@ -380,10 +386,9 @@ public class CheckoutPopupWindow {
         xianjin_btn.setOnClickListener(v -> {
 
             huiyuan_view.setVisibility(GONE);
-            xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
-            weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
-            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
-            huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
+            cleadView();
+            xianjin_btn.setBackgroundResource(R.drawable.blue_bg8);
+            xianjin_btn.setTextColor(Color.parseColor("#FF3B82F6"));
             pay_type = "cash";
             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
             zhaolin_tv.setText("0.00");
@@ -399,10 +404,9 @@ public class CheckoutPopupWindow {
 //                return;
 //            }
             huiyuan_view.setVisibility(GONE);
-            xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
-            weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
-            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg3);
-            huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
+            cleadView();
+            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg8);
+            zhifubao_btn.setTextColor(Color.parseColor("#FF3B82F6"));
             pay_type = "alipay";
             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
             zhaolin_tv.setText("0.00");
@@ -417,10 +421,9 @@ public class CheckoutPopupWindow {
             huiyuankahao_tv.setText("");
             huiyuanyue_tv.setText("");
             clubCardData = null;
-            xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
-            weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
-            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
-            huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg3);
+            cleadView();
+            huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg8);
+            huiyuanka_btn.setTextColor(Color.parseColor("#FF3B82F6"));
             pay_type = "wallet";
             shoukuan_tv.setText(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
             zhaolin_tv.setText("0.00");
@@ -492,25 +495,36 @@ public class CheckoutPopupWindow {
         View rootView = ((Activity) context).getWindow().getDecorView();
         popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
         pay_type = checkoutBean.getPay_type();
+        cleadView();
         if (pay_type.equals("cash")) {
-            xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
-            weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
-            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
-            huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
+            xianjin_btn.setBackgroundResource(R.drawable.blue_bg8);
+            xianjin_btn.setTextColor(Color.parseColor("#FF3B82F6"));
+
             pay_type = "cash";
             shoukuan_tv.setText(checkoutBean.getTotal_fee() + "");
             qufen_btn.setVisibility(VISIBLE);
         } else {
-            weixin_btn.setBackgroundResource(R.drawable.blue_bg3);
-            xianjin_btn.setBackgroundResource(R.drawable.blue_bg2);
-            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
-            huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
+            weixin_btn.setBackgroundResource(R.drawable.blue_bg8);
+            weixin_btn.setTextColor(Color.parseColor("#FF3B82F6"));
             pay_type = "wechat";
             shoukuan_tv.setText(checkoutBean.getTotal_fee() + "");
             qufen_btn.setVisibility(GONE);
 
 
         }
+    }
+
+
+    public void cleadView(){
+        weixin_btn.setBackgroundResource(R.drawable.gray_line1);
+        xianjin_btn.setBackgroundResource(R.drawable.gray_line1);
+        zhifubao_btn.setBackgroundResource(R.drawable.gray_line1);
+        huiyuanka_btn.setBackgroundResource(R.drawable.gray_line1);
+
+        weixin_btn.setTextColor(Color.parseColor("#FF000000"));
+        xianjin_btn.setTextColor(Color.parseColor("#FF000000"));
+        zhifubao_btn.setTextColor(Color.parseColor("#FF000000"));
+        huiyuanka_btn.setTextColor(Color.parseColor("#FF000000"));
     }
 
     public void dismiss() {
@@ -809,10 +823,12 @@ public class CheckoutPopupWindow {
                                             } else {
                                                 new DeleteShopPopupWindow(context, context.getString(R.string.Payment_succeeded), true).show();
                                                 deleteShopPopupWindow.dismiss();
-                                                xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
-                                                weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
-                                                zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
-                                                huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
+
+
+                                                cleadView();
+                                                xianjin_btn.setBackgroundResource(R.drawable.blue_bg8);
+                                                xianjin_btn.setTextColor(Color.parseColor("#FF3B82F6"));
+
                                                 pay_type = "cash";
                                                 huiyuan_view.setVisibility(GONE);
                                                 MyPresentation.setDaizhifu_tv(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());
@@ -1257,10 +1273,10 @@ public class CheckoutPopupWindow {
                                         } else {
                                             new DeleteShopPopupWindow(context, context.getString(R.string.Payment_succeeded), true).show();
                                             deleteShopPopupWindow.dismiss();
-                                            xianjin_btn.setBackgroundResource(R.drawable.blue_bg3);
-                                            weixin_btn.setBackgroundResource(R.drawable.blue_bg2);
-                                            zhifubao_btn.setBackgroundResource(R.drawable.blue_bg2);
-                                            huiyuanka_btn.setBackgroundResource(R.drawable.blue_bg2);
+
+                                            cleadView();
+                                            xianjin_btn.setBackgroundResource(R.drawable.blue_bg8);
+                                            xianjin_btn.setTextColor(Color.parseColor("#FF3B82F6"));
                                             pay_type = "cash";
                                             huiyuan_view.setVisibility(GONE);
                                             MyPresentation.setDaizhifu_tv(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)).toString());

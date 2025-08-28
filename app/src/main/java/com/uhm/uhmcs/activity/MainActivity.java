@@ -471,22 +471,41 @@ public class MainActivity extends Activity {
 
                             zongjia = zongjia.subtract(grouponGoodsModel.getHeji());
                             Log.i("ttt", ">>>>>>" + zongjia);
+                            if (grouponGoodsModel.getOnline_type().equals("weight")){
 
-                            BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
 
-                            BigDecimal zhehoujia = yuanjia.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
+                                BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
+                                BigDecimal zhehoujia = price.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
 
-                            grouponGoodsModel.setDiscounted_price(yuanjia.subtract(zhehoujia));
 
-                            grouponGoodsModel.setHeji(zhehoujia);
+                                BigDecimal heji = zhehoujia.divide(new BigDecimal(500)).multiply(new BigDecimal(grouponGoodsModel.getGoods_weight())).setScale(2, RoundingMode.DOWN);
 
-                            zongjia = zongjia.add(zhehoujia);
-                            Log.i("ttt", ">>sss>>>>" + zongjia);
-                            tv_zongjia.setText(zongjia + "");
-                            selectedShopAdapter.notifyItemChanged(selectedShopIndex);
-                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                            MyPresentation.setZongjia(zongjia.toString());
-                            availableAmount();
+                                grouponGoodsModel.setHeji(heji);
+                                grouponGoodsModel.setDiscounted_price(price.subtract(zhehoujia).divide(new BigDecimal(500)).multiply(new BigDecimal(grouponGoodsModel.getGoods_weight())).setScale(2, RoundingMode.DOWN));
+                                zongjia = zongjia.add(heji);
+                                tv_zongjia.setText(zongjia + "");
+                                selectedShopAdapter.notifyItemChanged(selectedShopIndex);
+                                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
+                                MyPresentation.setZongjia(zongjia.toString());
+                                availableAmount();
+                            }else {
+                                BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
+
+                                BigDecimal zhehoujia = yuanjia.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
+
+                                grouponGoodsModel.setDiscounted_price(yuanjia.subtract(zhehoujia));
+
+                                grouponGoodsModel.setHeji(zhehoujia);
+
+                                zongjia = zongjia.add(zhehoujia);
+                                Log.i("ttt", ">>sss>>>>" + zongjia);
+                                tv_zongjia.setText(zongjia + "");
+                                selectedShopAdapter.notifyItemChanged(selectedShopIndex);
+                                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
+                                MyPresentation.setZongjia(zongjia.toString());
+                                availableAmount();
+                            }
+
 
                         }
                     }).show();
@@ -517,12 +536,13 @@ public class MainActivity extends Activity {
                                 grouponGoodsModel.setHeji(zhehoujia);
 
                                 zongjia = zongjia.add(zhehoujia);
-                                tv_zongjia.setText(zongjia + "");
-                                selectedShopAdapter.notifyDataSetChanged();
-                                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                                MyPresentation.setZongjia(zongjia.toString());
-                                availableAmount();
+
                             }
+                            tv_zongjia.setText(zongjia + "");
+                            selectedShopAdapter.notifyDataSetChanged();
+                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
+                            MyPresentation.setZongjia(zongjia.toString());
+                            availableAmount();
 
                         }
                     }).show();
@@ -842,7 +862,7 @@ public class MainActivity extends Activity {
                                  * 打折开关
                                  */
                                 case 10:
-                                    new DeleteShopPopupWindow(true, MainActivity.this, UserUtils.getInstance().isDazhe() ? getString(R.string.discounts_hint, getString(R.string.off)) : getString(R.string.discounts_hint, getString(R.string.on)), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
+                                    new DeleteShopPopupWindow( MainActivity.this, UserUtils.getInstance().isDazhe() ? getString(R.string.discounts_hint, getString(R.string.off)) : getString(R.string.discounts_hint, getString(R.string.on)), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
                                         @Override
                                         public void onClick(String text) {
                                             UserUtils.getInstance().setDazhe(MainActivity.this, !UserUtils.getInstance().isDazhe());
@@ -1334,6 +1354,12 @@ public class MainActivity extends Activity {
         selectedShopAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+                for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopAdapter.getData()) {
+                    grouponGoodsModel.setSelected(false);
+                }
+                selectedShopAdapter.getData().get(position).setSelected(true);
+                selectedShopIndex = position;
+                selectedShopAdapter.notifyDataSetChanged();
                 int id = view.getId();
                 GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = selectedShopAdapter.getData().get(position);
                 if (id == R.id.shuliang_jian) {
@@ -1377,6 +1403,7 @@ public class MainActivity extends Activity {
                                 if (selectedShopAdapter.getItemCount() > 0) {
                                     availableAmount();
                                 }
+                                selectedShopIndex = null;
 
                             }
                         });

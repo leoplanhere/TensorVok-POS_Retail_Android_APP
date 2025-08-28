@@ -43,9 +43,9 @@
            android:layout_height="wrap_content"
            android:orientation="horizontal">
            <ImageView
-               android:layout_width="30dp"
-               android:layout_height="30dp"
-               android:src="@mipmap/tishi"/>
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:src="@drawable/tishi"/>
            <TextView
                android:id="@+id/hint_tv"
                android:layout_width="wrap_content"
@@ -64,10 +64,10 @@
            android:textSize="20dp"
            android:gravity="center_vertical"
            android:paddingStart="@dimen/dp_10"
-           android:layout_height="50dp"
+           android:layout_height="60dp"
            android:textColor="@color/black"
            android:text=""
-           android:background="@drawable/rounded_border"
+           android:background="@drawable/gray_line1"
            android:id="@+id/pay_code" />
 
        <TextView
@@ -80,7 +80,7 @@
            android:textColor="@color/white"
            android:text="查询会员"
            android:gravity="center"
-           android:background="@drawable/blue_bg1"/>
+           android:background="@drawable/home_blue_bg1"/>
 
 
    </LinearLayout>
