@@ -483,11 +483,7 @@ public class MainActivity extends Activity {
                                 grouponGoodsModel.setHeji(heji);
                                 grouponGoodsModel.setDiscounted_price(price.subtract(zhehoujia).divide(new BigDecimal(500)).multiply(new BigDecimal(grouponGoodsModel.getGoods_weight())).setScale(2, RoundingMode.DOWN));
                                 zongjia = zongjia.add(heji);
-                                tv_zongjia.setText(zongjia + "");
-                                selectedShopAdapter.notifyItemChanged(selectedShopIndex);
-                                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                                MyPresentation.setZongjia(zongjia.toString());
-                                availableAmount();
+
                             }else {
                                 BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
 
@@ -498,14 +494,14 @@ public class MainActivity extends Activity {
                                 grouponGoodsModel.setHeji(zhehoujia);
 
                                 zongjia = zongjia.add(zhehoujia);
-                                Log.i("ttt", ">>sss>>>>" + zongjia);
-                                tv_zongjia.setText(zongjia + "");
-                                selectedShopAdapter.notifyItemChanged(selectedShopIndex);
-                                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                                MyPresentation.setZongjia(zongjia.toString());
-                                availableAmount();
-                            }
 
+                            }
+                            Log.i("ttt", ">>sss>>>>" + zongjia);
+                            tv_zongjia.setText(zongjia + "");
+                            selectedShopAdapter.notifyItemChanged(selectedShopIndex);
+                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
+                            MyPresentation.setZongjia(zongjia.toString());
+                            availableAmount();
 
                         }
                     }).show();
@@ -527,17 +523,38 @@ public class MainActivity extends Activity {
                                 zongjia = zongjia.subtract(grouponGoodsModel.getHeji());
                                 Log.i("ttt", ">>>>>>" + zongjia);
 
-                                BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
 
-                                BigDecimal zhehoujia = yuanjia.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
 
-                                grouponGoodsModel.setDiscounted_price(yuanjia.subtract(zhehoujia));
+                                if (grouponGoodsModel.getOnline_type().equals("weight")){
 
-                                grouponGoodsModel.setHeji(zhehoujia);
 
-                                zongjia = zongjia.add(zhehoujia);
+                                    BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
+                                    BigDecimal zhehoujia = price.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
+
+
+                                    BigDecimal heji = zhehoujia.divide(new BigDecimal(500)).multiply(new BigDecimal(grouponGoodsModel.getGoods_weight())).setScale(2, RoundingMode.DOWN);
+
+                                    grouponGoodsModel.setHeji(heji);
+                                    grouponGoodsModel.setDiscounted_price(price.subtract(zhehoujia).divide(new BigDecimal(500)).multiply(new BigDecimal(grouponGoodsModel.getGoods_weight())).setScale(2, RoundingMode.DOWN));
+                                    zongjia = zongjia.add(heji);
+
+                                }else {
+                                    BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
+
+                                    BigDecimal zhehoujia = yuanjia.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
+
+                                    grouponGoodsModel.setDiscounted_price(yuanjia.subtract(zhehoujia));
+
+                                    grouponGoodsModel.setHeji(zhehoujia);
+
+                                    zongjia = zongjia.add(zhehoujia);
+
+
+                                }
+
 
                             }
+                            Log.i("ttt", ">>sss>>>>" + zongjia);
                             tv_zongjia.setText(zongjia + "");
                             selectedShopAdapter.notifyDataSetChanged();
                             MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
