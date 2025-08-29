@@ -328,6 +328,10 @@ public class MainActivity extends Activity {
                         @SuppressLint("SetTextI18n")
                         @Override
                         public void onClick(String string) {
+
+                            //删除记录
+
+
                             if (!selectedShopList.get(selectedShopIndex).isIs_zengsong()) {
                                 zongjia = zongjia.subtract(selectedShopList.get(selectedShopIndex).getHeji()).setScale(2, RoundingMode.UP);
                                 tv_zongjia.setText(zongjia + "");
@@ -354,6 +358,9 @@ public class MainActivity extends Activity {
                 if (id == R.id.qingkong_btn) {
                     if (selectedShopList.isEmpty()) {
                         return;
+                    }
+                    if (!is_jiezhang_qingkong){
+                        //清空记录
                     }
                     selectedShopList.clear();
                     selectedShopAdapter.notifyDataSetChanged();
@@ -420,6 +427,7 @@ public class MainActivity extends Activity {
                                     MyPresentation.setZongjia(zongjia.toString());
 
                                 } else if (type == 2) {//删除
+
                                     if (!registrationShopBeanArrayList.isEmpty()) {
                                         getRegistrationShopPopupWindow.setDataDelect();
                                     }
@@ -579,6 +587,7 @@ public class MainActivity extends Activity {
                                     have_paid_view.setVisibility(GONE);
                                 }
                             }, 3000);
+                            is_jiezhang_qingkong=true;
                             onClickListener.onClick(qingkong_btn);
                         }
                     });
@@ -1487,6 +1496,7 @@ public class MainActivity extends Activity {
                                         }
 
                                         DialogUIUtils.dismiss(buildBean);
+                                        is_jiezhang_qingkong=true;
                                         onClickListener.onClick(qingkong_btn);
                                         new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_succeeded), true).show();
                                         String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
@@ -1886,6 +1896,7 @@ public class MainActivity extends Activity {
             }
         });
     }
+    boolean is_jiezhang_qingkong=false;
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
@@ -2198,6 +2209,7 @@ public class MainActivity extends Activity {
 
 
                                         DialogUIUtils.dismiss(buildBean);
+                                        is_jiezhang_qingkong=true;
                                         onClickListener.onClick(qingkong_btn);
                                         new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_succeeded), true).show();
                                         String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
