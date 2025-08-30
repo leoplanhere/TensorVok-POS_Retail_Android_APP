@@ -1364,6 +1364,9 @@ public class MainActivity extends Activity {
                 selectedShopAdapter.getData().get(position).setSelected(true);
                 selectedShopIndex = position;
                 selectedShopAdapter.notifyDataSetChanged();
+                Glide.with(MainActivity.this).clear(shop_image);  // 先清空ImageView
+                Glide.with(MainActivity.this).load(selectedShopAdapter.getData().get(position).getImage()).into(shop_image);  // 再加载新图片
+
             }
         });
 
@@ -1377,6 +1380,8 @@ public class MainActivity extends Activity {
                 selectedShopAdapter.getData().get(position).setSelected(true);
                 selectedShopIndex = position;
                 selectedShopAdapter.notifyDataSetChanged();
+                Glide.with(MainActivity.this).clear(shop_image);  // 先清空ImageView
+                Glide.with(MainActivity.this).load(selectedShopAdapter.getData().get(position).getImage()).into(shop_image);  // 再加载新图片
                 int id = view.getId();
                 GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = selectedShopAdapter.getData().get(position);
                 if (id == R.id.shuliang_jian) {
