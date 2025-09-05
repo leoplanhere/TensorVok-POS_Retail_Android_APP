@@ -23,6 +23,7 @@ import com.uhm.uhmcs.adapter.ShopAdapter;
 import com.uhm.uhmcs.bean.GrouponGoodsBean;
 import com.uhm.uhmcs.bean.RegistrationShopBean;
 import com.uhm.uhmcs.utils.MyLabeksPrinterHelper;
+import com.uhm.uhmcs.utils.Utilis;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -65,6 +66,9 @@ public class PrintLabelsPopupWindow {
             popupWindow.update(x, y, -1, -1); // 更新位置
         });
         popupView.findViewById(R.id.shop_btn).setOnClickListener(v -> {
+            if (Utilis.isFastClick()){
+                return;
+            }
             new ShopPopupWindow(context, new PopupWindowOnClickListener.ShopOnClickListener() {
                 @Override
                 public void onClick(ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList) {
@@ -135,6 +139,9 @@ public class PrintLabelsPopupWindow {
             }
         });
         popupView.findViewById(R.id.print_btn).setOnClickListener(v -> {
+            if (Utilis.isFastClick()){
+                return;
+            }
             ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = shopAdapter.getData().stream()
                     .filter(GrouponGoodsBean.GrouponGoodsModel::isSelected)
                     .collect(Collectors.toCollection(ArrayList::new));

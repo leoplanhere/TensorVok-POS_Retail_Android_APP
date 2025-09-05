@@ -29,6 +29,7 @@ import com.uhm.uhmcs.adapter.ShopTypeAdapter1;
 import com.uhm.uhmcs.bean.CategoryListBean;
 import com.uhm.uhmcs.bean.GrouponGoodsBean;
 import com.uhm.uhmcs.utils.UserUtils;
+import com.uhm.uhmcs.utils.Utilis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +72,7 @@ public class ShopPopupWindow {
         );
 //        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         popupView.setBackgroundColor(context.getColor(R.color.black60));
-        popupWindow.setOutsideTouchable(true);
+//        popupWindow.setOutsideTouchable(true);
 
         // 绑定子 View 事件
         popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
@@ -152,6 +153,9 @@ public class ShopPopupWindow {
 
         });
         popupView.findViewById(R.id.add_btn).setOnClickListener(v -> {
+            if (Utilis.isFastClick()){
+                return;
+            }
             if (is_all_select){
                 shopOnClickListener.onClick((ArrayList<GrouponGoodsBean.GrouponGoodsModel>) shopAdapter.getData());
             }else {
@@ -164,24 +168,7 @@ public class ShopPopupWindow {
 
 
 
-        if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
-            Gson gson = new Gson();
-            CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
-            categoryListModelArrayList=categoryListBean.getData();
-            category_ids=categoryListModelArrayList.get(0).getCategory_id();
-            shopTypeAdapter1.setNewData(categoryListModelArrayList);
-            shopTypeAdapter1.setIndex(0);
-        }
-        if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
-            Gson gson = new Gson();
-            GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
-            allGrouponGoodsModelList = grouponGoodsBean.getData();
-//            for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : allGrouponGoodsModelList) {
-//                grouponGoodsModel.setSelected(false);
-//            }
-            shopAdapter.setNewData(allGrouponGoodsModelList);
 
-        }
 
         shopTypeAdapter1.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
@@ -244,5 +231,38 @@ public class ShopPopupWindow {
         View rootView = ((Activity) context).getWindow().getDecorView();
         popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
         sousuo_tv.postDelayed(() -> sousuo_tv.requestFocus(), 100);
+        new Thread(() -> {
+            if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
+                Gson gson = new Gson();
+                CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
+                categoryListModelArrayList=categoryListBean.getData();
+                category_ids=categoryListModelArrayList.get(0).getCategory_id();
+
+            }
+            if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
+                Gson gson = new Gson();
+                GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
+                allGrouponGoodsModelList = grouponGoodsBean.getData();
+//            for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : allGrouponGoodsModelList) {
+//                grouponGoodsModel.setSelected(false);
+//            }
+
+
+
+            }
+
+
+            ((Activity) context).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    shopTypeAdapter1.setNewData(categoryListModelArrayList);
+                    shopTypeAdapter1.setIndex(0);
+                    shopAdapter.setNewData(allGrouponGoodsModelList);
+                }
+            });
+
+        }).start();
+
+
     }
 }
