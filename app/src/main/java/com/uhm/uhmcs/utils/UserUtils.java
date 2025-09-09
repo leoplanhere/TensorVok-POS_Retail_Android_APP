@@ -36,7 +36,7 @@ public class UserUtils {
     private boolean isDazhe;
 
     private boolean isDianji;
-
+    private String language;
 
 
     /**
@@ -70,7 +70,22 @@ public class UserUtils {
         loginPhone=prefUserInfo.getString("loginPhone","");
         orderListJson=prefUserInfo.getString("orderListJson","");
         isDazhe=prefUserInfo.getBoolean("isDazhe",false);
+        language=prefUserInfo.getString("language","");
         isDianji=prefUserInfo.getBoolean("isDianji",true);
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(Context context,String language) {
+        SharedPreferences prefUserInfo = context.getSharedPreferences(
+                USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefUserInfo.edit();
+        this.language = language;
+        editor.putString("language",language);
+        editor.apply();
+        editor=null;
     }
 
     public String getOrderListJson() {

@@ -10,15 +10,19 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.hardware.usb.UsbDevice;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRouter;
 import android.media.SoundPool;
 import android.net.ConnectivityManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.LocaleList;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
@@ -36,6 +40,8 @@ import android.widget.Toast;
 
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.os.LocaleListCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -50,6 +56,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.lxj.xpopup.XPopup;
 import com.lxj.xpopup.impl.LoadingPopupView;
+import com.lxj.xpopup.interfaces.OnSelectListener;
 import com.makeramen.roundedimageview.RoundedImageView;
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.adapter.GrouponGoodsAdapter;
@@ -102,6 +109,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -950,6 +958,42 @@ public class MainActivity extends Activity {
 
                                         }
                                     }).show();
+                                    break;
+                                /*
+                                 * 语言设置
+                                 */
+                                case 13:
+                                    new XPopup.Builder(MainActivity.this)
+                                            .asCenterList((getString(R.string.Language)+":"+(UserUtils.getInstance().getLanguage().equals("en")?"English":"中文")), new String[]{"中文", "English",},
+                                                    new OnSelectListener() {
+                                                        @Override
+                                                        public void onSelect(int position, String text) {
+
+                                                            if (position == 0) {
+                                                                UserUtils.getInstance().setLanguage(MainActivity.this,"zh");
+                                                            }
+                                                            if (position == 1) {
+                                                                UserUtils.getInstance().setLanguage(MainActivity.this,"en");
+                                                            }
+                                                            // 切换语言（示例为英文）
+                                                            AppCompatDelegate.setApplicationLocales(
+                                                                    LocaleListCompat.forLanguageTags(UserUtils.getInstance().getLanguage())
+                                                            );
+                                                            Locale locale=new Locale(UserUtils.getInstance().getLanguage());
+                                                            Resources res = getResources();
+                                                            Configuration config = res.getConfiguration();
+                                                            if (Build.VERSION.SDK_INT >= 24) {
+                                                                config.setLocale(locale);
+                                                                config.setLocales(new LocaleList(locale));
+                                                            } else {
+                                                                config.locale = locale;
+                                                            }
+                                                            res.updateConfiguration(config, res.getDisplayMetrics());
+                                                            recreate();
+
+                                                        }
+                                                    })
+                                            .show();
                                     break;
 
                                 default:
@@ -2745,6 +2789,20 @@ public class MainActivity extends Activity {
 
             }
         });
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        String lang = UserUtils.getInstance().getLanguage();
+        super.attachBaseContext(updateBaseContext(base, lang));
+    }
+
+    private Context updateBaseContext(Context context, String language) {
+        Configuration config = context.getResources().getConfiguration();
+        Locale locale = new Locale(language);
+        Locale.setDefault(locale);
+        config.setLocale(locale);
+        return context.createConfigurationContext(config);
     }
 
 }
