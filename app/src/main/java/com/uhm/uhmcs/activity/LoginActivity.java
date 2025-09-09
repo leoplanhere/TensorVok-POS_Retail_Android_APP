@@ -93,13 +93,14 @@ public class LoginActivity extends Activity {
                             Gson gson = new Gson();
                             LoginBase loginBase = gson.fromJson(responseData, LoginBase.class);
                             Log.i("登录返回",responseData+"");
-                            UserUtils.getInstance().setLoginBase(LoginActivity.this,loginBase);
-                            UserUtils.getInstance().setLoginPassword(LoginActivity.this,etUserPwd.getText().toString());
-                            UserUtils.getInstance().setLoginPhone(LoginActivity.this,etUserName.getText().toString());
+
 
                             if(response != null){
                                 try{
                                     if(loginBase.getCode() == 1){
+                                        UserUtils.getInstance().setLoginBase(LoginActivity.this,loginBase);
+                                        UserUtils.getInstance().setLoginPassword(LoginActivity.this,etUserPwd.getText().toString());
+                                        UserUtils.getInstance().setLoginPhone(LoginActivity.this,etUserName.getText().toString());
                                         Map<String, String> params = new HashMap<>();
                                         params.put("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
                                         OkHttpUtil.setGlobalHeaders(params);
