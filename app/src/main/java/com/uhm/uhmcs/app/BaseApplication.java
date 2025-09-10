@@ -48,9 +48,9 @@ public class BaseApplication extends Application {
         }else {
             Log.i("ttt",">>>>>>123123213>>>yuyan>>>>"+UserUtils.getInstance().getLanguage());
 //            // 切换语言（示例为英文）
-            AppCompatDelegate.setApplicationLocales(
-                    LocaleListCompat.forLanguageTags(UserUtils.getInstance().getLanguage())
-            );
+//            AppCompatDelegate.setApplicationLocales(
+//                    LocaleListCompat.forLanguageTags(UserUtils.getInstance().getLanguage())
+//            );
             Locale locale=new Locale(UserUtils.getInstance().getLanguage());
             Resources res = getResources();
             Configuration config = res.getConfiguration();

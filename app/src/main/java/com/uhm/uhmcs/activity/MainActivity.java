@@ -976,9 +976,9 @@ public class MainActivity extends Activity {
                                                                 UserUtils.getInstance().setLanguage(MainActivity.this,"en");
                                                             }
                                                             // 切换语言（示例为英文）
-                                                            AppCompatDelegate.setApplicationLocales(
-                                                                    LocaleListCompat.forLanguageTags(UserUtils.getInstance().getLanguage())
-                                                            );
+//                                                            AppCompatDelegate.setApplicationLocales(
+//                                                                    LocaleListCompat.forLanguageTags(UserUtils.getInstance().getLanguage())
+//                                                            );
                                                             Locale locale=new Locale(UserUtils.getInstance().getLanguage());
                                                             Resources res = getResources();
                                                             Configuration config = res.getConfiguration();
