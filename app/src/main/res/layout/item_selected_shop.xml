@@ -109,10 +109,10 @@
             android:gravity="center"
             android:layout_width="0dp"
             android:layout_height="45dp"
-            android:background="@drawable/blue_bg"
+            android:background="@drawable/blue_bg2"
             android:layout_weight="1"
             android:textSize="18sp"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
             android:text="@string/give_away"/>
     </LinearLayout>
 </LinearLayout>

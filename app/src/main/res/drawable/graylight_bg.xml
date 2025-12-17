@@ -3,10 +3,10 @@
     android:shape="rectangle" >
 
     <!-- 设置背景颜色 -->
-    <solid android:color="#CCF8F8F8" />
+    <solid android:color="#CCFFFFFF" />
 
     <!-- 设置边框颜色和粗细 -->
-    <stroke android:color="#eeeeee" android:width="2dp"/>
+    <stroke android:color="#efefef" android:width="2dp"/>
 
 
 
