@@ -6,16 +6,16 @@
     android:padding="30dp">
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="90dp"
+        android:layout_height="60dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:background="@drawable/white_bg">
 
         <TextView
             android:id="@+id/fanhui_btn"
-            android:layout_marginLeft="20dp"
-            android:layout_width="180dp"
-            android:layout_height="70dp"
+            android:layout_marginLeft="10dp"
+            android:layout_width="150dp"
+            android:layout_height="50dp"
             android:text="@string/back"
             android:textSize="25dp"
             android:textColor="@color/black"
@@ -26,7 +26,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
-            android:textSize="30dp"
+            android:textSize="25dp"
             android:textStyle="bold"
             android:text="@string/order_list"
             android:layout_marginLeft="20dp"/>
@@ -34,16 +34,16 @@
         <com.uhm.uhmcs.view.CustomInputTextView
             android:id="@+id/order_sn_et"
             android:layout_width="380dp"
-            android:layout_height="70dp"
+            android:layout_height="50dp"
             android:background="@drawable/rounded_border"
             android:layout_marginRight="20dp"
             android:text=""
             android:hint="@string/enter_order_no"
-            android:textColorHint="@color/black"
+            android:textColorHint="@color/text_gray"
             android:textColor="@color/black"
             android:gravity="center_vertical"
             android:paddingLeft="30dp"
-            android:textSize="25dp"/>
+            android:textSize="20dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -54,7 +54,7 @@
         <LinearLayout
             android:id="@+id/time_btn"
             android:layout_width="450dp"
-            android:layout_height="70dp"
+            android:layout_height="50dp"
             android:orientation="horizontal"
             android:background="@drawable/rounded_border"
             android:layout_marginRight="20dp"
@@ -66,10 +66,10 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text=""
-                android:textSize="25dp"
+                android:textSize="20dp"
                 android:textColor="@color/black"
                 android:hint="@string/start_date"
-                android:textColorHint="@color/mr_gray_888"
+                android:textColorHint="@color/text_gray"
                 android:gravity="center"/>
 
             <TextView
@@ -84,10 +84,10 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text=""
-                android:textSize="25dp"
+                android:textSize="20dp"
                 android:textColor="@color/black"
                 android:hint="@string/end_date"
-                android:textColorHint="@color/mr_gray_888"
+                android:textColorHint="@color/text_gray"
                 android:gravity="center"/>
 
         </LinearLayout>
@@ -111,72 +111,72 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.2"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/cashier"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/rrder_no"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.5"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/order_time1"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/purchased_goods"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/discount"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/payment_amount"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/total1"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/payment_info"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/print_receipt1"
                 android:gravity="center"/>
 

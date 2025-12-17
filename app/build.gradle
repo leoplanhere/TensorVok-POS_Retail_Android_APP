@@ -38,10 +38,13 @@ dependencies {
     implementation libs.okhttp
     implementation libs.okhttp3.logging.interceptor // 日志拦截器
 
+    implementation 'org.litepal.guolindev:core:3.2.3' //引入 LitePal 数据库
+
     implementation libs.baserecyclerviewadapterhelper
 
     implementation libs.glide
     implementation libs.recyclerview
+
 
     implementation libs.gson
     implementation libs.zxing.android.embedded // 封装了ZXing的核心功能

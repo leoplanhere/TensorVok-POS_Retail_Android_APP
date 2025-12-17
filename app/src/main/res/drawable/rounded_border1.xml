@@ -1,5 +1,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#169bd5" /> <!-- 背景颜色 -->
+    <solid android:color="#00a108" /> <!-- 背景颜色 -->
     <corners android:radius="10dp" /> <!-- 圆角半径 -->
-    <stroke android:width="4dp" android:color="@color/black" /> <!-- 边框颜色和宽度 -->
+    <stroke android:width="2dp" android:color="@color/black" /> <!-- 边框颜色和宽度 -->
 </shape>

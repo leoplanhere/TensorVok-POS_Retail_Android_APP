@@ -32,15 +32,17 @@ public class GrouponGoodsAdapter extends BaseQuickAdapter <GrouponGoodsBean.Grou
 
     @Override
     protected void convert(BaseViewHolder helper, GrouponGoodsBean.GrouponGoodsModel item) {
-        TextView textView=helper.getView(R.id.title);
-        helper.setText(R.id.title,item.getTitle());
-        ImageView imageView=(ImageView) helper.getView(R.id.image);
+        TextView textView = helper.getView(R.id.title);
+        helper.setText(R.id.title, item.getTitle());
+        ImageView imageView = (ImageView) helper.getView(R.id.image);
+
         if (TextUtils.isEmpty(item.getImage())){
             imageView.setVisibility(GONE);
-            textView.setTextSize(40);
-        }else {
+            // 【已删除】textView.setTextSize(30); // 移除硬编码，使用 XML 中的大小
+        } else {
             imageView.setVisibility(VISIBLE);
-            textView.setTextSize(24);
+            // 【已删除】textView.setTextSize(14); // 移除硬编码，使用 XML 中的大小
+
             Glide.with(context)
                     .load(item.getImage())
 //                    .placeholder(R.mipmap.ic_launcher)
@@ -48,9 +50,10 @@ public class GrouponGoodsAdapter extends BaseQuickAdapter <GrouponGoodsBean.Grou
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(imageView);
         }
-        helper.setText(R.id.price,"￥"+item.getPrice());
 
+        helper.setText(R.id.price, "￥" + item.getPrice());
     }
+
     public void loadMoreData(List<GrouponGoodsBean.GrouponGoodsModel> newData) {
         if (!isLoading && hasMore) {
             isLoading = true; // 开始加载更多数据
@@ -62,7 +65,4 @@ public class GrouponGoodsAdapter extends BaseQuickAdapter <GrouponGoodsBean.Grou
             }
         }
     }
-
-
-
 }

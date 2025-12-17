@@ -10,7 +10,7 @@
     <!-- 圆角半径 -->
 
     <!-- 统一设置四个角 -->
-    <corners android:radius="16dp" />
+    <corners android:radius="100dp" />
     <!-- 单独设置四个角 -->
 <!--    <corners-->
 <!--        android:topRightRadius="5dp"-->
