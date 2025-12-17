@@ -3,14 +3,14 @@
     android:shape="rectangle" >
 
     <!-- 设置背景颜色 -->
-    <solid android:color="#eeeeee" />
+    <solid android:color="#00a108" />
     <!-- 设置边框颜色和粗细 -->
 <!--    <stroke android:color="#02B4FE" android:width="1dp"/>-->
 
     <!-- 圆角半径 -->
 
     <!-- 统一设置四个角 -->
-    <corners android:radius="30dp" />
+    <corners android:radius="100dp" />
     <!-- 单独设置四个角 -->
 <!--    <corners-->
 <!--        android:topRightRadius="5dp"-->

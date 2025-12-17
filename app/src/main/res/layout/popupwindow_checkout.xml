@@ -37,7 +37,7 @@
         </RelativeLayout>
 
         <LinearLayout
-            android:layout_marginBottom="@dimen/dp_10"
+            android:layout_marginBottom="18dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -73,24 +73,26 @@
         </LinearLayout>
 
         <LinearLayout
-            android:padding="@dimen/dp_10"
-            android:background="#98dbf9"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:background="#eeeeee"
+            android:orientation="horizontal"
+            android:padding="@dimen/dp_10">
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:layout_weight="1"
-                android:gravity="center">
+                android:gravity="center"
+                android:orientation="vertical">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/due"
                     android:textColor="@color/black"
-                    android:textSize="30dp"
-                    android:textStyle="bold"/>
+                    android:textSize="20dp" />
+
                 <TextView
                     android:id="@+id/yingshou_tv"
                     android:layout_width="wrap_content"
@@ -98,21 +100,23 @@
                     android:text="￥1000.00"
                     android:textColor="@color/mr_red_000"
                     android:textSize="30dp"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold" />
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:layout_weight="1"
-                android:gravity="center">
+                android:gravity="center"
+                android:orientation="vertical">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/discount"
                     android:textColor="@color/black"
-                    android:textSize="30dp"
-                    android:textStyle="bold"/>
+                    android:textSize="20dp" />
+
                 <TextView
                     android:id="@+id/youhui_tv"
                     android:layout_width="wrap_content"
@@ -120,21 +124,23 @@
                     android:text="￥1000"
                     android:textColor="@color/black"
                     android:textSize="30dp"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold" />
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:layout_weight="1"
-                android:gravity="center">
+                android:gravity="center"
+                android:orientation="vertical">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/paid"
                     android:textColor="@color/black"
-                    android:textSize="30dp"
-                    android:textStyle="bold"/>
+                    android:textSize="20dp" />
+
                 <TextView
                     android:id="@+id/yishou_tv"
                     android:layout_width="wrap_content"
@@ -142,21 +148,23 @@
                     android:text="￥1000"
                     android:textColor="@color/black"
                     android:textSize="30dp"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold" />
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:layout_weight="1"
-                android:gravity="center">
+                android:gravity="center"
+                android:orientation="vertical">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/received"
                     android:textColor="@color/black"
-                    android:textSize="30dp"
-                    android:textStyle="bold"/>
+                    android:textSize="20dp" />
+
                 <TextView
                     android:id="@+id/shijishou_tv"
                     android:layout_width="wrap_content"
@@ -164,7 +172,7 @@
                     android:text="￥1000"
                     android:textColor="@color/black"
                     android:textSize="30dp"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
 
@@ -192,9 +200,9 @@
                         android:textColor="@color/black"
                         android:gravity="center"/>
                     <View
-                        android:layout_width="1dp"
+                        android:layout_width="3dp"
                         android:layout_height="match_parent"
-                        android:background="@color/black"/>
+                        android:background="#c7c7c7"/>
                     <com.uhm.uhmcs.view.CustomInputTextView
                         android:id="@+id/shoukuan_tv"
                         android:hint="@string/enter_payment_amount"
@@ -220,9 +228,9 @@
                         android:textColor="@color/black"
                         android:gravity="center"/>
                     <View
-                        android:layout_width="1dp"
+                        android:layout_width="3dp"
                         android:layout_height="match_parent"
-                        android:background="@color/black"/>
+                        android:background="#c7c7c7"/>
                     <TextView
                         android:id="@+id/zhaolin_tv"
                         android:hint=""

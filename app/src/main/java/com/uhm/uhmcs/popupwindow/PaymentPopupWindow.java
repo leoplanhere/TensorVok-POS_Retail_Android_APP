@@ -1,8 +1,8 @@
 package com.uhm.uhmcs.popupwindow;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupWindow;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,7 +19,7 @@ import com.dou361.dialogui.DialogUIUtils;
 import com.dou361.dialogui.bean.BuildBean;
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.activity.LoginActivity;
-import com.uhm.uhmcs.adapter.OrderShopAdapter;
+import com.uhm.uhmcs.activity.MainActivity;
 import com.uhm.uhmcs.adapter.PaymentAdapter;
 import com.uhm.uhmcs.bean.LastOrderBean;
 import com.uhm.uhmcs.http.POSApiSerview;
@@ -29,7 +30,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.math.BigDecimal;
+import java.math.BigDecimal; // ★★★ 补回了这行，解决报错 ★★★
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,24 +46,36 @@ import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 
 public class PaymentPopupWindow {
+    private static final String TAG = "PaymentPopupWindow";
     private PopupWindow popupWindow;
     private Activity context;
-
-
-
     private RecyclerView payment_rv;
     private PaymentAdapter paymentAdapter;
-
-    private  ArrayList<LastOrderBean.PaymentlogBean> paymentlogBeanArrayList;
+    private ArrayList<LastOrderBean.PaymentlogBean> paymentlogBeanArrayList;
     private BuildBean buildBean;
+    private String mainOrderSn;
 
-
-    public PaymentPopupWindow(Activity context, ArrayList<LastOrderBean.PaymentlogBean> paymentlogBeanArrayList){
-
+    public PaymentPopupWindow(Activity context, ArrayList<LastOrderBean.PaymentlogBean> paymentlogBeanArrayList, String mainOrderSn) {
         this.context = context;
         this.paymentlogBeanArrayList = paymentlogBeanArrayList;
-
+        this.mainOrderSn = mainOrderSn != null ? mainOrderSn : "";
         initPopup();
+
+        if (context instanceof MainActivity) {
+            ((MainActivity) context).setPaymentStatusListener((success, position) -> {
+                DialogUIUtils.dismiss(buildBean);
+                if (success) {
+                    new DeleteShopPopupWindow(context, context.getString(R.string.Refund_successful), true).show();
+                    if (position >= 0 && position < paymentAdapter.getData().size()) {
+                        paymentAdapter.getData().get(position).setOrder_status(4);
+                        paymentAdapter.notifyItemChanged(position);
+                    }
+                    popupWindow.dismiss();
+                } else {
+                    new DeleteShopPopupWindow(context, context.getString(R.string.Refund_failed) + ": 查询超时", true).show();
+                }
+            });
+        }
     }
 
     private void initPopup() {
@@ -73,154 +86,182 @@ public class PaymentPopupWindow {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 true
         );
-//        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
         popupView.setBackgroundColor(context.getColor(R.color.black60));
         popupWindow.setOutsideTouchable(true);
-        // 计算居中位置
+
         popupView.post(() -> {
             DisplayMetrics metrics = new DisplayMetrics();
-            ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(metrics);
-            int x = (metrics.widthPixels - popupView.getWidth()) / 2;
-            int y = (metrics.heightPixels - popupView.getHeight()) / 2;
-            popupWindow.update(x, y, -1, -1); // 更新位置
+            context.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            popupWindow.update((metrics.widthPixels - popupView.getWidth()) / 2, (metrics.heightPixels - popupView.getHeight()) / 2, -1, -1);
         });
 
+        popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> popupWindow.dismiss());
 
-        popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
-            popupWindow.dismiss();
-        });
-        buildBean= DialogUIUtils.showLoading(context,context.getString(R.string.Refunding),true,false,false,false);
-        payment_rv=popupView.findViewById(R.id.payment_rv);
-        payment_rv.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL,false));
-        paymentAdapter=new PaymentAdapter(context);
+        buildBean = DialogUIUtils.showLoading(context, context.getString(R.string.Refunding), true, false, false, false);
+        DialogUIUtils.dismiss(buildBean);
+
+        payment_rv = popupView.findViewById(R.id.payment_rv);
+        payment_rv.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
+        paymentAdapter = new PaymentAdapter(context);
         payment_rv.setAdapter(paymentAdapter);
         paymentAdapter.setNewData(paymentlogBeanArrayList);
-        paymentAdapter.setOnItemChildClickListener((adapter, view, position) -> {
-            if (view.getId()==R.id.tuikuan_btn){
-                new RefundPassWordPopupWindow(context, new PopupWindowOnClickListener.DiscountOnClickListener() {
-                    @Override
-                    public void onClick(String discount) {
-                        if (!discount.equals("1234")){
-                            return;
-                        }
-                        new DeleteShopPopupWindow(context, context.getString(R.string.Confirm_refund), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
-                            @Override
-                            public void onClick(String text) {
-                                buildBean.show();
-                                cash_refund(paymentAdapter.getData().get(position), position);
-                            }
-                        }).show();
-                    }
-                }).show();
 
+        paymentAdapter.setOnItemChildClickListener((adapter, view, position) -> {
+            if (view.getId() == R.id.tuikuan_btn) {
+                new RefundPassWordPopupWindow(context, discount -> {
+                    if (!discount.equals("1234")) {
+                        Toast.makeText(context, "密码错误", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    new DeleteShopPopupWindow(context, context.getString(R.string.Confirm_refund), text -> {
+                        buildBean.show();
+                        cash_refund(paymentAdapter.getData().get(position), position);
+                    }).show();
+                }).show();
             }
         });
-
     }
+
     public void cash_refund(LastOrderBean.PaymentlogBean paymentlogBean, int position) {
         Map<String, String> params = new HashMap<>();
-//        if (item.getPay_type().equals("cash")){
-//            xianjin="现金";
-//        }else if (item.getPay_type().equals("alipay")){
-//            xianjin="支付宝";
-//        }else if (item.getPay_type().equals("wechat")){
-//            xianjin="微信";
-//        }
         String url = "";
-        if (paymentlogBean.getPay_type().equals("cash")){
-            params.put("order_sn", paymentlogBean.getOrder_sn());
-            params.put("refund_fee", paymentlogBean.getReceivedmoney());
+
+        // 1. 基础数据准备
+        String orderSn = TextUtils.isEmpty(paymentlogBean.getOrder_sn()) ? this.mainOrderSn : paymentlogBean.getOrder_sn();
+        String transactionId = paymentlogBean.getTransaction_id();
+        String receivedMoney = paymentlogBean.getReceivedmoney() != null ? paymentlogBean.getReceivedmoney() : "0.00";
+
+        // 定义变量名为 shopUid
+        String shopUid = UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid();
+        String refundNo = "RF" + System.currentTimeMillis() + (int)(Math.random() * 900 + 100);
+
+        // 2. 根据支付类型构建参数
+        if ("cash".equals(paymentlogBean.getPay_type())) {
             url = POSApiSerview.POS_URL + POSApiSerview.cash_refund;
-        }else if (paymentlogBean.getPay_type().equals("alipay")){
-            params.put("refund_amount", paymentlogBean.getReceivedmoney());
-            params.put("trade_no", paymentlogBean.getTransaction_id());
+            params.put("order_sn", orderSn);
+            params.put("refund_fee", receivedMoney);
+
+        } else if ("alipay".equals(paymentlogBean.getPay_type())) {
             url = POSApiSerview.POS_URL + POSApiSerview.order_refund;
-        }else if (paymentlogBean.getPay_type().equals("wechat")){
-            params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-            params.put("transaction_id", paymentlogBean.getTransaction_id());
-            params.put("refund_fee",new BigDecimal(paymentlogBean.getReceivedmoney()).multiply(new BigDecimal("100"))+"");
-            params.put("total_fee",new BigDecimal(paymentlogBean.getReceivedmoney()).multiply(new BigDecimal("100"))+"");
+            params.put("shop_id", shopUid); // 使用 shopUid
+            params.put("refund_amount", receivedMoney);
+            params.put("refund_request_no", refundNo);
+            if (!TextUtils.isEmpty(transactionId)) {
+                params.put("trade_no", transactionId);
+            } else {
+                params.put("out_trade_no", orderSn);
+            }
+
+        } else if ("wechat".equals(paymentlogBean.getPay_type())) {
             url = POSApiSerview.POS_URL + POSApiSerview.wx_refund;
+            params.put("shop_id", shopUid); // ★★★ 修复点：这里改成 shopUid ★★★
+
+            // --- 核心修复：只传 transaction_id，强制丢弃可能错误的 out_trade_no ---
+            if (!TextUtils.isEmpty(transactionId)) {
+                // 有官方单号，只传官方单号，这是最稳的！
+                params.put("transaction_id", transactionId);
+                Log.e(TAG, "WeChat Refund: 仅使用 transaction_id 退款: " + transactionId);
+                // 注意：这里故意【不传】out_trade_no，防止后端拿错误的号去请求微信报错
+            } else {
+                // 实在没有官方单号，才死马当活马医，传本地单号
+                params.put("out_trade_no", orderSn);
+                Log.e(TAG, "WeChat Refund: 无 transaction_id，只能使用 out_trade_no: " + orderSn);
+            }
+
+            params.put("refund_no", refundNo);
+
+            // 金额处理 (转为分)
+            BigDecimal amountYuan = new BigDecimal(receivedMoney);
+            BigDecimal amountFen = amountYuan.multiply(new BigDecimal("100"));
+            String feeInFen = String.valueOf(amountFen.intValue());
+
+            params.put("refund_fee", feeInFen);
+            params.put("total_fee", feeInFen);
+
+            // 打印日志方便确认
+            Log.e(TAG, "--------------------------------------------------------");
+            Log.e(TAG, "【微信退款参数】");
+            Log.e(TAG, "transaction_id= " + params.get("transaction_id"));
+            Log.e(TAG, "out_trade_no  = " + params.get("out_trade_no"));
+            Log.e(TAG, "--------------------------------------------------------");
         }
+
+        // 3. 发送网络请求 (保持不变)
         FormBody.Builder formBuilder = new FormBody.Builder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
-            Log.i("ttt","??>>>"+entry.getKey()+">>>>"+entry.getValue());
-            formBuilder.add(entry.getKey(), entry.getValue());
+            String value = entry.getValue() != null ? entry.getValue() : "";
+            formBuilder.add(entry.getKey(), value);
         }
-        RequestBody formBody = formBuilder.build();
-        Request.Builder builder = new Request.Builder()
-                .url(url);
 
-        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
-
-
-        builder.post(formBody);
-
-        Request request = builder.build();
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
-                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken())
+                .post(formBuilder.build())
                 .build();
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
+                .build();
+
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                context.runOnUiThread(() -> {
+                    DialogUIUtils.dismiss(buildBean);
+                    Log.e(TAG, "网络请求失败: " + e.getMessage());
+                    new DeleteShopPopupWindow(context, context.getString(R.string.Refund_failed) + ": 网络错误", true).show();
+                });
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
+                String responseBody = response.body() != null ? response.body().string() : "{}";
+                Log.e(TAG, "【后端返回数据】: " + responseBody);
+
+                context.runOnUiThread(() -> {
                     try {
-                        String success=response.body().string();
-                        JSONObject jsonObject=new JSONObject(success);
-                        context.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    DialogUIUtils.dismiss(buildBean);
-                                    String msg=jsonObject.getString("msg");
-                                    if (msg.contains("成功")||msg.contains("Success")){
-                                        new DeleteShopPopupWindow(context,context.getString(R.string.Refund_successful),true).show();
-                                        paymentAdapter.getData().get(position).setOrder_status(4);
-                                        paymentAdapter.notifyItemChanged(position);
-                                        return;
-                                    }
-                                    if (msg.contains("失效")){
-                                        new DeleteShopPopupWindow(context, true, msg, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
-                                            @Override
-                                            public void onClick(String text) {
-                                                Intent intent=new Intent(context, LoginActivity.class);
-                                                context.startActivity(intent);
-                                            }
-                                        }).show();
-                                        return;
-                                    }
-                                    new DeleteShopPopupWindow(context,context.getString(R.string.Refund_failed),true).show();
+                        JSONObject jsonObject = new JSONObject(responseBody);
+                        String msg = jsonObject.optString("msg", "未知错误");
 
-
-                                } catch (JSONException e) {
-                                    throw new RuntimeException(e);
-                                }
+                        if (msg.contains("成功") || msg.contains("Success")) {
+                            DialogUIUtils.dismiss(buildBean);
+                            new DeleteShopPopupWindow(context, context.getString(R.string.Refund_successful), true).show();
+                            paymentAdapter.getData().get(position).setOrder_status(4);
+                            paymentAdapter.notifyItemChanged(position);
+                            popupWindow.dismiss();
+                        } else if (msg.contains("处理中")) {
+                            if (context instanceof MainActivity) {
+                                ((MainActivity) context).startRefundQuery(
+                                        paymentlogBean.getPay_type(),
+                                        transactionId,
+                                        orderSn,
+                                        receivedMoney,
+                                        position
+                                );
                             }
-                        });
-
+                        } else {
+                            DialogUIUtils.dismiss(buildBean);
+                            if (jsonObject.has("code") && jsonObject.get("code") instanceof JSONObject) {
+                                JSONObject codeObj = jsonObject.getJSONObject("code");
+                                String errDes = codeObj.optString("err_code_des");
+                                if (!TextUtils.isEmpty(errDes)) msg = errDes;
+                            }
+                            new DeleteShopPopupWindow(context, context.getString(R.string.Refund_failed) + ": " + msg, true).show();
+                        }
                     } catch (JSONException e) {
-                        throw new RuntimeException(e);
+                        DialogUIUtils.dismiss(buildBean);
+                        new DeleteShopPopupWindow(context, "解析异常", true).show();
                     }
-                } else {
-
-                }
+                });
             }
         });
     }
 
-
     public void show() {
-        View rootView = ((Activity) context).getWindow().getDecorView();
+        View rootView = context.getWindow().getDecorView();
         popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
     }
 }

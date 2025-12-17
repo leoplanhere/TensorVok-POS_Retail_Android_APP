@@ -22,10 +22,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:tag="7"
+                android:textStyle="bold"
                 android:text="7"
                 android:gravity="center"
                 android:background="@drawable/rounded_border"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="@color/black"/>
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
@@ -33,10 +34,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:tag="8"
+                android:textStyle="bold"
                 android:text="8"
                 android:gravity="center"
                 android:background="@drawable/rounded_border"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="@color/black"/>
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
@@ -44,10 +46,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:tag="9"
+                android:textStyle="bold"
                 android:text="9"
                 android:gravity="center"
                 android:background="@drawable/rounded_border"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="@color/black"/>
         </LinearLayout>
         <LinearLayout
@@ -64,7 +67,8 @@
                 android:text="4"
                 android:gravity="center"
                 android:background="@drawable/rounded_border"
-                android:textSize="20dp"
+                android:textSize="25dp"
+                android:textStyle="bold"
                 android:textColor="@color/black"/>
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
@@ -72,10 +76,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:tag="5"
+                android:textStyle="bold"
                 android:text="5"
                 android:gravity="center"
                 android:background="@drawable/rounded_border"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="@color/black"/>
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
@@ -83,10 +88,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:tag="6"
+                android:textStyle="bold"
                 android:text="6"
                 android:gravity="center"
                 android:background="@drawable/rounded_border"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="@color/black"/>
         </LinearLayout>
         <LinearLayout
@@ -100,10 +106,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:tag="1"
+                android:textStyle="bold"
                 android:text="1"
                 android:gravity="center"
                 android:background="@drawable/rounded_border"
-                android:textSize="20dp"
+                android:textSize="30dp"
                 android:textColor="@color/black"/>
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
@@ -111,10 +118,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:tag="2"
+                android:textStyle="bold"
                 android:text="2"
                 android:gravity="center"
                 android:background="@drawable/rounded_border"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="@color/black"/>
             <TextView
                 android:layout_marginRight="10dp"
@@ -122,10 +130,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:tag="3"
+                android:textStyle="bold"
                 android:text="3"
                 android:gravity="center"
                 android:background="@drawable/rounded_border"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="@color/black"/>
 
         </LinearLayout>
@@ -141,9 +150,10 @@
                 android:layout_weight="1"
                 android:tag="0"
                 android:text="0"
+                android:textStyle="bold"
                 android:gravity="center"
                 android:background="@drawable/rounded_border"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="@color/black"/>
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
@@ -152,9 +162,10 @@
                 android:layout_weight="1"
                 android:tag="."
                 android:text="."
+                android:textStyle="bold"
                 android:gravity="center"
                 android:background="@drawable/rounded_border"
-                android:textSize="20dp"
+                android:textSize="35dp"
                 android:textColor="@color/black"/>
             <TextView
                 android:layout_marginRight="10dp"
@@ -162,10 +173,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:tag="-"
+                android:textStyle="bold"
                 android:text="-"
                 android:gravity="center"
                 android:background="@drawable/rounded_border"
-                android:textSize="20dp"
+                android:textSize="35dp"
                 android:textColor="@color/black"/>
 
         </LinearLayout>
@@ -181,9 +193,10 @@
             android:layout_height="80dp"
             android:tag="d"
             android:text="@string/delete"
+            android:textStyle="bold"
             android:gravity="center"
             android:background="@drawable/rounded_border"
-            android:textSize="20dp"
+            android:textSize="25dp"
             android:textColor="@color/black"/>
         <TextView
             android:layout_marginTop="10dp"
@@ -191,9 +204,10 @@
             android:layout_height="80dp"
             android:tag="c"
             android:text="@string/clear"
+            android:textStyle="bold"
             android:gravity="center"
             android:background="@drawable/rounded_border"
-            android:textSize="20dp"
+            android:textSize="25dp"
             android:textColor="@color/black"/>
         <TextView
             android:layout_marginTop="10dp"
@@ -202,7 +216,8 @@
             android:layout_weight="1"
             android:textColor="@color/white"
             android:gravity="center"
-            android:textSize="20dp"
+            android:textStyle="bold"
+            android:textSize="25dp"
             android:tag="submit"
             android:text="@string/confirm"
             android:background="@drawable/rounded_border1"/>

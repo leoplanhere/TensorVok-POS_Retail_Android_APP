@@ -1,26 +1,25 @@
 package com.uhm.uhmcs.bean;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
-
 import com.google.gson.annotations.SerializedName;
+import org.litepal.annotation.Column;
+import org.litepal.crud.LitePalSupport;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
-public class GrouponGoodsBean implements Serializable{
+public class GrouponGoodsBean implements Serializable {
     @SerializedName("code")
     private int code;
     @SerializedName("msg")
     private String msg;
     @SerializedName("time")
     private String time;
+
     @SerializedName("data")
-    private ArrayList<GrouponGoodsModel> data;
+    private DataWrapper data;
 
     public int getCode() {
         return code;
@@ -46,77 +45,156 @@ public class GrouponGoodsBean implements Serializable{
         this.time = time;
     }
 
-    public ArrayList<GrouponGoodsModel> getData() {
+    public DataWrapper getData() {
         return data;
     }
 
-    public void setData(ArrayList<GrouponGoodsModel> data) {
+    public void setData(DataWrapper data) {
         this.data = data;
     }
 
-    public class DataModel{
+    // 中间层包装类
+    public static class DataWrapper implements Serializable {
         @SerializedName("data")
-        private ArrayList<GrouponGoodsModel> data;
+        private ArrayList<GrouponGoodsModel> goodsList;
 
-        public ArrayList<GrouponGoodsModel> getData() {
-            return data;
+        @SerializedName("pagination")
+        private Pagination pagination;
+
+        public ArrayList<GrouponGoodsModel> getGoodsList() {
+            return goodsList;
         }
 
-        public void setData(ArrayList<GrouponGoodsModel> data) {
-            this.data = data;
+        public void setGoodsList(ArrayList<GrouponGoodsModel> goodsList) {
+            this.goodsList = goodsList;
+        }
+
+        public Pagination getPagination() {
+            return pagination;
+        }
+
+        public void setPagination(Pagination pagination) {
+            this.pagination = pagination;
         }
     }
 
-    public static class GrouponGoodsModel implements Serializable  {
+    // 分页信息类
+    public static class Pagination implements Serializable {
+        private int total;
+        private String page;
+        private String strip;
+        private int start;
+        private int totalpage;
 
+        public int getTotal() { return total; }
+        public void setTotal(int total) { this.total = total; }
+        public String getPage() { return page; }
+        public void setPage(String page) { this.page = page; }
+        public String getStrip() { return strip; }
+        public void setStrip(String strip) { this.strip = strip; }
+        public int getStart() { return start; }
+        public void setStart(int start) { this.start = start; }
+        public int getTotalpage() { return totalpage; }
+        public void setTotalpage(int totalpage) { this.totalpage = totalpage; }
+    }
 
-        private int id;
+    // 商品实体类
+    public static class GrouponGoodsModel extends LitePalSupport implements Serializable {
 
+        private int id; // LitePal 默认主键
 
+        // ▼▼▼ 1. 加上索引，加速同步比对 ▼▼▼
+        @Column(index = true)
         private String goods_id;
-        private String goods_sn;
 
+        // ▼▼▼ 2. 补上缺失的 shop_id 字段，防止串货 ▼▼▼
+        @SerializedName("shop_id")
+        private String shop_id;
+
+        // ▼▼▼ 3. 核心修复：加上映射注解，把 barcode 存进 sn 里 ▼▼▼
+        @Column(index = true) // 加索引，扫码秒查
+        @SerializedName(value = "sn", alternate = {"barcode", "bar_code", "code"})
         private String sn;
 
+        // 这里的 goods_sn 是商品内部编码，不需要映射
+        private String goods_sn;
+
         private int ggspid;
-
         private int goods_sku_price_id;
-
         private String title;
-
         private String image;
-
         private String price;
-
         private String ggprice;
-
         private String pay_price;
-
         private String goods_sku_text;
-
         private String goods_sku_ids;
-
         private String category_ids;
-
         private String cost_price;
-
         private String original_price;
-
         private String subtitle;
+        private String updatetime;
 
-        private BigDecimal heji=new BigDecimal("0.00");
+        @Column(ignore = true)
+        private BigDecimal heji = new BigDecimal("0.00");
 
         private String flname;
+        private int shuliang = 1;
+        private boolean is_zengsong = false;
+        private boolean isSelected = false;
+        private String discount = "100";
 
+        @Column(ignore = true)
+        private BigDecimal discounted_price = new BigDecimal("0.00");
 
+        // --- Getters and Setters ---
 
-        private int shuliang=1;
-        private boolean is_zengsong=false;
+        public int getId() {
+            return id;
+        }
 
-        private boolean isSelected=false;
+        public void setId(int id) {
+            this.id = id;
+        }
 
-        private String discount="100";
+        public String getGoods_id() {
+            return goods_id;
+        }
 
+        public void setGoods_id(String goods_id) {
+            this.goods_id = goods_id;
+        }
+
+        public String getShop_id() {
+            return shop_id;
+        }
+
+        public void setShop_id(String shop_id) {
+            this.shop_id = shop_id;
+        }
+
+        public String getSn() {
+            return sn;
+        }
+
+        public void setSn(String sn) {
+            this.sn = sn;
+        }
+
+        public String getGoods_sn() {
+            return goods_sn;
+        }
+
+        public void setGoods_sn(String goods_sn) {
+            this.goods_sn = goods_sn;
+        }
+
+        public String getUpdatetime() {
+            return updatetime;
+        }
+
+        public void setUpdatetime(String updatetime) {
+            this.updatetime = updatetime;
+        }
 
         public String getGgprice() {
             return ggprice;
@@ -166,29 +244,12 @@ public class GrouponGoodsBean implements Serializable{
             this.goods_sku_text = goods_sku_text;
         }
 
-
-
-
-        private BigDecimal discounted_price=new BigDecimal("0.00");
-
-        public void setGoods_id(String goods_id) {
-            this.goods_id = goods_id;
-        }
-
         public void setGoods_sku_price_id(int goods_sku_price_id) {
             this.goods_sku_price_id = goods_sku_price_id;
         }
 
         public void setPay_price(String pay_price) {
             this.pay_price = pay_price;
-        }
-
-        public String getSn() {
-            return sn;
-        }
-
-        public void setSn(String sn) {
-            this.sn = sn;
         }
 
         public int getGgspid() {
@@ -203,12 +264,9 @@ public class GrouponGoodsBean implements Serializable{
             return ggspid;
         }
 
-
-
         public String getPay_price() {
             return price;
         }
-
 
         public String getDiscount() {
             return discount;
@@ -274,37 +332,16 @@ public class GrouponGoodsBean implements Serializable{
             this.flname = flname;
         }
 
-        public int getGoods_id() {
-            return id;
-        }
-
         public String getPrice() {
             if (!TextUtils.isEmpty(ggprice)){
                 return ggprice;
-            }else {
+            } else {
                 return price;
             }
-
         }
 
         public void setPrice(String price) {
             this.price = price;
-        }
-
-        public int getId() {
-            return id;
-        }
-
-        public void setId(int id) {
-            this.id = id;
-        }
-
-        public String getGoods_sn() {
-            return goods_sn;
-        }
-
-        public void setGoods_sn(String goods_sn) {
-            this.goods_sn = goods_sn;
         }
 
         public String getTitle() {
@@ -322,9 +359,5 @@ public class GrouponGoodsBean implements Serializable{
         public void setImage(String image) {
             this.image = image;
         }
-
-
-
-
     }
 }

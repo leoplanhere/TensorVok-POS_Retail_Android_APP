@@ -35,8 +35,8 @@
                 android:layout_alignParentRight="true"/>
         </RelativeLayout>
         <LinearLayout
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="5dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -47,8 +47,9 @@
                 android:layout_width="140dp"
                 android:layout_height="140dp"
                 android:background="@drawable/blue_bg4"
-                android:textColor="@color/white"
-                android:textSize="25dp"
+                android:textColor="@color/mr_red_000"
+                android:textSize="20dp"
+                android:padding="10dp"
                 android:textStyle="bold"
                 android:text="@string/sync_data"
                 android:gravity="center"/>
@@ -59,7 +60,8 @@
                 android:layout_height="140dp"
                 android:background="@drawable/blue_bg4"
                 android:textColor="@color/white"
-                android:textSize="25dp"
+                android:textSize="20dp"
+                android:padding="10dp"
                 android:textStyle="bold"
                 android:text="@string/label_printing"
                 android:gravity="center"/>
@@ -70,7 +72,8 @@
                 android:layout_height="140dp"
                 android:background="@drawable/blue_bg4"
                 android:textColor="@color/white"
-                android:textSize="25dp"
+                android:textSize="20dp"
+                android:padding="10dp"
                 android:textStyle="bold"
                 android:text="@string/stock_in"
                 android:gravity="center"/>
@@ -81,7 +84,8 @@
                 android:layout_height="140dp"
                 android:background="@drawable/blue_bg4"
                 android:textColor="@color/white"
-                android:textSize="25dp"
+                android:textSize="20dp"
+                android:padding="10dp"
                 android:textStyle="bold"
                 android:text="@string/order_history"
                 android:gravity="center"/>
@@ -91,15 +95,16 @@
                 android:layout_width="140dp"
                 android:layout_height="140dp"
                 android:background="@drawable/blue_bg4"
-                android:textColor="@color/white"
-                android:textSize="25dp"
+                android:textColor="@color/mr_red_000"
+                android:textSize="20dp"
+                android:padding="10dp"
                 android:textStyle="bold"
                 android:text="@string/log_out"
                 android:gravity="center"/>
         </LinearLayout>
         <LinearLayout
             android:visibility="visible"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="5dp"
             android:layout_marginBottom="20dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -113,7 +118,8 @@
                 android:layout_height="140dp"
                 android:background="@drawable/blue_bg4"
                 android:textColor="@color/white"
-                android:textSize="25dp"
+                android:textSize="20dp"
+                android:padding="10dp"
                 android:textStyle="bold"
                 android:text="@string/receipt_printer_setup"
                 android:gravity="center"/>
@@ -125,7 +131,8 @@
                 android:layout_height="140dp"
                 android:background="@drawable/blue_bg4"
                 android:textColor="@color/white"
-                android:textSize="25dp"
+                android:textSize="20dp"
+                android:padding="10dp"
                 android:textStyle="bold"
                 android:text="@string/label_printer_setup"
                 android:gravity="center"/>
@@ -137,7 +144,8 @@
                 android:layout_height="140dp"
                 android:background="@drawable/blue_bg4"
                 android:textColor="@color/white"
-                android:textSize="23dp"
+                android:textSize="20dp"
+                android:padding="10dp"
                 android:textStyle="bold"
                 android:text="@string/discount_toggle"
                 android:gravity="center"/>
@@ -150,6 +158,7 @@
                 android:background="@drawable/blue_bg4"
                 android:textColor="@color/white"
                 android:textSize="20dp"
+                android:padding="10dp"
                 android:textStyle="bold"
                 android:text="@string/shangpinkaiguan"
                 android:gravity="center"/>

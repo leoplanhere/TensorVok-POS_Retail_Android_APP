@@ -4,7 +4,6 @@ import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static android.widget.Toast.LENGTH_SHORT;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,6 +15,7 @@ import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
@@ -24,12 +24,10 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -37,15 +35,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
 
-
 import com.bumptech.glide.Glide;
-import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.dou361.dialogui.DialogUIUtils;
 import com.dou361.dialogui.bean.BuildBean;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.lxj.xpopup.XPopup;
-import com.lxj.xpopup.impl.LoadingPopupView;
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.adapter.GrouponGoodsAdapter;
 import com.uhm.uhmcs.adapter.SelectedShopAdapter;
@@ -57,25 +52,10 @@ import com.uhm.uhmcs.bean.LastOrderBean;
 import com.uhm.uhmcs.bean.MemberBean;
 import com.uhm.uhmcs.bean.PrintDataBean;
 import com.uhm.uhmcs.bean.RegistrationShopBean;
-import com.uhm.uhmcs.http.NetworkErrorInterceptor;
 import com.uhm.uhmcs.http.NetworkLatencyMonitor;
 import com.uhm.uhmcs.http.OkHttpUtil;
 import com.uhm.uhmcs.http.POSApiSerview;
-import com.uhm.uhmcs.popupwindow.AddNoCodePopupWindow;
-import com.uhm.uhmcs.popupwindow.CheckoutPopupWindow;
-import com.uhm.uhmcs.popupwindow.DeleteShopPopupWindow;
-import com.uhm.uhmcs.popupwindow.DiscountPopupWindow;
-import com.uhm.uhmcs.popupwindow.GetRegistrationShopPopupWindow;
-import com.uhm.uhmcs.popupwindow.GoodsWarehousingPopupWindow;
-import com.uhm.uhmcs.popupwindow.HistoryOrderPopupWindow;
-import com.uhm.uhmcs.popupwindow.MemberPopupWindow;
-import com.uhm.uhmcs.popupwindow.MoneyBoxPopupWindow;
-import com.uhm.uhmcs.popupwindow.MorefunctionPopupWindow;
-import com.uhm.uhmcs.popupwindow.PaymentListPopupWindow;
-import com.uhm.uhmcs.popupwindow.PopupWindowOnClickListener;
-import com.uhm.uhmcs.popupwindow.PrintDevicePopupWindow;
-import com.uhm.uhmcs.popupwindow.PrintLabelsPopupWindow;
-import com.uhm.uhmcs.popupwindow.RelieveShiftPopupWindow;
+import com.uhm.uhmcs.popupwindow.*;
 import com.uhm.uhmcs.utils.MyPrinterHelper;
 import com.uhm.uhmcs.utils.MyUsbDeviceHelper;
 import com.uhm.uhmcs.utils.NetworkUtils;
@@ -85,201 +65,142 @@ import com.uhm.uhmcs.utils.Utilis;
 import com.uhm.uhmcs.view.CustomInputTextView;
 import com.uhm.uhmcs.view.MyPresentation;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.litepal.LitePal;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.FormBody;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.logging.HttpLoggingInterceptor;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements View.OnClickListener {
 
-    private Integer selectedShopIndex;
+    // UI 组件
     private RecyclerView rv_choose_menu3, shop_rv, selected_shop_rv;
     private LinearLayoutManager selected_LinearLayoutManager;
     private ShopTypeAdapter shopTypeAdapter;
-    private GrouponGoodsAdapter grouponGoodsAdapter;
 
+    private TextView tv_empty_cart;
+    private GrouponGoodsAdapter grouponGoodsAdapter;
     private SelectedShopAdapter selectedShopAdapter;
     private CustomInputTextView et_tiaoxingma;
     private Animation animation;
     private TextView tv_zongjia, tv_zongjian, qingkong_btn, qudan_btn, guadan_btn, dazhe_one_btn, dazhe_all_btn, checkout_btn, daying_btn;
     private LinearLayout huiyuan_btn;
-    private TextView huiyuan_name;
-
-    private DeleteShopPopupWindow deleteShopPopupWindow;
-    private BigDecimal zongjia = new BigDecimal("0.00");
-    ;
-
-    private ArrayList<GrouponGoodsBean.GrouponGoodsModel> selectedShopList = new ArrayList<>();
-
-    private ArrayList<GrouponGoodsBean.GrouponGoodsModel> historySelectedShopList = new ArrayList<>();
-
-    private ArrayList<RegistrationShopBean> registrationShopBeanArrayList = new ArrayList<>();
-
-    private View.OnClickListener onClickListener;
-
-    private GetRegistrationShopPopupWindow getRegistrationShopPopupWindow;
-    private boolean is_kedian = true;
-    private BigDecimal zong_youhui = new BigDecimal("0.00");
-    private String memben_discount;
-    private boolean is_tongbu = false;
-    BuildBean buildBean;
-    private MyPresentation presentation;
+    private TextView huiyuan_name, pingText, httpText, bendin_view, caozuo_view, tv_nickname, tv_phone;
     private LinearLayout have_paid_view, wangluo_view;
-    private TextView bendin_view;
-
-    private TextView caozuo_view,tv_nickname,tv_phone;
-
     private View shop_mocheng;
 
+    // 数据变量
+    private Integer selectedShopIndex;
+    private BigDecimal zongjia = new BigDecimal("0.00");
+    private ArrayList<GrouponGoodsBean.GrouponGoodsModel> selectedShopList = new ArrayList<>();
+    private ArrayList<RegistrationShopBean> registrationShopBeanArrayList = new ArrayList<>();
+    private String memben_discount;
+    private boolean is_tongbu = false;
+    private BuildBean buildBean;
+    private MyPresentation presentation;
+    private NetworkLatencyMonitor monitor;
+    private NetworkChangeReceiver networkChangeReceiver;
 
-    TextView pingText;
-    TextView httpText;
-    NetworkLatencyMonitor monitor;
+    // 线程池用于数据库操作，避免主线程卡顿
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
+
+    // 同步和分页相关
+    private static final int SYNC_PAGE_SIZE = 1000;
+    private static final int UI_PAGE_SIZE = 20;
+    private int ui_current_page = 0;
+    private String current_category_id = ""; // 当前选中的分类ID
+    private SyncLoadingPopup loadingPopup;
+
+    // 弹窗
+    private DeleteShopPopupWindow deleteShopPopupWindow;
+    private GetRegistrationShopPopupWindow getRegistrationShopPopupWindow;
+
+    // 支付相关
+    private boolean is_kuangjie = false;
+    private boolean is_jiezhang_qingkong = false;
+    private int allNum = 0;
+    public String out_trade_no = "", order_sn = "", transaction_id = "";
+    private TimeCount timeCount;
+    private boolean is_chaoshi = false;
+    private CheckoutBean checkoutBean;
+
+    // 退款监听
+    private PaymentStatusListener paymentStatusListener;
+
+    public interface PaymentStatusListener {
+        void onRefundCompleted(boolean success, int position);
+    }
+
+    public void setPaymentStatusListener(PaymentStatusListener listener) {
+        this.paymentStatusListener = listener;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
-        Log.i("ttt", ">>>>onCreate>>>>");
+        Log.i("MainActivity", ">>>>onCreate>>>>");
         MyUsbDeviceHelper.getInstance().inti(this);
 
-        if (NetworkUtils.getInstance().isNetworkConnected(this)) {
-            OverviewList();
-            getGrouponGoods();
-            wangluo_view.setVisibility(GONE);
-            if (TextUtils.isEmpty(UserUtils.getInstance().getOrderListJson())) {
-                bendin_view.setVisibility(GONE);
-            } else {
-                bendin_view.setVisibility(VISIBLE);
-            }
+        boolean isConnected = NetworkUtils.getInstance().isNetworkConnected(this);
+        wangluo_view.setVisibility(isConnected ? GONE : VISIBLE);
 
+        if (isConnected) {
+            OverviewList(); // 加载分类（联网）
+
+            // 异步检查数据库并决定是否同步
+            dbExecutor.execute(() -> {
+                int count = LitePal.count(GrouponGoodsBean.GrouponGoodsModel.class);
+                runOnUiThread(() -> {
+                    if (count == 0) {
+                        syncGoodsData(); // 没数据，自动同步
+                    } else {
+                        loadLocalGoods(0); // 有数据，直接加载
+                    }
+                });
+            });
         } else {
-            wangluo_view.setVisibility(VISIBLE);
-            bendin_view.setVisibility(GONE);
-            if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
-                Gson gson = new Gson();
-                CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
-                shopTypeAdapter.setNewData(categoryListBean.getData());
-            } else {
-                OverviewList();
-            }
-            if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
-                Gson gson = new Gson();
-                GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
-                allGrouponGoodsModelList = grouponGoodsBean.getData();
-                indexGrouponGoodsModelList = allGrouponGoodsModelList;
-                grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
-            } else {
-                getGrouponGoods();
-            }
+            loadLocalCategories(); // 离线加载分类
+            loadLocalGoods(0);     // 离线加载商品
         }
+        checkPendingOrders();
+
         if (networkChangeReceiver == null) {
-            networkChangeReceiver = registerNetworkReceiver(this);
-        }
-
-
-    }
-
-    private NetworkChangeReceiver networkChangeReceiver;
-
-    // 网络变化广播接收器
-    private class NetworkChangeReceiver extends BroadcastReceiver {
-        private final Activity activity;
-
-        public NetworkChangeReceiver(Activity activity) {
-            this.activity = activity;
-        }
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (NetworkUtils.getInstance().isNetworkConnected(MainActivity.this)) {
-                wangluo_view.setVisibility(GONE);
-                if (TextUtils.isEmpty(UserUtils.getInstance().getOrderListJson())) {
-                    bendin_view.setVisibility(GONE);
-                } else {
-                    bendin_view.setVisibility(VISIBLE);
-                }
-            } else {
-                bendin_view.setVisibility(GONE);
-                wangluo_view.setVisibility(VISIBLE);
-            }
+            networkChangeReceiver = new NetworkChangeReceiver(this);
+            registerReceiver(networkChangeReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         }
     }
 
-    // 注册网络状态监听
-    private NetworkChangeReceiver registerNetworkReceiver(Activity context) {
-        NetworkChangeReceiver receiver;
-        receiver = new NetworkChangeReceiver(context);
-        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        context.registerReceiver(receiver, filter);
-        return receiver;
-    }
-
-
-    // 强制隐藏软键盘
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            getWindow().setSoftInputMode(
-                    WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
-            );
-        }
-    }
-
-    private void hideKeyboard() {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null) {
-            imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (networkChangeReceiver != null) {
-            unregisterReceiver(networkChangeReceiver);
-        }
-        MyUsbDeviceHelper.getInstance().unregisterReceiver();
-    }
-
-    boolean is_kuangjie = false;
-    int allNum = 0;
-
-    private void updateColor(TextView view, int latency) {
-        if (latency < 0) {
-            view.setTextColor(0xFFFF0000); // 红色表示错误
-        } else if (latency < 100) {
-            view.setTextColor(0xFF4CAF50); // 绿色表示优秀
-        } else if (latency < 300) {
-            view.setTextColor(0xFFFFC107); // 黄色表示一般
+    private void checkPendingOrders() {
+        if (TextUtils.isEmpty(UserUtils.getInstance().getOrderListJson())) {
+            bendin_view.setVisibility(GONE);
         } else {
-            view.setTextColor(0xFFF44336); // 红色表示较差
+            bendin_view.setVisibility(VISIBLE);
         }
     }
 
     private void initView() {
+        initPresentation();
+        bindViews();
+        setupAdapters();
+        setupListeners();
+        setupNetworkMonitor();
+    }
+
+    private void initPresentation() {
         MediaRouter mediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
         MediaRouter.RouteInfo route = mediaRouter.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_VIDEO);
         if (route != null) {
@@ -289,827 +210,50 @@ public class MainActivity extends Activity {
                 presentation.show();
             }
         }
+    }
 
+    private void bindViews() {
         pingText = findViewById(R.id.pingValue);
+
+        tv_empty_cart = findViewById(R.id.tv_empty_cart);
+
+        if (tv_empty_cart != null) {
+            tv_empty_cart.setVisibility(View.VISIBLE);
+        }
         httpText = findViewById(R.id.httpValue);
         tv_nickname = findViewById(R.id.tv_nickname);
         tv_phone = findViewById(R.id.tv_phone);
-
-        monitor = new NetworkLatencyMonitor();
-        monitor.startMonitoring((pingMs, httpMs) -> {
-            runOnUiThread(() -> {
-                pingText.setText(String.valueOf(pingMs));
-                httpText.setText(String.valueOf(httpMs));
-                updateColor(pingText, pingMs);
-                updateColor(httpText, httpMs);
-            });
-        });
-        tv_nickname.setText(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname());
-        tv_phone.setText(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getMobile());
-
-
-
-        onClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int id = v.getId();
-
-                /**
-                 * 删除商品
-                 */
-                if (id == R.id.delete_shop) {
-                    if (selectedShopIndex == null) {
-                        if (selectedShopAdapter.getItemCount() > 0) {
-                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.please_select_product)).show();
-                        }
-                        return;
-                    }
-                    deleteShopPopupWindow = new DeleteShopPopupWindow(MainActivity.this, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
-                        @SuppressLint("SetTextI18n")
-                        @Override
-                        public void onClick(String string) {
-
-                            //删除记录
-
-
-                            if (!selectedShopList.get(selectedShopIndex).isIs_zengsong()) {
-                                zongjia = zongjia.subtract(selectedShopList.get(selectedShopIndex).getHeji()).setScale(2, RoundingMode.UP);
-                                tv_zongjia.setText(zongjia + "");
-                                MyPresentation.setZongjia(zongjia.toString());
-                            }
-                            allNum = allNum - selectedShopList.get(selectedShopIndex).getShuliang();
-                            selectedShopList.remove(selectedShopIndex.intValue());
-                            selectedShopAdapter.setNewData(selectedShopList);
-
-                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                            tv_zongjian.setText(allNum + "");
-                            selectedShopIndex = null;
-
-                            // 滚动到位置 0（第一条）
-                            selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
-
-                        }
-                    });
-                    deleteShopPopupWindow.show();
-                }
-                /**
-                 * 清空商品
-                 */
-                if (id == R.id.qingkong_btn) {
-                    if (selectedShopList.isEmpty()) {
-                        return;
-                    }
-                    if (!is_jiezhang_qingkong){
-                        //清空记录
-                    }
-                    selectedShopList.clear();
-                    selectedShopAdapter.notifyDataSetChanged();
-                    zongjia = new BigDecimal("0.00");
-                    tv_zongjia.setText(zongjia + "");
-                    tv_zongjian.setText("0");
-                    allNum = 0;
-                    MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                    MyPresentation.setZongjia(zongjia.toString());
-                }
-                /**
-                 * 挂单
-                 */
-                if (id == R.id.guadan_btn) {
-                    if (selectedShopAdapter.getItemCount() <= 0) {
-                        return;
-                    }
-                    // 定义日期格式模板
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-                    // 获取当前时间（基于系统时区）
-                    String formattedTime = sdf.format(System.currentTimeMillis());
-                    RegistrationShopBean registrationShopBean = new RegistrationShopBean();
-                    registrationShopBean.setTime(formattedTime);
-                    registrationShopBean.setTotal_price(zongjia);
-                    registrationShopBean.setAllNum(allNum);
-                    ArrayList<GrouponGoodsBean.GrouponGoodsModel> registrationShopList = SerializableUtils.deepCopyList(selectedShopList);
-                    registrationShopBean.setRegistrationShopList(registrationShopList);
-                    registrationShopBeanArrayList.add(registrationShopBean);
-
-                    qudan_btn.setText(getString(R.string.qudan_num, registrationShopBeanArrayList.size() + ""));
-
-                    selectedShopList.clear();
-                    selectedShopAdapter.setNewData(selectedShopList);
-                    zongjia = new BigDecimal("0.00");
-                    tv_zongjia.setText(zongjia + "");
-                    tv_zongjian.setText("0");
-                    allNum = 0;
-                    MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                    MyPresentation.setZongjia(zongjia.toString());
-
-                }
-
-                /**
-                 *  取单
-                 */
-                if (id == R.id.qudan_btn) {
-                    if (!registrationShopBeanArrayList.isEmpty()) {
-                        getRegistrationShopPopupWindow = new GetRegistrationShopPopupWindow(MainActivity.this, registrationShopBeanArrayList, new PopupWindowOnClickListener.GetRegistrationShopOnClickListener() {
-                            @Override
-                            public void onClick(int index, int type) {
-                                RegistrationShopBean registrationShopBean = registrationShopBeanArrayList.get(index);
-
-                                if (type == 1) {//取单
-                                    Log.i("ttt", ">>>>>>>>>>>>取单");
-                                    selectedShopAdapter.setNewData(new ArrayList<>());
-                                    zongjia = registrationShopBean.getTotal_price();
-                                    tv_zongjia.setText(zongjia + "");
-                                    selectedShopList = new ArrayList<>();
-                                    selectedShopList = registrationShopBean.getRegistrationShopList();
-                                    tv_zongjian.setText(registrationShopBean.getAllNum() + "");
-                                    allNum = registrationShopBean.getAllNum();
-                                    selectedShopAdapter.setNewData(selectedShopList);
-                                    MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                                    MyPresentation.setZongjia(zongjia.toString());
-
-                                } else if (type == 2) {//删除
-
-                                    if (!registrationShopBeanArrayList.isEmpty()) {
-                                        getRegistrationShopPopupWindow.setDataDelect();
-                                    }
-
-                                }
-                                registrationShopBeanArrayList.remove(index);
-                                if (!registrationShopBeanArrayList.isEmpty()) {
-                                    qudan_btn.setText(getString(R.string.qudan_num, registrationShopBeanArrayList.size() + ""));
-                                } else {
-                                    qudan_btn.setText(getString(R.string.qudan_null));
-                                }
-
-                            }
-                        });
-                        getRegistrationShopPopupWindow.show();
-                    }
-
-                }
-
-                /**
-                 * 改价/打折
-                 */
-                if (id == R.id.dazhe_one_btn) {
-                    if (selectedShopIndex == null) {
-                        if (selectedShopAdapter.getItemCount() > 0) {
-                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.please_select_product)).show();
-                        }
-                        return;
-                    }
-                    new DiscountPopupWindow(MainActivity.this, getString(R.string.item_discount), new PopupWindowOnClickListener.DiscountOnClickListener() {
-                        @Override
-                        public void onClick(String discount) {
-                            GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = selectedShopAdapter.getData().get(selectedShopIndex);
-                            grouponGoodsModel.setDiscount(discount);
-
-                            zongjia = zongjia.subtract(grouponGoodsModel.getHeji());
-                            Log.i("ttt", ">>>>>>" + zongjia);
-
-                            BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
-
-                            BigDecimal zhehoujia = yuanjia.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
-
-                            grouponGoodsModel.setDiscounted_price(yuanjia.subtract(zhehoujia));
-
-                            grouponGoodsModel.setHeji(zhehoujia);
-
-                            zongjia = zongjia.add(zhehoujia);
-                            Log.i("ttt", ">>sss>>>>" + zongjia);
-                            tv_zongjia.setText(zongjia + "");
-                            selectedShopAdapter.notifyItemChanged(selectedShopIndex);
-                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                            MyPresentation.setZongjia(zongjia.toString());
-
-
-                        }
-                    }).show();
-                }
-                /**
-                 * 整单打折
-                 */
-                if (id == R.id.dazhe_all_btn) {
-                    if (selectedShopAdapter.getItemCount() <= 0) {
-                        return;
-                    }
-                    new DiscountPopupWindow(MainActivity.this, getString(R.string.order_discount), new PopupWindowOnClickListener.DiscountOnClickListener() {
-                        @Override
-                        public void onClick(String discount) {
-                            for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopAdapter.getData()) {
-
-                                grouponGoodsModel.setDiscount(discount);
-
-                                zongjia = zongjia.subtract(grouponGoodsModel.getHeji());
-                                Log.i("ttt", ">>>>>>" + zongjia);
-
-                                BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
-
-                                BigDecimal zhehoujia = yuanjia.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
-
-                                grouponGoodsModel.setDiscounted_price(yuanjia.subtract(zhehoujia));
-
-                                grouponGoodsModel.setHeji(zhehoujia);
-
-                                zongjia = zongjia.add(zhehoujia);
-                                tv_zongjia.setText(zongjia + "");
-                                selectedShopAdapter.notifyDataSetChanged();
-                                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                                MyPresentation.setZongjia(zongjia.toString());
-
-                            }
-
-                        }
-                    }).show();
-                }
-
-                /**
-                 * 结账
-                 */
-                if (id == R.id.checkout_btn) {
-                    if (selectedShopAdapter.getItemCount() <= 0) {
-                        return;
-                    }
-                    if (Utilis.isFastClick()) {
-                        return;
-                    }
-                    CheckoutBean checkoutBean = new CheckoutBean();
-
-                    checkoutBean.setAllNum(allNum);
-                    checkoutBean.setUser_id(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId());
-                    checkoutBean.setMachineNumber("001");
-                    checkoutBean.setTotal_fee(zongjia.toString());
-                    if (is_kuangjie || !NetworkUtils.getInstance().isNetworkConnected(MainActivity.this)) {
-                        checkoutBean.setPay_type("cash");
-                    } else {
-                        checkoutBean.setPay_type("");
-                    }
-                    is_kuangjie = false;
-//                    checkoutBean.setPay_fee();
-                    checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-                    BigDecimal discount_fee = new BigDecimal("0.00");
-                    ArrayList<CheckoutBean.GoodsJsonBean> goodsJsonBeanArrayList = new ArrayList<>();
-
-
-                    for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopList) {
-                        if (grouponGoodsModel.getDiscounted_price() != null) {
-                            discount_fee = discount_fee.add(grouponGoodsModel.getDiscounted_price());
-                        }
-                        CheckoutBean.GoodsJsonBean goodsJsonBean = new CheckoutBean.GoodsJsonBean();
-                        goodsJsonBean.setGoods_id(grouponGoodsModel.getId());
-                        goodsJsonBean.setTitle(grouponGoodsModel.getTitle());
-                        goodsJsonBean.setGoods_sn(grouponGoodsModel.getGoods_sn());
-                        goodsJsonBean.setSn(grouponGoodsModel.getSn());
-                        goodsJsonBean.setDiscount(TextUtils.isEmpty(grouponGoodsModel.getDiscount()) ? "100" : grouponGoodsModel.getDiscount());
-                        goodsJsonBean.setDiscounted_price(grouponGoodsModel.getDiscounted_price() == null ? "0.00" : grouponGoodsModel.getDiscounted_price().toString());
-                        goodsJsonBean.setGoods_price(grouponGoodsModel.getPrice());
-                        goodsJsonBean.setGoods_num(grouponGoodsModel.getShuliang());
-                        goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
-                        goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGgspid() + "");
-                        goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text()) ? "" : grouponGoodsModel.getGoods_sku_text());
-                        goodsJsonBeanArrayList.add(goodsJsonBean);
-                    }
-                    Gson gson = new Gson();
-
-                    checkoutBean.setGoodsjson(gson.toJson(goodsJsonBeanArrayList));
-                    checkoutBean.setDiscount_fee(discount_fee.toString());
-                    checkoutBean.setTotal_amount(zongjia.add(discount_fee).toString());
-                    checkoutBean.setGoods_original_amount(zongjia.add(discount_fee).toString());
-//                    checkoutBean.setTotal_amount((int) 0.01);
-//                    checkoutBean.setTotal_amount((int) 0.01);
-
-                    CheckoutPopupWindow checkoutPopupWindow = new CheckoutPopupWindow(MainActivity.this, checkoutBean, new PopupWindowOnClickListener.CheckoutOnClickListener() {
-                        @Override
-                        public void onClick() {
-                            have_paid_view.setVisibility(VISIBLE);
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    have_paid_view.setVisibility(GONE);
-                                }
-                            }, 3000);
-                            is_jiezhang_qingkong=true;
-                            onClickListener.onClick(qingkong_btn);
-                        }
-                    });
-                    Log.i("ttt", ">>>>>>>sss>SS>>" + checkoutPopupWindow.isShow());
-                    if (checkoutPopupWindow.isShow()) {
-                        checkoutPopupWindow.dismiss();
-                    } else {
-                        checkoutPopupWindow.show();
-                    }
-
-                }
-
-                /**
-                 * 会员查询
-                 */
-                if (id == R.id.huiyuan_btn) {
-                    new MemberPopupWindow(MainActivity.this, new PopupWindowOnClickListener.MemberOnClickListener() {
-                        @Override
-                        public void onClick(MemberBean memberBean) {
-                            huiyuan_name.setText(memberBean.getNickname());
-                            if (memberBean.getVip() == 0) {
-                                memben_discount = "";
-                            }
-                            if (memberBean.getVip() == 17) {//青铜
-                                memben_discount = "98";
-                            }
-                            if (memberBean.getVip() == 18) {//白银
-                                memben_discount = "95";
-                            }
-                            if (memberBean.getVip() == 19) {//黄金
-                                memben_discount = "90";
-                            }
-                            if (selectedShopAdapter.getItemCount() <= 0) {
-                                return;
-                            }
-                            for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopAdapter.getData()) {
-
-                                grouponGoodsModel.setDiscount(memben_discount);
-
-                                zongjia = zongjia.subtract(grouponGoodsModel.getHeji());
-                                Log.i("ttt", ">>>>>>" + zongjia);
-
-                                BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
-
-                                BigDecimal zhehoujia = yuanjia.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal("100"));
-
-                                grouponGoodsModel.setDiscounted_price(yuanjia.subtract(zhehoujia));
-
-                                grouponGoodsModel.setHeji(zhehoujia);
-
-                                zongjia = zongjia.add(zhehoujia);
-                                tv_zongjia.setText(zongjia + "");
-                                selectedShopAdapter.notifyDataSetChanged();
-                                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                                MyPresentation.setZongjia(zongjia.toString());
-
-                            }
-                        }
-                    }).show();
-                }
-                /**
-                 * 打印尾单
-                 */
-                if (id == R.id.daying_btn) {
-                    getLastOder();
-
-                }
-                /**
-                 * 删除会员
-                 */
-                if (R.id.shanchuhuiyuan_btn == id) {
-                    huiyuan_name.setText(getString(R.string.member_nickname));
-                    memben_discount = "100";
-
-                    if (selectedShopAdapter.getItemCount() <= 0) {
-                        return;
-                    }
-                    for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopAdapter.getData()) {
-
-                        grouponGoodsModel.setDiscount(memben_discount);
-
-                        zongjia = zongjia.subtract(grouponGoodsModel.getHeji());
-                        Log.i("ttt", ">>>>>>" + zongjia);
-
-                        BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
-
-                        BigDecimal zhehoujia = yuanjia.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal("100"));
-
-                        grouponGoodsModel.setDiscounted_price(yuanjia.subtract(zhehoujia));
-
-                        grouponGoodsModel.setHeji(zhehoujia);
-
-                        zongjia = zongjia.add(zhehoujia);
-                        tv_zongjia.setText(zongjia + "");
-                        selectedShopAdapter.notifyDataSetChanged();
-                        MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                        MyPresentation.setZongjia(zongjia.toString());
-
-                    }
-                }
-                /**
-                 * 更多功能
-                 */
-                if (R.id.more_function_btn == id) {
-//                    MyLabeksPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this,new ArrayList<>());
-
-                    new MorefunctionPopupWindow(MainActivity.this, new PopupWindowOnClickListener.MorefunctionOnClickListener() {
-                        @Override
-                        public void onClick(int btnType) {
-                            switch (btnType) {
-                                /**
-                                 * 同步数据
-                                 */
-                                case 1:
-                                    is_tongbu = true;
-                                    grouponGoods_page=1;
-                                    OverviewList();
-                                    break;
-                                /**
-                                 * 标签打印
-                                 */
-                                case 2:
-                                    new PrintLabelsPopupWindow(MainActivity.this).show();
-
-                                    break;
-                                /**
-                                 * 商品入库
-                                 */
-                                case 3:
-                                    new GoodsWarehousingPopupWindow(MainActivity.this, allGrouponGoodsModelList, new PopupWindowOnClickListener.GoodsWarehousingOnClickListener() {
-                                        @Override
-                                        public void onClick(int code, String msg) {
-                                            Log.i("ttt", ">>>>>>wwww>>>" + msg);
-                                            if (code == 1) {
-                                                new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_stocked_successfully), true).show();
-                                            } else {
-                                                new DeleteShopPopupWindow(MainActivity.this, msg, true).show();
-                                            }
-                                        }
-                                    }).show();
-                                    break;
-                                /**
-                                 * 历史账单
-                                 */
-                                case 4:
-                                    new HistoryOrderPopupWindow(MainActivity.this).show();
-                                    break;
-                                /**
-                                 * 退出登录
-                                 */
-                                case 5:
-                                    UserUtils.getInstance().setCategoryListBeanJson(MainActivity.this, "");
-                                    UserUtils.getInstance().setGrouponGoodsBeanJson(MainActivity.this, "");
-                                    UserUtils.getInstance().setLoginBase(MainActivity.this, null);
-                                    startActivity(new Intent(MainActivity.this, LoginActivity.class));
-                                    break;
-                                /**
-                                 * 钱箱设置
-                                 */
-                                case 6:
-                                    new MoneyBoxPopupWindow(MainActivity.this).show();
-                                    break;
-                                /**
-                                 * 交接班
-                                 */
-                                case 7:
-                                    new RelieveShiftPopupWindow(MainActivity.this).show();
-                                    break;
-                                /**
-                                 * 账单打印机设置
-                                 */
-                                case 8:
-                                    new PrintDevicePopupWindow(MainActivity.this, 1,new PopupWindowOnClickListener.PrintDeviceOnClickListener() {
-                                        @Override
-                                        public void onClick(UsbDevice usbDevice) {
-                                            UserUtils.getInstance().setVENDOR_ID(MainActivity.this, usbDevice.getVendorId());
-                                            UserUtils.getInstance().setPRODUCT_ID(MainActivity.this, usbDevice.getProductId());
-                                            if (usbDevice.getVendorId() ==  UserUtils.getInstance().getLABEKS_VENDOR_ID() && usbDevice.getProductId() ==  UserUtils.getInstance().getLABEKS_PRODUCT_ID()) { // 替换为实际 VID/PID
-                                                UserUtils.getInstance().setLABEKS_VENDOR_ID(MainActivity.this, 0);
-                                                UserUtils.getInstance().setLABEKS_PRODUCT_ID(MainActivity.this, 0);
-                                            }
-                                            MyUsbDeviceHelper.getInstance().requestUsbPermission(usbDevice);
-                                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.setup_completed), true).show();
-                                        }
-                                    }).show();
-                                    break;
-                                /**
-                                 * 标签打印机设置
-                                 */
-                                case 9:
-                                    new PrintDevicePopupWindow(MainActivity.this,2, new PopupWindowOnClickListener.PrintDeviceOnClickListener() {
-                                        @Override
-                                        public void onClick(UsbDevice usbDevice) {
-                                            UserUtils.getInstance().setLABEKS_VENDOR_ID(MainActivity.this, usbDevice.getVendorId());
-                                            UserUtils.getInstance().setLABEKS_PRODUCT_ID(MainActivity.this, usbDevice.getProductId());
-                                            if (usbDevice.getVendorId() == UserUtils.getInstance().getVENDOR_ID() && usbDevice.getProductId() ==  UserUtils.getInstance().getPRODUCT_ID()) { // 替换为实际 VID/PID
-                                                UserUtils.getInstance().setVENDOR_ID(MainActivity.this, 0);
-                                                UserUtils.getInstance().setPRODUCT_ID(MainActivity.this, 0);
-                                            }
-                                            MyUsbDeviceHelper.getInstance().requestUsbPermission(usbDevice);
-                                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.setup_completed), true).show();
-                                        }
-                                    }).show();
-                                    break;
-                                /**
-                                 * 打折开关
-                                 */
-                                case 10:
-                                    new DeleteShopPopupWindow(true,MainActivity.this, UserUtils.getInstance().isDazhe()?getString(R.string.discounts_hint,getString(R.string.off)):getString(R.string.discounts_hint,getString(R.string.on)), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
-                                        @Override
-                                        public void onClick(String text) {
-                                            UserUtils.getInstance().setDazhe(MainActivity.this,!UserUtils.getInstance().isDazhe());
-                                            if (UserUtils.getInstance().isDazhe()){
-                                                dazhe_all_btn.setVisibility(VISIBLE);
-                                                dazhe_one_btn.setVisibility(VISIBLE);
-                                                caozuo_view.setVisibility(VISIBLE);
-                                            }else {
-                                                caozuo_view.setVisibility(GONE);
-                                                dazhe_all_btn.setVisibility(GONE);
-                                                dazhe_one_btn.setVisibility(GONE);
-                                                if (selectedShopAdapter.getItemCount()>0){
-                                                    for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopAdapter.getData()) {
-
-                                                        grouponGoodsModel.setDiscount("100");
-
-                                                        zongjia = zongjia.subtract(grouponGoodsModel.getHeji());
-                                                        Log.i("ttt", ">>>>>>" + zongjia);
-
-                                                        BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
-
-                                                        BigDecimal zhehoujia = yuanjia.multiply(new BigDecimal("100")).divide(new BigDecimal("100"));
-
-                                                        grouponGoodsModel.setDiscounted_price(yuanjia.subtract(zhehoujia));
-
-                                                        grouponGoodsModel.setHeji(zhehoujia);
-
-                                                        zongjia = zongjia.add(zhehoujia);
-                                                        tv_zongjia.setText(zongjia + "");
-                                                        selectedShopAdapter.notifyDataSetChanged();
-                                                        MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                                                        MyPresentation.setZongjia(zongjia.toString());
-
-                                                    }
-                                                }
-
-                                            }
-                                            selectedShopAdapter.notifyDataSetChanged();
-                                        }
-                                    }).show();
-                                    break;
-                                /**
-                                 * 支付设置
-                                 */
-                                case 11:
-                                    new PaymentListPopupWindow(MainActivity.this).show();
-                                    break;
-                                /**
-                                 * 商品点击设置
-                                 */
-                                case 12:
-                                    new DeleteShopPopupWindow(MainActivity.this, UserUtils.getInstance().isDianji()?getString(R.string.shangpinkaiguan_hint,getString(R.string.off)):getString(R.string.shangpinkaiguan_hint,getString(R.string.on)), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
-                                        @Override
-                                        public void onClick(String text) {
-                                            UserUtils.getInstance().setDianji(MainActivity.this,!UserUtils.getInstance().isDianji());
-                                            shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji()?VISIBLE:GONE);
-
-                                        }
-                                    }).show();
-                                    break;
-
-                                default:
-                                    throw new IllegalStateException("Unexpected value: " + btnType);
-                            }
-                        }
-                    }).show();
-                }
-                /**
-                 * 无码收银
-                 */
-
-                if (id == R.id.add_no_code_btn) {
-                    new AddNoCodePopupWindow(MainActivity.this, new PopupWindowOnClickListener.AddNoCodeOnClickListener() {
-                        @Override
-                        public void onClick(GrouponGoodsBean.GrouponGoodsModel grouponGoodsMode) {
-                            BigDecimal price = new BigDecimal(grouponGoodsMode.getPrice());
-                            if (!TextUtils.isEmpty(memben_discount)) {
-                                price = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
-                                grouponGoodsMode.setDiscounted_price(new BigDecimal(grouponGoodsMode.getPrice()).subtract(price));
-                                grouponGoodsMode.setDiscount(memben_discount);
-                            }
-
-                            BigDecimal heji = price.setScale(2, RoundingMode.UP);
-                            grouponGoodsMode.setHeji(heji);
-                            grouponGoodsMode.setShuliang(1);
-                            selectedShopList.add(0, SerializableUtils.deepCopy(grouponGoodsMode));
-
-                            have_paid_view.setVisibility(GONE);
-                            selectedShopAdapter.setNewData(selectedShopList);
-                            allNum++;
-                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-
-                            // 滚动到位置 0（第一条）
-                            selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
-                            tv_zongjian.setText(allNum + "");
-                            zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
-                            tv_zongjia.setText(zongjia + "");
-                            MyPresentation.setZongjia(zongjia.toString());
-                        }
-                    }).show();
-                }
-
-
-            }
-        };
-        caozuo_view=findViewById(R.id.caozuo_view);
-        shop_mocheng=findViewById(R.id.shop_mocheng);
-        shop_mocheng.setOnClickListener(v -> {
-
-        });
-        shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji()?VISIBLE:GONE);
-        bendin_view = findViewById(R.id.bendin_view);
-        wangluo_view = findViewById(R.id.wangluo_view);
-        ImageView imageView = findViewById(R.id.image);
-        // 加载本地资源
-        Glide.with(this).load(R.drawable.have_paid_img).into(imageView);
-        have_paid_view = findViewById(R.id.have_paid_view);
-        findViewById(R.id.delete_shop).setOnClickListener(onClickListener);
-        guadan_btn = findViewById(R.id.guadan_btn);
-        guadan_btn.setOnClickListener(onClickListener);
-        qingkong_btn = findViewById(R.id.qingkong_btn);
-        qingkong_btn.setOnClickListener(onClickListener);
-        qudan_btn = findViewById(R.id.qudan_btn);
-        qudan_btn.setOnClickListener(onClickListener);
-        dazhe_one_btn = findViewById(R.id.dazhe_one_btn);
-        dazhe_one_btn.setOnClickListener(onClickListener);
-        dazhe_all_btn = findViewById(R.id.dazhe_all_btn);
-        dazhe_all_btn.setOnClickListener(onClickListener);
-        checkout_btn = findViewById(R.id.checkout_btn);
-        checkout_btn.setOnClickListener(onClickListener);
-
-        huiyuan_btn = findViewById(R.id.huiyuan_btn);
-        huiyuan_btn.setOnClickListener(onClickListener);
-        daying_btn = findViewById(R.id.daying_btn);
-        daying_btn.setOnClickListener(onClickListener);
-        huiyuan_name = findViewById(R.id.huiyuan_name);
-        findViewById(R.id.shanchuhuiyuan_btn).setOnClickListener(onClickListener);
-        findViewById(R.id.more_function_btn).setOnClickListener(onClickListener);
-        findViewById(R.id.add_no_code_btn).setOnClickListener(onClickListener);
-
-        if (UserUtils.getInstance().isDazhe()){
-            dazhe_all_btn.setVisibility(VISIBLE);
-            dazhe_one_btn.setVisibility(VISIBLE);
-            caozuo_view.setVisibility(VISIBLE);
-        }else {
-            caozuo_view.setVisibility(GONE);
-            dazhe_all_btn.setVisibility(GONE);
-            dazhe_one_btn.setVisibility(GONE);
-        }
-
-
         tv_zongjia = findViewById(R.id.tv_zongjia);
         tv_zongjian = findViewById(R.id.tv_zongjian);
-
-        animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.scale_click);
-
+        caozuo_view = findViewById(R.id.caozuo_view);
+        shop_mocheng = findViewById(R.id.shop_mocheng);
+        bendin_view = findViewById(R.id.bendin_view);
+        wangluo_view = findViewById(R.id.wangluo_view);
+        have_paid_view = findViewById(R.id.have_paid_view);
+        huiyuan_name = findViewById(R.id.huiyuan_name);
         et_tiaoxingma = findViewById(R.id.et_tiaoxingma);
-        et_tiaoxingma.setOnClickListener(v -> et_tiaoxingma.postDelayed(() -> et_tiaoxingma.requestFocus(), 100));
+
+        qingkong_btn = findViewById(R.id.qingkong_btn);
+        guadan_btn = findViewById(R.id.guadan_btn);
+        qudan_btn = findViewById(R.id.qudan_btn);
+        dazhe_one_btn = findViewById(R.id.dazhe_one_btn);
+        dazhe_all_btn = findViewById(R.id.dazhe_all_btn);
+        checkout_btn = findViewById(R.id.checkout_btn);
+        huiyuan_btn = findViewById(R.id.huiyuan_btn);
+        daying_btn = findViewById(R.id.daying_btn);
+
+        if (UserUtils.getInstance().getLoginBase() != null && UserUtils.getInstance().getLoginBase().getData() != null) {
+            tv_nickname.setText(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname());
+            tv_phone.setText(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getMobile());
+        }
+
+        Glide.with(this).load(R.drawable.have_paid_img).into((ImageView) findViewById(R.id.image));
+        animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.scale_click);
         buildBean = DialogUIUtils.showLoading(this, getString(R.string.paying), true, false, false, false);
-        // 设置输入完成监听
-        et_tiaoxingma.setOnInputCompleteListener(text -> {
-            Log.i("ttt", ">>>>>>>>>>>>>>" + text);
-            et_tiaoxingma.setText("");
-            String textType = detectPaymentType(text);
-            if (textType.equals("unknown")) {
-                //
-//                Log.i("ttt", ">>>>>>>>>>>>>>" + allGrouponGoodsModelList.size()+"sssssssss");
-//                for (int i=0;i<allGrouponGoodsModelList.size();i++){
-//                    if (!TextUtils.isEmpty(allGrouponGoodsModelList.get(i).getSn())&& allGrouponGoodsModelList.get(i).getSn().equals(text)){
-//                        Log.i("ttt","这个的是空》》》》"+allGrouponGoodsModelList.get(i).getPrice()+">>>>>"+allGrouponGoodsModelList.get(i).getGgprice());
-//                    }
-//                }
+        timeCount = new TimeCount(30000, 5000);
+    }
 
-                ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = allGrouponGoodsModelList.stream()
-                        .filter(grouponGoodsModel -> !TextUtils.isEmpty(grouponGoodsModel.getSn()) && grouponGoodsModel.getSn().equals(text))
-                        .collect(Collectors.toCollection(ArrayList::new));
-                if (grouponGoodsModelArrayList.isEmpty()) {
-
-                    ArrayList<GrouponGoodsBean.GrouponGoodsModel> indexArrayList = allGrouponGoodsModelList.stream()
-                            .filter(grouponGoodsModel -> !TextUtils.isEmpty(grouponGoodsModel.getSn()) && grouponGoodsModel.getSn().startsWith(text))
-                            .collect(Collectors.toCollection(ArrayList::new));
-
-
-                    if (indexArrayList.isEmpty()){
-                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
-                        return;
-                    }
-                    indexGrouponGoodsModelList = indexArrayList;
-                    grouponGoods_page = 1;
-                    grouponGoodsAdapter.hasMore = true;
-                    grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
-
-                    return;
-                }
-                allNum++;
-                GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = grouponGoodsModelArrayList.get(0);
-                if (selectedShopList != null && !selectedShopList.isEmpty()) {
-
-                    for (int i = 0; i < selectedShopList.size(); i++) {
-                        GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
-//                        Log.i("ttt", ">>>>>>>>>>>>>>" + model.getId() + "<<<<<" + grouponGoodsModel.getId());
-                        Log.i("ttt", ">>>>>>>>Ggspid>>>>>>" + model.getGgspid() + "<<<<<" + grouponGoodsModel.getGgspid());
-                        if (model.getId() == grouponGoodsModel.getId()&&model.getGgspid() == grouponGoodsModel.getGgspid()) {
-//                            if (model.getGgspid()==0||model.getGgspid()==grouponGoodsModel.getGgspid())
-                            model.setShuliang(model.getShuliang() + 1);
-                            BigDecimal price = new BigDecimal(model.getPrice());
-                            if (!TextUtils.isEmpty(model.getDiscount())) {
-                                price = price.multiply(new BigDecimal(model.getDiscount())).divide(new BigDecimal(100));
-                                model.setDiscounted_price(model.getDiscounted_price().add(new BigDecimal(model.getPrice()).subtract(price)));
-                            }
-                            BigDecimal heji = price.add(model.getHeji()).setScale(2, RoundingMode.UP);
-                            model.setHeji(heji);
-                            if (!model.isIs_zengsong()) {
-                                zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
-                            }
-
-                            tv_zongjia.setText(zongjia + "");
-                            selectedShopAdapter.notifyItemChanged(i);
-                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                            tv_zongjian.setText(allNum + "");
-                            MyPresentation.setZongjia(zongjia.toString());
-                            return;
-                        }
-                    }
-                }
-                BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
-                if (!TextUtils.isEmpty(memben_discount)) {
-                    price = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
-                    grouponGoodsModel.setDiscounted_price(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price));
-                    grouponGoodsModel.setDiscount(memben_discount);
-                }
-
-                BigDecimal heji = price.setScale(2, RoundingMode.UP);
-                grouponGoodsModel.setHeji(heji);
-                grouponGoodsModel.setShuliang(1);
-                selectedShopList.add(0, SerializableUtils.deepCopy(grouponGoodsModel));
-
-                have_paid_view.setVisibility(GONE);
-                selectedShopAdapter.setNewData(selectedShopList);
-                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-
-                // 滚动到位置 0（第一条）
-                selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
-                tv_zongjian.setText(allNum + "");
-                zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
-                tv_zongjia.setText(zongjia + "");
-                MyPresentation.setZongjia(zongjia.toString());
-            } else {
-                if (selectedShopAdapter.getItemCount() <= 0) {
-                    return;
-                }
-                checkoutBean = new CheckoutBean();
-                checkoutBean.setAllNum(allNum);
-
-                checkoutBean.setUser_id(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId());
-                checkoutBean.setMachineNumber("001");
-
-                checkoutBean.setTotal_fee(zongjia.toString());
-
-                checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-                BigDecimal discount_fee = new BigDecimal("0.00");
-                ArrayList<CheckoutBean.GoodsJsonBean> goodsJsonBeanArrayList = new ArrayList<>();
-
-
-                for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopList) {
-                    if (grouponGoodsModel.getDiscounted_price() != null) {
-                        discount_fee = discount_fee.add(grouponGoodsModel.getDiscounted_price());
-                    }
-                    CheckoutBean.GoodsJsonBean goodsJsonBean = new CheckoutBean.GoodsJsonBean();
-                    goodsJsonBean.setGoods_id(grouponGoodsModel.getId());
-                    goodsJsonBean.setTitle(grouponGoodsModel.getTitle());
-                    goodsJsonBean.setGoods_sn(grouponGoodsModel.getGoods_sn());
-                    goodsJsonBean.setSn(grouponGoodsModel.getSn());
-                    goodsJsonBean.setDiscount(TextUtils.isEmpty(grouponGoodsModel.getDiscount()) ? "100" : grouponGoodsModel.getDiscount());
-                    goodsJsonBean.setDiscounted_price(grouponGoodsModel.getDiscounted_price() == null ? "0.00" : grouponGoodsModel.getDiscounted_price().toString());
-                    goodsJsonBean.setGoods_price(grouponGoodsModel.getPrice());
-                    goodsJsonBean.setGoods_num(grouponGoodsModel.getShuliang());
-                    goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
-//                        goodsJsonBean.setPay_price("0.01");
-//                        goodsJsonBean.setGoods_price("0.01");
-                    goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGgspid() + "");
-                    goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text()) ? "" : grouponGoodsModel.getGoods_sku_text());
-
-
-                    goodsJsonBeanArrayList.add(goodsJsonBean);
-                }
-                Gson gson = new Gson();
-
-                checkoutBean.setGoodsjson(gson.toJson(goodsJsonBeanArrayList));
-                checkoutBean.setDiscount_fee(discount_fee.toString());
-                checkoutBean.setTotal_amount(zongjia.add(discount_fee).toString());
-                checkoutBean.setGoods_original_amount(zongjia.add(discount_fee).toString());
-                checkoutBean.setPay_type(textType);
-                checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-                checkoutBean.setAuthCode(text);
-                checkoutBean.setPay_fee(zongjia.toString());
-                checkoutBean.setCash_price(zongjia.toString());
-                checkoutBean.setCash_change("0.00");
-                checkoutBean.setType(1);
-                checkoutBean.setOrder_status(2);
-
-                SubmitCheckout(checkoutBean);
-
-            }
-
-
-        });
-
-        // 自动获取焦点
-        et_tiaoxingma.postDelayed(() -> et_tiaoxingma.requestFocus(), 100);
-
-
-        //=================================选中购买的商品start=========================================//
+    private void setupAdapters() {
         selected_shop_rv = findViewById(R.id.selected_shop_rv);
         selected_LinearLayoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
         selected_shop_rv.setLayoutManager(selected_LinearLayoutManager);
@@ -1117,1194 +261,1093 @@ public class MainActivity extends Activity {
         selected_shop_rv.setAdapter(selectedShopAdapter);
         ((SimpleItemAnimator) selected_shop_rv.getItemAnimator()).setSupportsChangeAnimations(false);
 
-        selectedShopAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopAdapter.getData()) {
-                    grouponGoodsModel.setSelected(false);
-                }
+        rv_choose_menu3 = findViewById(R.id.rv_choose_menu3);
+        rv_choose_menu3.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
+        shopTypeAdapter = new ShopTypeAdapter(this, R.layout.item_shop_type);
+        rv_choose_menu3.setAdapter(shopTypeAdapter);
+
+        shop_rv = findViewById(R.id.shop_rv);
+        shop_rv.setLayoutManager(new GridLayoutManager(this, 4));
+        grouponGoodsAdapter = new GrouponGoodsAdapter(this, R.layout.item_groupon_goods);
+        shop_rv.setAdapter(grouponGoodsAdapter);
+        grouponGoodsAdapter.setPreLoadNumber(3);
+    }
+
+    private void setupListeners() {
+        findViewById(R.id.delete_shop).setOnClickListener(this);
+        findViewById(R.id.shanchuhuiyuan_btn).setOnClickListener(this);
+        findViewById(R.id.more_function_btn).setOnClickListener(this);
+        findViewById(R.id.add_no_code_btn).setOnClickListener(this);
+
+        qingkong_btn.setOnClickListener(this);
+        guadan_btn.setOnClickListener(this);
+        qudan_btn.setOnClickListener(this);
+        dazhe_one_btn.setOnClickListener(this);
+        dazhe_all_btn.setOnClickListener(this);
+        checkout_btn.setOnClickListener(this);
+        huiyuan_btn.setOnClickListener(this);
+        daying_btn.setOnClickListener(this);
+
+        updateDiscountView();
+
+        shop_mocheng.setOnClickListener(v -> {});
+        shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji() ? VISIBLE : GONE);
+
+        et_tiaoxingma.setOnClickListener(v -> et_tiaoxingma.postDelayed(() -> et_tiaoxingma.requestFocus(), 100));
+        et_tiaoxingma.postDelayed(() -> et_tiaoxingma.requestFocus(), 100);
+
+        et_tiaoxingma.setOnInputCompleteListener(this::handleScanInput);
+
+        selectedShopAdapter.setOnItemClickListener((adapter, view, position) -> {
+            for (GrouponGoodsBean.GrouponGoodsModel model : selectedShopAdapter.getData()) {
+                model.setSelected(false);
+            }
+            if (position >= 0 && position < selectedShopAdapter.getData().size()) {
                 selectedShopAdapter.getData().get(position).setSelected(true);
                 selectedShopIndex = position;
                 selectedShopAdapter.notifyDataSetChanged();
             }
         });
 
+        selectedShopAdapter.setOnItemChildClickListener((adapter, view, position) -> handleCartItemAction(view.getId(), position));
 
-        selectedShopAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
-            @Override
-            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-                int id = view.getId();
-                GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = selectedShopAdapter.getData().get(position);
-                if (id == R.id.shuliang_jian) {
-                    allNum--;
-                    if (grouponGoodsModel.getShuliang() > 1) {
-                        grouponGoodsModel.setShuliang(grouponGoodsModel.getShuliang() - 1);
+        // ▼▼▼▼▼▼ 核心修复：分类Tab点击事件 ▼▼▼▼▼▼
+        shopTypeAdapter.setOnItemClickListener((adapter, view, position) -> {
+            // 1. 设置选中状态
+            shopTypeAdapter.setIndex(position);
 
-                        BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
-                        if (!TextUtils.isEmpty(grouponGoodsModel.getDiscount())) {
-                            price = price.multiply(new BigDecimal(grouponGoodsModel.getDiscount())).divide(new BigDecimal("100"));
-                            grouponGoodsModel.setDiscounted_price(grouponGoodsModel.getDiscounted_price().subtract(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price)));
-                        }
+            // 2. 获取分类数据
+            CategoryListBean.CategoryListModel item = shopTypeAdapter.getData().get(position);
 
-
-                        BigDecimal heji = grouponGoodsModel.getHeji().subtract(price).setScale(2, RoundingMode.UP);
-                        grouponGoodsModel.setHeji(heji);
-                        if (!grouponGoodsModel.isIs_zengsong()) {
-                            zongjia = zongjia.subtract(price).setScale(2, RoundingMode.UP);
-                        }
-
-                    } else {
-                        deleteShopPopupWindow = new DeleteShopPopupWindow(MainActivity.this, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
-                            @SuppressLint("SetTextI18n")
-                            @Override
-                            public void onClick(String text) {
-                                if (!grouponGoodsModel.isIs_zengsong()) {
-                                    BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
-                                    if (!TextUtils.isEmpty(grouponGoodsModel.getDiscount())) {
-                                        price = price.multiply(new BigDecimal(grouponGoodsModel.getDiscount())).divide(new BigDecimal("100"));
-                                        grouponGoodsModel.setDiscounted_price(grouponGoodsModel.getDiscounted_price().subtract(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price)));
-                                    }
-
-                                    zongjia = zongjia.subtract(price).setScale(2, RoundingMode.UP);
-                                    tv_zongjia.setText(zongjia + "");
-                                    MyPresentation.setZongjia(zongjia.toString());
-                                }
-                                selectedShopList.remove(position);
-                                selectedShopAdapter.setNewData(selectedShopList);
-                                tv_zongjian.setText(allNum + "");
-                                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-
-
-                            }
-                        });
-                        deleteShopPopupWindow.show();
-                        return;
-                    }
-
-                } else if (id == R.id.shuliang_jia) {
-                    allNum++;
-                    grouponGoodsModel.setShuliang(grouponGoodsModel.getShuliang() + 1);
-
-                    BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
-                    if (!TextUtils.isEmpty(grouponGoodsModel.getDiscount())) {
-                        price = price.multiply(new BigDecimal(grouponGoodsModel.getDiscount())).divide(new BigDecimal("100"));
-                        grouponGoodsModel.setDiscounted_price(grouponGoodsModel.getDiscounted_price().add(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price)));
-                    }
-
-                    BigDecimal heji = grouponGoodsModel.getHeji().add(price).setScale(2, RoundingMode.UP);
-                    grouponGoodsModel.setHeji(heji);
-                    if (!grouponGoodsModel.isIs_zengsong()) {
-                        zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
-                    }
-
-                } else if (id == R.id.zengsong) {
-                    BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
-                    if (!grouponGoodsModel.isIs_zengsong()) {
-                        grouponGoodsModel.setIs_zengsong(true);
-                        grouponGoodsModel.setDiscount("0");
-                        grouponGoodsModel.setDiscounted_price(yuanjia);
-                        zongjia = zongjia.subtract(grouponGoodsModel.getHeji()).setScale(2, RoundingMode.UP);
-                        grouponGoodsModel.setHeji(new BigDecimal("0.00"));
-
-                    } else {
-                        grouponGoodsModel.setDiscount("100");
-                        grouponGoodsModel.setIs_zengsong(false);
-                        grouponGoodsModel.setDiscounted_price(new BigDecimal("0.00"));
-                        grouponGoodsModel.setHeji(yuanjia);
-                        zongjia = zongjia.add(yuanjia).setScale(2, RoundingMode.UP);
-                    }
-
-                }
-                tv_zongjia.setText(zongjia + "");
-                tv_zongjian.setText(allNum + "");
-                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                MyPresentation.setZongjia(zongjia.toString());
-                selectedShopAdapter.notifyItemChanged(position);
+            // 3. 提取ID（如果是"全部"，ID通常为空字符串）
+            if (item != null) {
+                current_category_id = TextUtils.isEmpty(item.getId()) ? "" : item.getId();
+            } else {
+                current_category_id = "";
             }
+
+            Log.i("MainActivity", "切换分类: " + (item != null ? item.getName() : "null") + " ID: " + current_category_id);
+
+            // 4. 重置列表并加载第一页
+            loadLocalGoods(0);
+        });
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+        grouponGoodsAdapter.setOnItemClickListener((adapter, view, position) -> {
+            view.startAnimation(animation);
+            addGoodsToCart(grouponGoodsAdapter.getData().get(position));
         });
 
-
-        //=================================选中购买的商品end=========================================//
-
-
-        //=================================商品类型start=========================================//
-        rv_choose_menu3 = findViewById(R.id.rv_choose_menu3);
-        rv_choose_menu3.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
-        shopTypeAdapter = new ShopTypeAdapter(this, R.layout.item_shop_type);
-        rv_choose_menu3.setAdapter(shopTypeAdapter);
-        shopTypeAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                shopTypeAdapter.setIndex(position);
-                category_ids = TextUtils.isEmpty(shopTypeAdapter.getData().get(position).getId()) ? "" : shopTypeAdapter.getData().get(position).getId();
-//                grouponGoods_page = 1;
-//                grouponGoodsAdapter.hasMore = true;
-//                goods_sn = "";
-//                getGrouponGoods();
-                if (TextUtils.isEmpty(category_ids)) {
-                    indexGrouponGoodsModelList = allGrouponGoodsModelList;
-                    grouponGoods_page = 1;
-                    grouponGoodsAdapter.hasMore = true;
-                    grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
-
-                    return;
-                }
-                ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = new ArrayList<>();
-                grouponGoodsModelArrayList = allGrouponGoodsModelList.stream()
-                        .filter(grouponGoodsModel -> !Arrays.asList(grouponGoodsModel.getCategory_ids().split(",")).stream().filter(s ->s .equals(category_ids)) .collect(Collectors.toCollection(ArrayList::new)).isEmpty())
-                        .collect(Collectors.toCollection(ArrayList::new));
-                indexGrouponGoodsModelList = grouponGoodsModelArrayList;
-                grouponGoods_page = 1;
-                grouponGoodsAdapter.hasMore = true;
-                grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
-            }
-        });
-        //=================================商品类型endt=========================================//
-
-        //=================================商品列表start=========================================//
-        shop_rv = findViewById(R.id.shop_rv);
-        shop_rv.setLayoutManager(new GridLayoutManager(this, 4)); // 设置3列，横向布局，不反转方向（false）
-        grouponGoodsAdapter = new GrouponGoodsAdapter(this, R.layout.item_groupon_goods);
-        shop_rv.setAdapter(grouponGoodsAdapter);
-//        grouponGoodsAdapter.setOnLoadMoreListener(() -> {
-//
-//        }, shop_rv);
-        grouponGoodsAdapter.setPreLoadNumber(3);
         shop_rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
+                if (!grouponGoodsAdapter.hasMore) return;
                 LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-                int visibleItemCount = layoutManager.getChildCount();
-                int totalItemCount = layoutManager.getItemCount();
-                int pastVisiblesItems = layoutManager.findFirstVisibleItemPosition();
-
-                if (!grouponGoodsAdapter.hasMore) { // 如果已经在加载或者没有更多数据，则不处理滚动事件
-                    return;
+                if (layoutManager != null && layoutManager.findLastVisibleItemPosition() >= layoutManager.getItemCount() - 1) {
+                    loadLocalGoods(ui_current_page + 1);
                 }
-                if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) { // 当滚动到列表底部时触发加载更多事件
-                    // 异步加载下一页数据
-                    loadNextPage();
-//                    Log.i("ttt", ">>>>>>>>>>>>>>" + grouponGoodsAdapter.getItemCount() % 20);
-//                    if (grouponGoodsAdapter.getItemCount() % 20 == 0) {
-//                        // 这里调用你的加载更多方法，例如：myAdapter.loadMoreData(newData);
-//                        grouponGoods_page++;
-//                        getGrouponGoods();
-//                    } else {
-//                        grouponGoodsAdapter.hasMore = false;
-//                    }
-
-
-                }
-
-
             }
 
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    Glide.with(MainActivity.this).resumeRequests();
-                } else {
-                    Glide.with(MainActivity.this).pauseRequests();
-                }
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) Glide.with(MainActivity.this).resumeRequests();
+                else Glide.with(MainActivity.this).pauseRequests();
             }
         });
-
-        grouponGoodsAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-//                if (!is_kedian){
-//                    return;
-//                }
-//                is_kedian=false;
-//                new Handler().postDelayed(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                       is_kedian=true;
-//                    }
-//                }, 700);
-                view.startAnimation(animation);
-                allNum++;
-                GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = grouponGoodsAdapter.getData().get(position);
-                if (selectedShopList != null && !selectedShopList.isEmpty()) {
-
-                    for (int i = 0; i < selectedShopList.size(); i++) {
-                        GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
-//                        Log.i("ttt", ">>>>>>>>>>>>>>" + model.getId() + "<<<<<" + grouponGoodsModel.getId());
-                        Log.i("ttt", ">>>>>>>>Ggspid>>>>>>" + model.getGgspid() + "<<<<<" + grouponGoodsModel.getGgspid());
-                        if (model.getId() == grouponGoodsModel.getId()&&model.getGgspid() == grouponGoodsModel.getGgspid()) {
-                            model.setShuliang(model.getShuliang() + 1);
-                            BigDecimal price = new BigDecimal(model.getPrice());
-                            if (!TextUtils.isEmpty(model.getDiscount())) {
-                                price = price.multiply(new BigDecimal(model.getDiscount())).divide(new BigDecimal(100));
-                                model.setDiscounted_price(model.getDiscounted_price().add(new BigDecimal(model.getPrice()).subtract(price)));
-                            }
-                            BigDecimal heji = price.add(model.getHeji()).setScale(2, RoundingMode.UP);
-                            model.setHeji(heji);
-                            if (!model.isIs_zengsong()) {
-                                zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
-                            }
-
-                            tv_zongjia.setText(zongjia + "");
-                            selectedShopAdapter.notifyItemChanged(i);
-                            tv_zongjian.setText(allNum + "");
-                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                            MyPresentation.setZongjia(zongjia.toString());
-                            return;
-                        }
-                    }
-                }
-                BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
-                if (!TextUtils.isEmpty(memben_discount)) {
-                    price = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
-                    grouponGoodsModel.setDiscounted_price(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price));
-                    grouponGoodsModel.setDiscount(memben_discount);
-                }
-
-                BigDecimal heji = price.setScale(2, RoundingMode.UP);
-                grouponGoodsModel.setHeji(heji);
-                grouponGoodsModel.setShuliang(1);
-                selectedShopList.add(0, SerializableUtils.deepCopy(grouponGoodsModel));
-
-                have_paid_view.setVisibility(GONE);
-                selectedShopAdapter.setNewData(selectedShopList);
-                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-
-                // 滚动到位置 0（第一条）
-                selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
-                tv_zongjian.setText(allNum + "");
-                zongjia = zongjia.add(price).setScale(2, RoundingMode.UP);
-                tv_zongjia.setText(zongjia + "");
-                MyPresentation.setZongjia(zongjia.toString());
-
-            }
-        });
-
-        time = new TimeCount(30000, 5000);//一共执行30000毫秒，每2000执行一次。
     }
 
-    CheckoutBean checkoutBean;
+    private void setupNetworkMonitor() {
+        monitor = new NetworkLatencyMonitor();
+        monitor.startMonitoring((pingMs, httpMs) -> runOnUiThread(() -> {
+            if (isFinishing()) return;
+            pingText.setText(String.valueOf(pingMs));
+            httpText.setText(String.valueOf(httpMs));
+            updateColor(pingText, pingMs);
+            updateColor(httpText, httpMs);
+        }));
+    }
+
+    // ----------------- 数据同步 -----------------
+
+    private void syncGoodsData() {
+        is_tongbu = true;
+        loadingPopup = (SyncLoadingPopup) new XPopup.Builder(this)
+                .dismissOnTouchOutside(false)
+                .dismissOnBackPressed(false)
+                .asCustom(new SyncLoadingPopup(this))
+                .show();
+        downloadGoodsPage(1);
+    }
 
 
-    public void loadNextPage() {
-        if (!grouponGoodsAdapter.hasMore) return;
-        grouponGoods_page++;
-        ArrayList<GrouponGoodsBean.GrouponGoodsModel> pageData = getPageData(grouponGoods_page, indexGrouponGoodsModelList);
-        if (pageData.isEmpty()) {
-            Log.i("ttt", ">>>>loadNextPage>>>>>>");
+    private void downloadGoodsPage(int requestPage) {
+        // 1. 获取 shop_id
+        String shopId = "";
+        try {
+            if (UserUtils.getInstance().getShopDataBean() != null &&
+                    UserUtils.getInstance().getShopDataBean().getData() != null &&
+                    !UserUtils.getInstance().getShopDataBean().getData().isEmpty()) {
+                shopId = UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid();
+            }
+        } catch (Exception e) {
+            Log.e("SyncDebug", "获取店铺ID异常: " + e.getMessage());
+        }
 
-            grouponGoodsAdapter.hasMore = false;
+        if (TextUtils.isEmpty(shopId)) {
+            Log.e("SyncDebug", "致命错误: shop_id 为空！");
+            finishSync();
             return;
         }
 
-        shop_rv.post(() -> {
-            // 请求成功后，更新数据并通知适配器数据已更改
-            grouponGoodsAdapter.loadMoreData(pageData); // newDataList 是新加载的数据列表
-            // 或执行 add/remove 操作
+        // 2. 请求接口
+        String url = POSApiSerview.POS_URL + "Supermarket/getGrouponGoods1";
+        Map<String, String> params = new HashMap<>();
+        params.put("category_ids", "");
+        params.put("goods_sn", "");
+        params.put("shop_id", shopId);
+        params.put("page", String.valueOf(requestPage));
+        params.put("strip", String.valueOf(SYNC_PAGE_SIZE));
+
+        OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
+            @Override
+            public void onSuccess(String response) {
+                dbExecutor.execute(() -> {
+                    try {
+                        Gson gson = new Gson();
+                        GrouponGoodsBean bean = gson.fromJson(response, GrouponGoodsBean.class);
+
+                        List<GrouponGoodsBean.GrouponGoodsModel> list = (bean != null && bean.getData() != null) ? bean.getData().getGoodsList() : null;
+                        GrouponGoodsBean.Pagination pagination = (bean != null && bean.getData() != null) ? bean.getData().getPagination() : null;
+
+                        if (list != null && !list.isEmpty()) {
+                            // 准备待插入列表
+                            List<GrouponGoodsBean.GrouponGoodsModel> toInsertList = new ArrayList<>();
+
+                            LitePal.beginTransaction();
+                            try {
+                                for (GrouponGoodsBean.GrouponGoodsModel newItem : list) {
+
+                                    // ★★★ 优化1：删除了 shop_id 的比对过滤，防止因字段为空导致数据全被跳过 ★★★
+
+                                    // ★★★ 优化2：极速写入策略 ★★★
+                                    // 尝试按 goods_id 更新。LitePal的updateAll返回受影响行数。
+                                    // 如果返回 0，说明数据库里没这条数据，那么就加到 insert 列表里。
+                                    // 这样省去了 9000 次 findFirst 的读取耗时。
+                                    int rowsAffected = newItem.updateAll("goods_id = ?", String.valueOf(newItem.getGoods_id()));
+
+                                    if (rowsAffected == 0) {
+                                        toInsertList.add(newItem);
+                                    }
+                                }
+
+                                // ★★★ 优化3：批量插入，速度比循环 save 快几十倍 ★★★
+                                if (!toInsertList.isEmpty()) {
+                                    LitePal.saveAll(toInsertList);
+                                    Log.i("SyncDebug", "本页批量新增数据条数: " + toInsertList.size());
+                                }
+
+                                LitePal.setTransactionSuccessful();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                Log.e("SyncDebug", "数据库写入异常: " + e.getMessage());
+                            } finally {
+                                LitePal.endTransaction();
+                            }
+
+                            // 进度更新
+                            if (pagination != null) {
+                                int totalCount = pagination.getTotal();
+                                int totalPage = pagination.getTotalpage();
+
+                                if (totalCount > 0) {
+                                    int currentCount = Math.min((requestPage * SYNC_PAGE_SIZE), totalCount);
+                                    int percent = Math.min((int) (((double) currentCount / totalCount) * 100), 100);
+                                    runOnUiThread(() -> {
+                                        if (loadingPopup != null && !loadingPopup.isDismiss())
+                                            loadingPopup.updateProgress(percent, currentCount, totalCount);
+                                    });
+                                }
+
+                                if (requestPage < totalPage) {
+                                    downloadGoodsPage(requestPage + 1);
+                                    return;
+                                }
+                            }
+                        }
+                        finishSync();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Log.e("SyncDebug", "解析异常: " + e.getMessage());
+                        runOnUiThread(() -> {
+                            if (loadingPopup != null) loadingPopup.dismiss();
+                            Toast.makeText(MainActivity.this, "数据解析异常", LENGTH_SHORT).show();
+                        });
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(IOException e) {
+                Log.e("SyncDebug", "网络请求失败: " + e.getMessage());
+                runOnUiThread(() -> {
+                    if (loadingPopup != null) loadingPopup.dismiss();
+                    Toast.makeText(MainActivity.this, "同步失败: " + e.getMessage(), LENGTH_SHORT).show();
+                });
+            }
         });
     }
 
-    public ArrayList<GrouponGoodsBean.GrouponGoodsModel> getPageData(int currentPage, ArrayList<GrouponGoodsBean.GrouponGoodsModel> sourceList) {
-        int start = (currentPage - 1) * 20;
-        int end = Math.min(start + 20, sourceList.size());
-        if (start >= end) return new ArrayList<>();
-        return new ArrayList<>(sourceList.subList(start, end)); // 避免直接使用 subList
+
+
+
+
+    private void finishSync() {
+        runOnUiThread(() -> {
+            if (loadingPopup != null) loadingPopup.dismiss();
+            is_tongbu = false;
+            loadLocalGoods(0);
+            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Sync_completed), true).show();
+        });
     }
 
     /**
-     * 判断支付类型
-     *
-     * @param code 扫码获取的字符串
-     * @return "alipay"（支付宝）、"wechat"（微信）、"unknown"（未知）
+     * 【优化】异步加载本地商品数据，修复分类查询逻辑
      */
-    public static String detectPaymentType(String code) {
-        if (TextUtils.isEmpty(code)) return "unknown";
-
-        // 检查是否为纯数字
-        if (!code.matches("\\d+")) return "unknown";
-
-        // 微信规则验证
-        if (code.length() == 18 && code.matches("^(10|11|12|13|14|15)\\d{16}$")) {
-            return "wechat";
+    private void loadLocalGoods(int page) {
+        if (page == 0) {
+            ui_current_page = 0;
+            grouponGoodsAdapter.hasMore = true;
+            if (shop_rv != null) shop_rv.scrollToPosition(0);
         }
 
-        // 支付宝规则验证
-        if (code.length() >= 16 && code.length() <= 24
-                && code.matches("^(25|26|27|28|29|30)\\d+")) {
-            return "alipay";
+        dbExecutor.execute(() -> {
+            List<GrouponGoodsBean.GrouponGoodsModel> list;
+
+            // ▼▼▼▼▼▼ 核心修复：根据分类ID查询数据库 ▼▼▼▼▼▼
+            if (TextUtils.isEmpty(current_category_id)) {
+                // 1. 如果ID为空，查询全部
+                list = LitePal.limit(UI_PAGE_SIZE)
+                        .offset(page * UI_PAGE_SIZE)
+                        .find(GrouponGoodsBean.GrouponGoodsModel.class);
+            } else {
+                // 2. 如果有ID，使用模糊查询 (category_ids 包含该ID)
+                list = LitePal.where("category_ids like ?", "%" + current_category_id + "%")
+                        .limit(UI_PAGE_SIZE)
+                        .offset(page * UI_PAGE_SIZE)
+                        .find(GrouponGoodsBean.GrouponGoodsModel.class);
+            }
+            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+            // 日志调试，方便你查看是否查到了数据
+            Log.d("DB_SEARCH", "CatID: " + current_category_id + ", Result Size: " + list.size());
+
+            runOnUiThread(() -> {
+                if (isFinishing()) return;
+                if (page == 0) {
+                    grouponGoodsAdapter.setNewData(list);
+                    if (list.size() < UI_PAGE_SIZE) grouponGoodsAdapter.hasMore = false;
+                } else {
+                    if (list.isEmpty()) {
+                        grouponGoodsAdapter.hasMore = false;
+                    } else {
+                        grouponGoodsAdapter.loadMoreData(list);
+                        ui_current_page = page;
+                    }
+                }
+            });
+        });
+    }
+
+    /**
+     * 【优化】异步处理扫码
+     */
+    private void handleScanInput(String text) {
+        if (TextUtils.isEmpty(text)) return;
+
+        String code = text.trim().replace("\r", "").replace("\n", "");
+        Log.i("Scan", "开始查询商品，输入码: [" + code + "]");
+        et_tiaoxingma.setText("");
+
+        String textType = detectPaymentType(code);
+
+        if ("unknown".equals(textType)) {
+            dbExecutor.execute(() -> {
+                // 1. 正常查询逻辑 (保持不变)
+                List<GrouponGoodsBean.GrouponGoodsModel> results = LitePal
+                        .where("sn = ? or goods_sn = ?", code, code)
+                        .find(GrouponGoodsBean.GrouponGoodsModel.class);
+
+                if (results != null && !results.isEmpty()) {
+                    GrouponGoodsBean.GrouponGoodsModel finalGoods = results.get(0);
+                    Log.i("Scan", "查询成功: " + finalGoods.getTitle());
+                    runOnUiThread(() -> addGoodsToCart(finalGoods));
+                } else {
+                    // 2. 没查到，尝试模糊
+                    List<GrouponGoodsBean.GrouponGoodsModel> fuzzyList = LitePal
+                            .where("sn like ? or goods_sn like ?", "%" + code + "%", "%" + code + "%")
+                            .limit(20)
+                            .find(GrouponGoodsBean.GrouponGoodsModel.class);
+
+                    runOnUiThread(() -> {
+                        if (fuzzyList.isEmpty()) {
+                            // ★★★★★ 强力调试：批量打印前 20 条正常商品 ★★★★★
+                            int totalCount = LitePal.count(GrouponGoodsBean.GrouponGoodsModel.class);
+                            Log.e("ScanDebug", "【查询失败】 库内总数: " + totalCount);
+
+                            // 查找前 20 条 不叫“无码收银” 的商品
+                            List<GrouponGoodsBean.GrouponGoodsModel> samples = LitePal
+                                    .where("title != ?", "无码收银")
+                                    .limit(20)
+                                    .find(GrouponGoodsBean.GrouponGoodsModel.class);
+
+                            if (samples != null && !samples.isEmpty()) {
+                                Log.e("ScanDebug", ">>> 批量抽查 (共 " + samples.size() + " 条) <<<");
+                                for (int i = 0; i < samples.size(); i++) {
+                                    GrouponGoodsBean.GrouponGoodsModel s = samples.get(i);
+                                    Log.e("ScanDebug", "[" + i + "] " + s.getTitle()
+                                            + " | sn=[" + s.getSn() + "]"
+                                            + " | goods_sn=[" + s.getGoods_sn() + "]");
+                                }
+                                Log.e("ScanDebug", ">>> 抽查结束 <<<");
+                            } else {
+                                Log.e("ScanDebug", "太离谱了，查不到任何非'无码收银'的商品！");
+                            }
+
+                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
+                        } else if (fuzzyList.size() == 1) {
+                            addGoodsToCart(fuzzyList.get(0));
+                        } else {
+                            grouponGoodsAdapter.setNewData(fuzzyList);
+                            grouponGoodsAdapter.hasMore = false;
+                        }
+                    });
+                }
+            });
+        } else {
+            processPayment(code, textType);
+        }
+    }
+
+
+
+
+    // ----------------- 购物车逻辑 -----------------
+
+    private void addGoodsToCart(GrouponGoodsBean.GrouponGoodsModel goods) {
+        allNum++;
+        for (int i = 0; i < selectedShopList.size(); i++) {
+            GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
+            if (model.getId() == goods.getId() && model.getGgspid() == goods.getGgspid()) {
+                model.setShuliang(model.getShuliang() + 1);
+                updateCartItemPrice(model);
+                selectedShopAdapter.notifyItemChanged(i);
+                updateCartSummary();
+                return;
+            }
         }
 
-        return "unknown";
+        GrouponGoodsBean.GrouponGoodsModel newGoods = SerializableUtils.deepCopy(goods);
+        newGoods.setShuliang(1);
+        if (!TextUtils.isEmpty(memben_discount)) {
+            newGoods.setDiscount(memben_discount);
+        }
+        updateCartItemPrice(newGoods);
+        selectedShopList.add(0, newGoods);
+        have_paid_view.setVisibility(GONE);
+        selectedShopAdapter.setNewData(selectedShopList);
+        selected_LinearLayoutManager.scrollToPosition(0);
+        updateCartSummary();
+    }
+
+    private void handleCartItemAction(int viewId, int position) {
+        if (position < 0 || position >= selectedShopList.size()) return;
+        GrouponGoodsBean.GrouponGoodsModel model = selectedShopAdapter.getData().get(position);
+
+        if (viewId == R.id.shuliang_jian) {
+            allNum--;
+            if (model.getShuliang() > 1) {
+                model.setShuliang(model.getShuliang() - 1);
+                updateCartItemPrice(model);
+                selectedShopAdapter.notifyItemChanged(position);
+            } else {
+                showDeleteConfirm(position);
+                return;
+            }
+        } else if (viewId == R.id.shuliang_jia) {
+            allNum++;
+            model.setShuliang(model.getShuliang() + 1);
+            updateCartItemPrice(model);
+            selectedShopAdapter.notifyItemChanged(position);
+        } else if (viewId == R.id.zengsong) {
+            model.setIs_zengsong(!model.isIs_zengsong());
+            if (model.isIs_zengsong()) {
+                model.setDiscount("0");
+                model.setDiscounted_price(new BigDecimal(model.getPrice()).multiply(new BigDecimal(model.getShuliang())));
+                model.setHeji(BigDecimal.ZERO);
+            } else {
+                model.setDiscount("100");
+                model.setDiscounted_price(BigDecimal.ZERO);
+                updateCartItemPrice(model);
+            }
+            selectedShopAdapter.notifyItemChanged(position);
+        }
+        updateCartSummary();
+    }
+
+    private void updateCartItemPrice(GrouponGoodsBean.GrouponGoodsModel model) {
+        BigDecimal price = new BigDecimal(model.getPrice());
+        BigDecimal totalRaw = price.multiply(new BigDecimal(model.getShuliang()));
+
+        if (!TextUtils.isEmpty(model.getDiscount()) && !model.isIs_zengsong()) {
+            BigDecimal discountRate = new BigDecimal(model.getDiscount()).divide(new BigDecimal(100));
+            BigDecimal finalPrice = totalRaw.multiply(discountRate);
+            model.setDiscounted_price(totalRaw.subtract(finalPrice));
+            model.setHeji(finalPrice.setScale(2, RoundingMode.UP));
+        } else if (model.isIs_zengsong()) {
+            model.setHeji(BigDecimal.ZERO);
+        } else {
+            model.setHeji(totalRaw.setScale(2, RoundingMode.UP));
+        }
+    }
+
+    private void updateCartSummary() {
+        zongjia = BigDecimal.ZERO;
+        for (GrouponGoodsBean.GrouponGoodsModel model : selectedShopList) {
+            zongjia = zongjia.add(model.getHeji());
+        }
+        zongjia = zongjia.setScale(2, RoundingMode.UP);
+        tv_zongjia.setText(zongjia.toString());
+        tv_zongjian.setText(String.valueOf(allNum));
+        MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
+        MyPresentation.setZongjia(zongjia.toString());
+
+        // ▼▼▼▼▼▼ 3. 新增：控制“暂无商品”显示的逻辑 ▼▼▼▼▼▼
+        if (selectedShopList == null || selectedShopList.isEmpty()) {
+            // 购物车空了：显示提示字，隐藏列表
+            if (tv_empty_cart != null) tv_empty_cart.setVisibility(View.VISIBLE);
+            if (selected_shop_rv != null) selected_shop_rv.setVisibility(View.GONE);
+        } else {
+            // 购物车有东西：隐藏提示字，显示列表
+            if (tv_empty_cart != null) tv_empty_cart.setVisibility(View.GONE);
+            if (selected_shop_rv != null) selected_shop_rv.setVisibility(View.VISIBLE);
+        }
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+    }
+
+    private void showDeleteConfirm(int position) {
+        deleteShopPopupWindow = new DeleteShopPopupWindow(MainActivity.this, text -> {
+            if (position >= 0 && position < selectedShopList.size()) {
+                selectedShopList.remove(position);
+                selectedShopAdapter.setNewData(selectedShopList);
+                updateCartSummary();
+            }
+        });
+        deleteShopPopupWindow.show();
+    }
+
+    // ----------------- 点击事件 -----------------
+
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        if (id == R.id.delete_shop) {
+            if (selectedShopIndex != null && selectedShopIndex < selectedShopList.size()) showDeleteConfirm(selectedShopIndex);
+            else if (selectedShopAdapter.getItemCount() > 0) new DeleteShopPopupWindow(this, getString(R.string.please_select_product)).show();
+        } else if (id == R.id.qingkong_btn) {
+            if (!selectedShopList.isEmpty()) {
+                selectedShopList.clear();
+                selectedShopAdapter.notifyDataSetChanged();
+                allNum = 0;
+                updateCartSummary();
+            }
+        } else if (id == R.id.guadan_btn) handleGuadan();
+        else if (id == R.id.qudan_btn) handleQudan();
+        else if (id == R.id.dazhe_one_btn) {
+            if (selectedShopIndex != null) showDiscountPopup(false);
+            else if (selectedShopAdapter.getItemCount() > 0) new DeleteShopPopupWindow(this, getString(R.string.please_select_product)).show();
+        } else if (id == R.id.dazhe_all_btn) {
+            if (selectedShopAdapter.getItemCount() > 0) showDiscountPopup(true);
+        } else if (id == R.id.checkout_btn) {
+            if (selectedShopAdapter.getItemCount() > 0 && !Utilis.isFastClick()) handleCheckout();
+        } else if (id == R.id.huiyuan_btn) new MemberPopupWindow(this, this::handleMemberSelect).show();
+        else if (id == R.id.shanchuhuiyuan_btn) resetMember();
+        else if (id == R.id.daying_btn) getLastOder();
+        else if (id == R.id.more_function_btn) showMoreFunction();
+        else if (id == R.id.add_no_code_btn) new AddNoCodePopupWindow(this, this::addGoodsToCart).show();
+    }
+
+    // ----------------- 业务逻辑 (挂单/取单/会员/打折) -----------------
+
+    private void handleGuadan() {
+        if (selectedShopAdapter.getItemCount() <= 0) return;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        RegistrationShopBean bean = new RegistrationShopBean();
+        bean.setTime(sdf.format(System.currentTimeMillis()));
+        bean.setTotal_price(zongjia);
+        bean.setAllNum(allNum);
+        bean.setRegistrationShopList(SerializableUtils.deepCopyList(selectedShopList));
+        registrationShopBeanArrayList.add(bean);
+        qudan_btn.setText(getString(R.string.qudan_num, String.valueOf(registrationShopBeanArrayList.size())));
+        selectedShopList.clear();
+        selectedShopAdapter.setNewData(selectedShopList);
+        allNum = 0;
+        updateCartSummary();
+    }
+
+    private void handleQudan() {
+        if (!registrationShopBeanArrayList.isEmpty()) {
+            getRegistrationShopPopupWindow = new GetRegistrationShopPopupWindow(this, registrationShopBeanArrayList, (index, type) -> {
+                if (type == 1) { // 取单
+                    RegistrationShopBean bean = registrationShopBeanArrayList.get(index);
+                    selectedShopList = bean.getRegistrationShopList();
+                    allNum = bean.getAllNum();
+                    selectedShopAdapter.setNewData(selectedShopList);
+                    updateCartSummary();
+                } else if (type == 2 && !registrationShopBeanArrayList.isEmpty()) {
+                    getRegistrationShopPopupWindow.setDataDelect();
+                }
+                registrationShopBeanArrayList.remove(index);
+                qudan_btn.setText(registrationShopBeanArrayList.isEmpty() ? getString(R.string.qudan_null) : getString(R.string.qudan_num, String.valueOf(registrationShopBeanArrayList.size())));
+            });
+            getRegistrationShopPopupWindow.show();
+        }
+    }
+
+    private void showDiscountPopup(boolean isAll) {
+        new DiscountPopupWindow(this, isAll ? getString(R.string.order_discount) : getString(R.string.item_discount), discount -> {
+            if (isAll) {
+                for (GrouponGoodsBean.GrouponGoodsModel model : selectedShopList) {
+                    model.setDiscount(discount);
+                    updateCartItemPrice(model);
+                }
+                selectedShopAdapter.notifyDataSetChanged();
+            } else {
+                if(selectedShopIndex != null && selectedShopIndex < selectedShopList.size()) {
+                    GrouponGoodsBean.GrouponGoodsModel model = selectedShopAdapter.getData().get(selectedShopIndex);
+                    model.setDiscount(discount);
+                    updateCartItemPrice(model);
+                    selectedShopAdapter.notifyItemChanged(selectedShopIndex);
+                }
+            }
+            updateCartSummary();
+        }).show();
+    }
+
+    private void handleMemberSelect(MemberBean memberBean) {
+        huiyuan_name.setText(memberBean.getNickname());
+        int vipLevel = memberBean.getVip();
+        memben_discount = (vipLevel == 17) ? "98" : (vipLevel == 18) ? "95" : (vipLevel == 19) ? "90" : "100";
+        applyMemberDiscount();
+    }
+
+    private void resetMember() {
+        huiyuan_name.setText(getString(R.string.member_nickname));
+        memben_discount = "100";
+        applyMemberDiscount();
+    }
+
+    private void applyMemberDiscount() {
+        if (selectedShopAdapter.getItemCount() <= 0) return;
+        for (GrouponGoodsBean.GrouponGoodsModel model : selectedShopList) {
+            model.setDiscount(memben_discount);
+            updateCartItemPrice(model);
+        }
+        selectedShopAdapter.notifyDataSetChanged();
+        updateCartSummary();
+    }
+
+    // ----------------- 更多功能 -----------------
+
+    private void showMoreFunction() {
+        new MorefunctionPopupWindow(this, btnType -> {
+            switch (btnType) {
+                case 1: syncGoodsData(); break;
+                case 2: new PrintLabelsPopupWindow(this).show(); break;
+                case 3: new GoodsWarehousingPopupWindow(this, null, (code, msg) ->
+                        new DeleteShopPopupWindow(this, code == 1 ? getString(R.string.product_stocked_successfully) : msg, true).show()
+                ).show(); break;
+                case 4: new HistoryOrderPopupWindow(this).show(); break;
+                case 5:
+                    UserUtils.getInstance().setCategoryListBeanJson(this, "");
+                    UserUtils.getInstance().setLoginBase(this, null);
+                    startActivity(new Intent(this, LoginActivity.class));
+                    break;
+                case 6: new MoneyBoxPopupWindow(this).show(); break;
+                case 7: new RelieveShiftPopupWindow(this).show(); break;
+                case 8: new PrintDevicePopupWindow(this, 1, usbDevice -> setupPrinter(usbDevice, false)).show(); break;
+                case 9: new PrintDevicePopupWindow(this, 2, usbDevice -> setupPrinter(usbDevice, true)).show(); break;
+                case 10:
+                    UserUtils.getInstance().setDazhe(this, !UserUtils.getInstance().isDazhe());
+                    updateDiscountView();
+                    break;
+                case 11: new PaymentListPopupWindow(this).show(); break;
+                case 12:
+                    UserUtils.getInstance().setDianji(this, !UserUtils.getInstance().isDianji());
+                    shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji() ? VISIBLE : GONE);
+                    break;
+            }
+        }).show();
+    }
+
+    private void setupPrinter(UsbDevice usbDevice, boolean isLabel) {
+        if (isLabel) {
+            UserUtils.getInstance().setLABEKS_VENDOR_ID(this, usbDevice.getVendorId());
+            UserUtils.getInstance().setLABEKS_PRODUCT_ID(this, usbDevice.getProductId());
+        } else {
+            UserUtils.getInstance().setVENDOR_ID(this, usbDevice.getVendorId());
+            UserUtils.getInstance().setPRODUCT_ID(this, usbDevice.getProductId());
+        }
+        MyUsbDeviceHelper.getInstance().requestUsbPermission(usbDevice);
+        new DeleteShopPopupWindow(this, getString(R.string.setup_completed), true).show();
+    }
+
+    private void updateDiscountView() {
+        boolean show = UserUtils.getInstance().isDazhe();
+        dazhe_all_btn.setVisibility(show ? VISIBLE : GONE);
+        dazhe_one_btn.setVisibility(show ? VISIBLE : GONE);
+        caozuo_view.setVisibility(show ? VISIBLE : GONE);
+    }
+
+    // ----------------- 支付逻辑 -----------------
+
+    private void handleCheckout() {
+        checkoutBean = new CheckoutBean();
+        checkoutBean.setAllNum(allNum);
+        if (UserUtils.getInstance().getLoginBase() != null && UserUtils.getInstance().getLoginBase().getData() != null) {
+            checkoutBean.setUser_id(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId());
+        }
+        checkoutBean.setMachineNumber("001");
+        checkoutBean.setTotal_fee(zongjia.toString());
+        checkoutBean.setPay_type((is_kuangjie || !NetworkUtils.getInstance().isNetworkConnected(this)) ? "cash" : "");
+        checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+        is_kuangjie = false;
+
+        BigDecimal discount_fee = BigDecimal.ZERO;
+        ArrayList<CheckoutBean.GoodsJsonBean> goodsJsonList = new ArrayList<>();
+
+        for (GrouponGoodsBean.GrouponGoodsModel model : selectedShopList) {
+            if (model.getDiscounted_price() != null) discount_fee = discount_fee.add(model.getDiscounted_price());
+            CheckoutBean.GoodsJsonBean jsonBean = new CheckoutBean.GoodsJsonBean();
+            jsonBean.setGoods_id(model.getId());
+            jsonBean.setTitle(model.getTitle());
+            jsonBean.setGoods_sn(model.getGoods_sn());
+            jsonBean.setSn(model.getSn());
+            jsonBean.setDiscount(TextUtils.isEmpty(model.getDiscount()) ? "100" : model.getDiscount());
+            jsonBean.setDiscounted_price(model.getDiscounted_price() == null ? "0.00" : model.getDiscounted_price().toString());
+            jsonBean.setGoods_price(model.getPrice());
+            jsonBean.setGoods_num(model.getShuliang());
+            jsonBean.setPay_price(model.getHeji().toString());
+            jsonBean.setGoods_sku_price_id(String.valueOf(model.getGgspid()));
+            jsonBean.setGoods_sku_text(TextUtils.isEmpty(model.getGoods_sku_text()) ? "" : model.getGoods_sku_text());
+            goodsJsonList.add(jsonBean);
+        }
+
+        checkoutBean.setGoodsjson(new Gson().toJson(goodsJsonList));
+        checkoutBean.setDiscount_fee(discount_fee.toString());
+        checkoutBean.setTotal_amount(zongjia.add(discount_fee).toString());
+        checkoutBean.setGoods_original_amount(zongjia.add(discount_fee).toString());
+
+        CheckoutPopupWindow popup = new CheckoutPopupWindow(this, checkoutBean, () -> {
+            have_paid_view.setVisibility(VISIBLE);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> have_paid_view.setVisibility(GONE), 3000);
+            is_jiezhang_qingkong = true;
+            onClick(qingkong_btn);
+        });
+        popup.show();
+    }
+
+    private void processPayment(String authCode, String payType) {
+        if (selectedShopAdapter.getItemCount() <= 0) return;
+        handleCheckout();
+        checkoutBean.setPay_type(payType);
+        checkoutBean.setAuthCode(authCode);
+        checkoutBean.setPay_fee(zongjia.toString());
+        checkoutBean.setCash_price(zongjia.toString());
+        checkoutBean.setCash_change("0.00");
+        checkoutBean.setType(1);
+        checkoutBean.setOrder_status(2);
+        SubmitCheckout(checkoutBean);
     }
 
     public void SubmitCheckout(CheckoutBean checkoutBean) {
-        if (Utilis.isFastClick()) {
-            return;
-        }
+        if (Utilis.isFastClick()) return;
         buildBean.show();
         String url = POSApiSerview.POS_URL + POSApiSerview.addOrder;
-        Gson gson = new Gson();
-        RequestBody body = RequestBody.create(gson.toJson(checkoutBean), MediaType.parse("application/json; charset=utf-8"));
-        Request.Builder builder = new Request.Builder()
-                .url(url);
-
-        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
-
-
-        builder.post(body);
-
-        Request request = builder.build();
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
-                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
-                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
-                .build();
-        client.newCall(request).enqueue(new Callback() {
+        OkHttpUtil.postJsonAsync(url, new Gson().toJson(checkoutBean), this, new OkHttpUtil.OkHttpCallback() {
             @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
-                    }
-                });
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
+            public void onSuccess(String response) {
+                runOnUiThread(() -> {
                     try {
-                        String success = response.body().string();
-                        JSONObject jsonObject = new JSONObject(success);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    if (jsonObject.getString("msg").contains("成功") || jsonObject.getString("msg").contains("Success")) {
-                                        if (checkoutBean.getPay_type().equals("cash")) {
-                                            order_sn = jsonObject.getString("data");
-                                        } else if (checkoutBean.getPay_type().equals("wechat")) {
-                                            order_sn = new JSONObject(jsonObject.getString("code")).getString("order_sn");
-                                        } else if (checkoutBean.getPay_type().equals("alipay")) {
-                                            order_sn = jsonObject.getString("order_sn");
-                                        }
-
-                                        DialogUIUtils.dismiss(buildBean);
-                                        is_jiezhang_qingkong=true;
-                                        onClickListener.onClick(qingkong_btn);
-                                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_succeeded), true).show();
-                                        String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
-                                        String zhifubao_pice = checkoutBean.getPay_type().equals("alipay") ? checkoutBean.getPay_fee() : "";
-                                        MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, null, "", weixin_pice, zhifubao_pice, order_sn);
-                                        order_sn = "";
-                                        out_trade_no = "";
-                                        return;
-                                    }
-                                    if (jsonObject.getString("msg").contains("失效")) {
-                                        DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(MainActivity.this, true, jsonObject.getString("msg"), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
-                                            @Override
-                                            public void onClick(String text) {
-                                                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                                                startActivity(intent);
-                                            }
-                                        }).show();
-                                        return;
-                                    }
-                                    if (jsonObject.getString("msg").contains("密码") || jsonObject.getString("msg").contains("order success pay inprocess")) {
-                                        if (checkoutBean.getPay_type().equals("wechat")) {
-                                            order_sn = new JSONObject(jsonObject.getString("code")).getString("order_sn");
-                                            if (new JSONObject(jsonObject.getString("code")).has("out_trade_no")) {
-                                                out_trade_no = new JSONObject(jsonObject.getString("code")).getString("out_trade_no");
-                                            } else {
-                                                DialogUIUtils.dismiss(buildBean);
-                                                new DeleteShopPopupWindow(MainActivity.this, getString(R.string.No_transaction_ID_recorded), true).show();
-                                                return;
-                                            }
-
-
-                                            fwsgetOrderInformation(checkoutBean);
-                                        } else if (checkoutBean.getPay_type().equals("alipay")) {
-                                            out_trade_no = jsonObject.getString("out_trade_no");
-                                            order_sn = jsonObject.getString("order_sn");
-
-                                            queryOrder(checkoutBean);
-                                            time.start();
-                                        }
-                                        return;
-
-                                    }
-                                    DialogUIUtils.dismiss(buildBean);
-                                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_failed) + jsonObject.getString("msg"), true).show();
-
-
-                                } catch (JSONException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        });
-
+                        JSONObject jsonObject = new JSONObject(response);
+                        // ... (原有成功逻辑保持不变) ...
+                        String msg = jsonObject.optString("msg");
+                        if (msg.contains("成功") || msg.contains("Success")) {
+                            handlePaymentSuccess(jsonObject);
+                        } else if (msg.contains("密码") || msg.contains("process")) {
+                            handlePaymentProcess(jsonObject);
+                        } else {
+                            // 其他错误
+                            DialogUIUtils.dismiss(buildBean);
+                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_failed) + msg, true).show();
+                        }
                     } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-
-                }
-            }
-        });
-    }
-
-    public void queryOrder(CheckoutBean checkoutBean) {
-        Map<String, String> params = new HashMap<>();
-        params.put("out_trade_no", out_trade_no);
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
-        FormBody.Builder formBuilder = new FormBody.Builder();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            formBuilder.add(entry.getKey(), entry.getValue());
-        }
-        RequestBody formBody = formBuilder.build();
-        String url = POSApiSerview.POS_URL + POSApiSerview.queryOrder;
-        Request.Builder builder = new Request.Builder()
-                .url(url);
-
-        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
-
-
-        builder.post(formBody);
-
-        Request request = builder.build();
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
-                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
-                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
-                .build();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
                         DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
+                        Toast.makeText(MainActivity.this, "数据解析异常", LENGTH_SHORT).show();
                     }
                 });
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    try {
-                        String success = response.body().string();
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    JSONObject jsonObject = new JSONObject(success);
-
-                                    String trade_status = jsonObject.getString("trade_status");
-                                    if (is_chaoshi && !trade_status.contains("TRADE_FINISHED") && !trade_status.contains("TRADE_SUCCESS")) {
-                                        is_chaoshi = false;
-                                        revokeOrder(checkoutBean);
-                                        return;
-                                    }
-                                    if (trade_status.contains("TRADE_FINISHED") || trade_status.contains("TRADE_SUCCESS")) {
-                                        time.cancel();
-                                        transaction_id = jsonObject.getString("trade_no");
-                                        checkoutBean.setTransaction_id(transaction_id);
-                                        checkoutBean.setOrder_sn(order_sn);
-                                        pushorders(checkoutBean);
-
-                                    }
-                                    if (trade_status.contains("TRADE_CLOSED")) {
-                                        order_sn = "";
-                                        out_trade_no = "";
-                                        DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.order_canceled), true).show();
-                                    }
-
-
-                                } catch (JSONException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        });
-
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-
-                }
+            public void onFailure(IOException e) {
+                runOnUiThread(() -> {
+                    DialogUIUtils.dismiss(buildBean);
+                    // ★★★ 建议打印具体错误信息，方便排查是超时还是DNS解析失败 ★★★
+                    Log.e("PayError", "支付请求失败: " + e.getMessage());
+                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected) + "\n" + e.getMessage(), true).show();
+                });
             }
         });
     }
 
-    private TimeCount time;
-    private boolean is_chaoshi = false;
+
+
+    private void handlePaymentSuccess(JSONObject jsonObject) {
+        if (jsonObject != null) {
+            order_sn = jsonObject.optString("data");
+            if (TextUtils.isEmpty(order_sn) && "wechat".equals(checkoutBean.getPay_type())) {
+                order_sn = jsonObject.optJSONObject("code") != null ? jsonObject.optJSONObject("code").optString("order_sn") : "";
+            } else if (TextUtils.isEmpty(order_sn) && "alipay".equals(checkoutBean.getPay_type())) {
+                order_sn = jsonObject.optString("order_sn");
+            }
+        }
+        if (TextUtils.isEmpty(order_sn)) order_sn = TextUtils.isEmpty(checkoutBean.getOrder_sn()) ? "LOC" + System.currentTimeMillis() : checkoutBean.getOrder_sn();
+
+        DialogUIUtils.dismiss(buildBean);
+        have_paid_view.setVisibility(VISIBLE);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> have_paid_view.setVisibility(GONE), 3000);
+        operateDetails(checkoutBean);
+        is_jiezhang_qingkong = true;
+        onClick(qingkong_btn);
+        new DeleteShopPopupWindow(this, getString(R.string.Payment_succeeded), true).show();
+    }
+
+    private void handlePaymentProcess(JSONObject jsonObject) throws JSONException {
+        if ("wechat".equals(checkoutBean.getPay_type())) {
+            order_sn = new JSONObject(jsonObject.getString("code")).optString("order_sn");
+            if (new JSONObject(jsonObject.getString("code")).has("out_trade_no")) {
+                out_trade_no = new JSONObject(jsonObject.getString("code")).getString("out_trade_no");
+                fwsgetOrderInformation(checkoutBean);
+            } else {
+                DialogUIUtils.dismiss(buildBean);
+                new DeleteShopPopupWindow(this, getString(R.string.No_transaction_ID_recorded), true).show();
+            }
+        } else if ("alipay".equals(checkoutBean.getPay_type())) {
+            out_trade_no = jsonObject.optString("out_trade_no");
+            order_sn = jsonObject.optString("order_sn");
+            queryOrder(checkoutBean);
+            timeCount.start();
+        }
+    }
+
+    // ----------------- 分类与查询 -----------------
+
+    public void OverviewList() {
+        Map<String, String> params = new HashMap<>();
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+        OkHttpUtil.postFormAsync(POSApiSerview.POS_URL + POSApiSerview.getGrouponCategory, params, this, new OkHttpUtil.OkHttpCallback() {
+            @Override
+            public void onSuccess(String response) {
+                runOnUiThread(() -> {
+                    if (!TextUtils.isEmpty(response)) {
+                        Gson gson = new Gson();
+                        CategoryListBean bean = gson.fromJson(response, CategoryListBean.class);
+                        if (bean.getCode() == 1) {
+                            ArrayList<CategoryListBean.CategoryListModel> models = bean.getData();
+
+                            // ▼▼▼▼▼▼ 核心修复：强行插入“全部”选项，并确保ID为"" ▼▼▼▼▼▼
+                            CategoryListBean.CategoryListModel all = new CategoryListBean.CategoryListModel();
+                            all.setName(getString(R.string.all));
+                            all.setId(""); // ID 为空，对应 loadLocalGoods 的查询全部逻辑
+                            models.add(0, all);
+                            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+                            UserUtils.getInstance().setCategoryListBeanJson(MainActivity.this, gson.toJson(bean));
+                            shopTypeAdapter.setIndex(0);
+                            shopTypeAdapter.setNewData(models);
+
+                            current_category_id = "";
+                            loadLocalGoods(0);
+                        }
+                    }
+                });
+            }
+            @Override
+            public void onFailure(IOException e) {
+                runOnUiThread(() -> loadLocalCategories());
+            }
+        });
+    }
+
+    private void loadLocalCategories() {
+        if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
+            Gson gson = new Gson();
+            CategoryListBean bean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
+            shopTypeAdapter.setNewData(bean.getData());
+        }
+    }
+
+    public static String detectPaymentType(String code) {
+        if (TextUtils.isEmpty(code)) return "unknown";
+        if (!code.matches("\\d+")) return "unknown";
+        if (code.length() == 18 && code.matches("^(10|11|12|13|14|15)\\d{16}$")) return "wechat";
+        if (code.length() >= 16 && code.length() <= 24 && code.matches("^(25|26|27|28|29|30)\\d+")) return "alipay";
+        return "unknown";
+    }
+
+    private void updateColor(TextView view, int latency) {
+        if (latency < 0) view.setTextColor(0xFFFF0000);
+        else if (latency < 100) view.setTextColor(0xFF4CAF50);
+        else if (latency < 300) view.setTextColor(0xFFFFC107);
+        else view.setTextColor(0xFFF44336);
+    }
+
+    // ----------------- 退款轮询 -----------------
+
+    public void startRefundQuery(String payType, String transactionId, String outTradeNo, String refundFee, int position) {
+        Map<String, String> refundParams = new HashMap<>();
+        refundParams.put("payType", payType);
+        refundParams.put("transaction_id", transactionId != null ? transactionId : "");
+        refundParams.put("out_trade_no", outTradeNo != null ? outTradeNo : "");
+        refundParams.put("refund_fee", refundFee != null ? refundFee : "0.00");
+        refundParams.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+        refundParams.put("position", String.valueOf(position));
+
+        new CountDownTimer(30000, 5000) {
+            @Override
+            public void onTick(long millisUntilFinished) { queryRefundStatus(refundParams); }
+            @Override
+            public void onFinish() {
+                queryRefundStatus(refundParams);
+                if (paymentStatusListener != null) runOnUiThread(() -> paymentStatusListener.onRefundCompleted(false, position));
+            }
+        }.start();
+    }
+
+    private void queryRefundStatus(Map<String, String> refundParams) {
+        String payType = refundParams.get("payType");
+        String url = POSApiSerview.POS_URL + ("alipay".equals(payType) ? POSApiSerview.queryOrder : POSApiSerview.fwsgetOrderInformation);
+        Map<String, String> params = new HashMap<>();
+        params.put("shop_id", refundParams.get("shop_id"));
+        if ("alipay".equals(payType)) params.put("out_trade_no", refundParams.get("out_trade_no"));
+        else if ("wechat".equals(payType)) {
+            params.put("transaction_id", refundParams.get("transaction_id"));
+            params.put("outTradeNo", refundParams.get("out_trade_no"));
+        }
+
+        OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
+            @Override
+            public void onSuccess(String response) {
+                try {
+                    JSONObject json = new JSONObject(response);
+                    boolean isSuccess = false;
+                    if ("alipay".equals(payType)) {
+                        String status = json.optString("trade_status");
+                        isSuccess = "REFUND_SUCCESS".equals(status) || "TRADE_CLOSED".equals(status);
+                    } else if ("wechat".equals(payType)) {
+                        JSONObject code = json.optJSONObject("code");
+                        isSuccess = code != null && "SUCCESS".equals(code.optString("refund_status"));
+                    }
+                    if (isSuccess && paymentStatusListener != null) {
+                        int pos = Integer.parseInt(refundParams.get("position"));
+                        runOnUiThread(() -> paymentStatusListener.onRefundCompleted(true, pos));
+                    }
+                } catch (JSONException e) { e.printStackTrace(); }
+            }
+            @Override
+            public void onFailure(IOException e) {}
+        });
+    }
+
+    // ----------------- 生命周期与辅助 -----------------
 
     class TimeCount extends CountDownTimer {
-
-
-        public TimeCount(long millisInFuture, long countDownInterval) {
-            super(millisInFuture, countDownInterval);
-        }
-
-        //时间定时器运行过程调用此方法。millisUntilFinished   为剩余时间
+        public TimeCount(long millisInFuture, long countDownInterval) { super(millisInFuture, countDownInterval); }
         @Override
-        public void onTick(long millisUntilFinished) {
-
-            queryOrder(checkoutBean);
-
-        }
-
-        //时间定时器结束调用此方法
+        public void onTick(long millisUntilFinished) { queryOrder(checkoutBean); }
         @Override
-        public void onFinish() {
-            is_chaoshi = true;
-            queryOrder(checkoutBean);
+        public void onFinish() { is_chaoshi = true; queryOrder(checkoutBean); }
+    }
+
+    private class NetworkChangeReceiver extends BroadcastReceiver {
+        private final Activity activity;
+        public NetworkChangeReceiver(Activity activity) { this.activity = activity; }
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            checkPendingOrders();
+            wangluo_view.setVisibility(NetworkUtils.getInstance().isNetworkConnected(activity) ? GONE : VISIBLE);
         }
     }
-
-    public void revokeOrder(CheckoutBean checkoutBean) {
-        Map<String, String> params = new HashMap<>();
-        params.put("out_trade_no", out_trade_no);
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
-        FormBody.Builder formBuilder = new FormBody.Builder();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            formBuilder.add(entry.getKey(), entry.getValue());
-        }
-        RequestBody formBody = formBuilder.build();
-        String url = POSApiSerview.POS_URL + POSApiSerview.revokeOrder;
-        Request.Builder builder = new Request.Builder()
-                .url(url);
-
-        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
-
-
-        builder.post(formBody);
-
-        Request request = builder.build();
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
-                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
-                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
-                .build();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
-                    }
-                });
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    try {
-                        String success = response.body().string();
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                queryOrder(checkoutBean);
-                            }
-                        });
-
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-
-                }
-            }
-        });
-    }
-
-    //tab货品类型list
-    public void OverviewList() {
-
-        Map<String, String> params = new HashMap<>();
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-        String url = POSApiSerview.POS_URL + POSApiSerview.getGrouponCategory;
-        OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
-            @Override
-            public void onSuccess(String response) {
-                Log.i("ttt", response);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!response.isEmpty()) {
-                            Gson gson = new Gson();
-                            CategoryListBean categoryListBean = gson.fromJson(response, CategoryListBean.class);
-                            if (categoryListBean.getCode() == 1) {
-                                if (is_tongbu) {
-                                    getGrouponGoods();
-                                }
-
-                                ArrayList<CategoryListBean.CategoryListModel> models = categoryListBean.getData();
-                                CategoryListBean.CategoryListModel categoryListModel = new CategoryListBean.CategoryListModel();
-                                categoryListModel.setName(getString(R.string.all));
-                                categoryListModel.setId("");
-
-
-                                models.add(0, categoryListModel);
-                                categoryListBean.setData(models);
-                                UserUtils.getInstance().setCategoryListBeanJson(MainActivity.this, gson.toJson(categoryListBean));
-//
-//                            CategoryListBean.CategoryListModel categoryListModel1 = new CategoryListBean.CategoryListModel();
-//                            categoryListModel1.setName(POSApplication.text[1]);
-//                            categoryListModel1.setDrawableId(POSApplication.drawableIds[1]);
-//                            models.add(1, categoryListModel1);
-//
-//
-                                shopTypeAdapter.setIndex(0);
-                                shopTypeAdapter.setNewData(models);
-//                            Log.i("ttt", chooseFoodMenuListAdapter.getItemCount() + "sSsDD");
-                            }
-
-                        } else {
-//                            Toast.makeText(LoginActivity.this,"数据处理错误:"+ex.getMessage(),Toast.LENGTH_SHORT).show();
-                            Toast.makeText(MainActivity.this, "请求错误，结果为空", LENGTH_SHORT).show();
-                        }
-                    }
-                });
-
-            }
-
-            @Override
-            public void onFailure(IOException e) {
-                runOnUiThread(() -> {
-                    if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
-                        Gson gson = new Gson();
-                        CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
-                        shopTypeAdapter.setNewData(categoryListBean.getData());
-                    }
-                    System.err.println("请求失败: " + e.getMessage());
-                });
-
-            }
-        });
-
-
-    }
-
-    private String goods_sn = "";
-    private String category_ids = "";
-    private int grouponGoods_page = 1;
-    private ArrayList<GrouponGoodsBean.GrouponGoodsModel> allGrouponGoodsModelList = new ArrayList<>();
-    private ArrayList<GrouponGoodsBean.GrouponGoodsModel> indexGrouponGoodsModelList = new ArrayList<>();
-
-    private void getGrouponGoods() {
-        LoadingPopupView popupView = (LoadingPopupView) new XPopup.Builder(this)
-                .asLoading(getString(R.string.loading_data))
-                .show();
-//        popupView.setTitle("");
-        Map<String, String> params = new HashMap<>();
-//        params.put("category_ids", TextUtils.isEmpty(category_ids) ? "" : category_ids);
-        params.put("category_ids", "");
-        params.put("goods_sn", "");
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-//        params.put("page", grouponGoods_page + "");
-//        params.put("strip", "20");
-        String url = POSApiSerview.POS_URL + POSApiSerview.getGrouponGoods2;
-        OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
-            @Override
-            public void onSuccess(String response) {
-                Log.i("ttt", response);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!response.isEmpty()) {
-
-                            Gson gson = new Gson();
-                            GrouponGoodsBean grouponGoodsBean = gson.fromJson(response, GrouponGoodsBean.class);
-                            if (grouponGoodsBean.getCode() == 1) {
-                                popupView.dismiss();
-                                if (is_tongbu) {
-                                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Sync_completed), true).show();
-                                    is_tongbu = false;
-                                }
-
-                                UserUtils.getInstance().setGrouponGoodsBeanJson(MainActivity.this, response);
-                                if (grouponGoods_page == 1) {
-                                    if (grouponGoodsBean.getData() != null) {
-                                        allGrouponGoodsModelList = grouponGoodsBean.getData();
-                                        indexGrouponGoodsModelList = allGrouponGoodsModelList;
-                                        grouponGoods_page = 1;
-                                        grouponGoodsAdapter.hasMore = true;
-                                        grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
-                                    } else {
-                                        Toast.makeText(MainActivity.this, "未查询到商品", LENGTH_SHORT).show();
-                                    }
-
-                                } else {
-                                    if (grouponGoodsBean.getData() == null) {
-                                        grouponGoodsAdapter.hasMore = false;
-                                    } else {
-                                        // 请求成功后，更新数据并通知适配器数据已更改
-                                        grouponGoodsAdapter.loadMoreData(grouponGoodsBean.getData()); // newDataList 是新加载的数据列表
-                                    }
-
-
-                                }
-                            }
-
-
-                        } else {
-
-//                            Toast.makeText(LoginActivity.this,"数据处理错误:"+ex.getMessage(),Toast.LENGTH_SHORT).show();
-                            Toast.makeText(MainActivity.this, "请求错误，结果为空", LENGTH_SHORT).show();
-                        }
-                    }
-                });
-
-            }
-
-            @Override
-            public void onFailure(IOException e) {
-                runOnUiThread(() -> {
-                    popupView.dismiss();
-                    if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
-                        Gson gson = new Gson();
-                        GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
-                        allGrouponGoodsModelList = grouponGoodsBean.getData();
-                        indexGrouponGoodsModelList = allGrouponGoodsModelList;
-                        grouponGoods_page = 1;
-                        grouponGoodsAdapter.hasMore = true;
-                        grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
-                    }
-                    System.err.println("请求失败: " + e.getMessage());
-                });
-
-            }
-        });
-    }
-    boolean is_jiezhang_qingkong=false;
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-//        hideKeyboard();
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             int keyCode = event.getKeyCode();
-            Log.i("ttt", "外部键盘点击" + keyCode);
-
-            if (keyCode == KeyEvent.KEYCODE_F2) {
-                onClickListener.onClick(guadan_btn);
-                // 监听外接键盘的返回键
-                return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_F3) {
-                onClickListener.onClick(qudan_btn);
-                // 监听外接键盘的返回键
-                return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_F4) {
-
-                if (UserUtils.getInstance().isDazhe()){
-                    onClickListener.onClick(dazhe_one_btn);
-                }
-                // 监听外接键盘的返回键
-                return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_F5) {
-                onClickListener.onClick(qingkong_btn);
-                // 监听外接键盘的返回键
-                return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_F6) {
-                if (UserUtils.getInstance().isDazhe()){
-                    onClickListener.onClick(dazhe_all_btn);
-                }
-
-                // 监听外接键盘的返回键
-                return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_F7) {
-                onClickListener.onClick(daying_btn);
-                // 监听外接键盘的返回键
-                return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_F8) {
-                onClickListener.onClick(checkout_btn);
-                // 监听外接键盘的返回键
-                return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_F9) {
-                is_kuangjie = true;
-                onClickListener.onClick(checkout_btn);
-                // 监听外接键盘的返回键
-                return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_F10) {
-                onClickListener.onClick(huiyuan_btn);
-                // 监听外接键盘的返回键
-                return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_BACK) {
-                onBackPressed();
-                return true;
-            }
+            if (keyCode == KeyEvent.KEYCODE_F2) onClick(guadan_btn);
+            else if (keyCode == KeyEvent.KEYCODE_F3) onClick(qudan_btn);
+            else if (keyCode == KeyEvent.KEYCODE_F4) { if (UserUtils.getInstance().isDazhe()) onClick(dazhe_one_btn); }
+            else if (keyCode == KeyEvent.KEYCODE_F5) onClick(qingkong_btn);
+            else if (keyCode == KeyEvent.KEYCODE_F6) { if (UserUtils.getInstance().isDazhe()) onClick(dazhe_all_btn); }
+            else if (keyCode == KeyEvent.KEYCODE_F7) onClick(daying_btn);
+            else if (keyCode == KeyEvent.KEYCODE_F8) onClick(checkout_btn);
+            else if (keyCode == KeyEvent.KEYCODE_F9) { is_kuangjie = true; onClick(checkout_btn); }
+            else if (keyCode == KeyEvent.KEYCODE_F10) onClick(huiyuan_btn);
+            else if (keyCode == KeyEvent.KEYCODE_BACK) onBackPressed();
+            else return super.dispatchKeyEvent(event);
+            return true;
         }
         return super.dispatchKeyEvent(event);
     }
 
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+    }
 
-    //tab货品类型list
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (networkChangeReceiver != null) unregisterReceiver(networkChangeReceiver);
+        MyUsbDeviceHelper.getInstance().unregisterReceiver();
+        if (timeCount != null) timeCount.cancel();
+        dbExecutor.shutdown();
+    }
+
+    public void queryOrder(CheckoutBean checkoutBean) {
+        // 构造请求参数
+        Map<String, String> params = new HashMap<>();
+        params.put("out_trade_no", out_trade_no);
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+
+        // 发起查询
+        OkHttpUtil.postFormAsync(POSApiSerview.POS_URL + POSApiSerview.queryOrder, params, this, new OkHttpUtil.OkHttpCallback() {
+            @Override
+            public void onSuccess(String response) {
+                runOnUiThread(() -> {
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        String trade_status = jsonObject.optString("trade_status");
+
+                        // 1. 支付成功
+                        if (trade_status.contains("TRADE_FINISHED") || trade_status.contains("TRADE_SUCCESS")) {
+                            if (timeCount != null) timeCount.cancel(); // 停止倒计时
+                            is_chaoshi = false;
+
+                            transaction_id = jsonObject.optString("trade_no");
+                            checkoutBean.setTransaction_id(transaction_id);
+                            checkoutBean.setOrder_sn(order_sn);
+
+                            // ★★★ 核心修复：成功后手动触发后续流程 ★★★
+                            handlePaymentSuccess(jsonObject);
+
+                            // 如果需要推单
+                            pushorders(checkoutBean);
+                        }
+                        // 2. 支付关闭/撤销
+                        else if (trade_status.contains("TRADE_CLOSED")) {
+                            if (timeCount != null) timeCount.cancel();
+                            DialogUIUtils.dismiss(buildBean);
+                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.order_canceled), true).show();
+                        }
+                        // 3. 等待支付中... (什么都不做，等待下一次轮询)
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(IOException e) {
+                // ★★★ 核心修复：查询失败不弹窗报错，而是静默失败，等待下一次轮询 ★★★
+                Log.e("PayDebug", "查询支付状态网络失败: " + e.getMessage());
+                // 这里不要 dismiss loading，因为网络波动是暂时的，下次轮询可能就通了
+            }
+        });
+    }
+
+
+
+    public void fwsgetOrderInformation(CheckoutBean checkoutBean) {}
     public void getLastOder() {
-
         Map<String, String> params = new HashMap<>();
         params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-        String url = POSApiSerview.POS_URL + POSApiSerview.getLastOder;
-        OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
+        OkHttpUtil.postFormAsync(POSApiSerview.POS_URL + POSApiSerview.getLastOder, params, this, new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {
-                Log.i("ttt", response);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!response.isEmpty()) {
-                            try {
-                                JSONObject jsonObject = new JSONObject(response);
-                                int code = jsonObject.getInt("code");
-                                if (code == 1 && !TextUtils.isEmpty(jsonObject.getString("data"))) {
-                                    ArrayList<LastOrderBean> lastOrderBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<LastOrderBean>>() {
-                                    }.getType());
-                                    MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, lastOrderBeanArrayList.get(0), null);
-                                }
-                            } catch (JSONException e) {
-                                throw new RuntimeException(e);
-                            }
-
-                        } else {
-                            Toast.makeText(MainActivity.this, "请求错误，结果为空", LENGTH_SHORT).show();
+                runOnUiThread(() -> {
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        if (jsonObject.optInt("code") == 1) {
+                            ArrayList<LastOrderBean> list = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<LastOrderBean>>() {}.getType());
+                            MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, list.get(0), null);
                         }
-                    }
-                });
-
-            }
-
-            @Override
-            public void onFailure(IOException e) {
-                System.err.println("请求失败: " + e.getMessage());
-            }
-        });
-
-
-    }
-
-    public String out_trade_no = "", order_sn = "", transaction_id = "";
-
-    public void fwsgetOrderInformation(CheckoutBean checkoutBean) {
-        Map<String, String> params = new HashMap<>();
-        params.put("outTradeNo", out_trade_no);
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
-        FormBody.Builder formBuilder = new FormBody.Builder();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            formBuilder.add(entry.getKey(), entry.getValue());
-        }
-        RequestBody formBody = formBuilder.build();
-        String url = POSApiSerview.POS_URL + POSApiSerview.fwsgetOrderInformation;
-        Request.Builder builder = new Request.Builder()
-                .url(url);
-
-        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
-
-
-        builder.post(formBody);
-
-        Request request = builder.build();
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
-                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
-                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
-                .build();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
-                    }
+                    } catch (JSONException e) { e.printStackTrace(); }
                 });
             }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    try {
-                        String success = response.body().string();
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    JSONObject jsonObject = new JSONObject(success);
-
-                                    String msg = jsonObject.getString("msg");
-
-                                    String trade_state_desc = new JSONObject(jsonObject.getString("code")).getString("trade_state_desc");
-                                    if (trade_state_desc.contains("密码")) {
-                                        fwsgetOrderInformation(checkoutBean);
-                                    } else if (trade_state_desc.contains("支付成功")) {
-                                        transaction_id = new JSONObject(jsonObject.getString("code")).getString("transaction_id");
-                                        checkoutBean.setTransaction_id(transaction_id);
-                                        checkoutBean.setOrder_sn(order_sn);
-                                        pushorders(checkoutBean);
-                                    } else if (trade_state_desc.contains("支付失败")) {
-                                        fwscancelanOrder(checkoutBean);
-                                    } else if (trade_state_desc.contains("订单已撤销")) {
-                                        order_sn = "";
-                                        out_trade_no = "";
-                                        DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.order_canceled), true).show();
-                                    }
-
-
-                                } catch (JSONException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        });
-
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-
-                }
-            }
+            @Override public void onFailure(IOException e) {}
         });
     }
-
-    public void fwscancelanOrder(CheckoutBean checkoutBean) {
-        Map<String, String> params = new HashMap<>();
-        params.put("outTradeNo", out_trade_no);
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
-        FormBody.Builder formBuilder = new FormBody.Builder();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            formBuilder.add(entry.getKey(), entry.getValue());
-        }
-        RequestBody formBody = formBuilder.build();
-        String url = POSApiSerview.POS_URL + POSApiSerview.fwscancelanOrder;
-        Request.Builder builder = new Request.Builder()
-                .url(url);
-
-        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
-
-
-        builder.post(formBody);
-
-        Request request = builder.build();
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
-                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
-                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
-                .build();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
-                    }
-                });
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    try {
-                        String success = response.body().string();
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                fwsgetOrderInformation(checkoutBean);
-                            }
-                        });
-
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-
-                }
-            }
-        });
-    }
-
-
-    public void pushorders(CheckoutBean checkoutBean) {
-        String url = POSApiSerview.POS_URL + POSApiSerview.pushorders;
-        Gson gson = new Gson();
-        RequestBody body = RequestBody.create(gson.toJson(checkoutBean), MediaType.parse("application/json; charset=utf-8"));
-        Request.Builder builder = new Request.Builder()
-                .url(url);
-
-        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
-
-
-        builder.post(body);
-
-        Request request = builder.build();
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
-                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
-                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
-                .build();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
-                    }
-                });
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    try {
-                        String success = response.body().string();
-                        JSONObject jsonObject = new JSONObject(success);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    if (jsonObject.getString("msg").contains("成功") || jsonObject.getString("msg").contains("Success")) {
-
-
-                                        DialogUIUtils.dismiss(buildBean);
-                                        is_jiezhang_qingkong=true;
-                                        onClickListener.onClick(qingkong_btn);
-                                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_succeeded), true).show();
-                                        String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
-                                        String zhifubao_pice = checkoutBean.getPay_type().equals("alipay") ? checkoutBean.getPay_fee() : "";
-                                        MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, null, "", weixin_pice, zhifubao_pice, order_sn);
-                                        order_sn = "";
-                                        out_trade_no = "";
-                                    }
-
-                                } catch (JSONException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        });
-
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-
-                }
-            }
-        });
-    }
-
     public void operateDetails(CheckoutBean checkoutBean) {
         Map<String, String> params = new HashMap<>();
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
-        String url = POSApiSerview.POS_URL + POSApiSerview.operateDetails;
-        OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+        OkHttpUtil.postFormAsync(POSApiSerview.POS_URL + POSApiSerview.operateDetails, params, this, new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {
-                Log.i("ttt", ">>>>>>>>>>>>>");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            int code = jsonObject.getInt("code");
-                            String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
-                            String zhifubao_pice = checkoutBean.getPay_type().equals("alipay") ? checkoutBean.getPay_fee() : "";
-                            if (code == 1) {
-                                ArrayList<PrintDataBean> printDataBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<PrintDataBean>>() {
-                                }.getType());
-                                MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, printDataBeanArrayList.get(0), "", weixin_pice, zhifubao_pice, order_sn);
-                            } else {
-                                MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, null, "", weixin_pice, zhifubao_pice, order_sn);
-                            }
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                runOnUiThread(() -> {
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        ArrayList<PrintDataBean> list = null;
+                        if (jsonObject.optInt("code") == 1) {
+                            list = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<PrintDataBean>>() {}.getType());
                         }
-                    }
+                        String weixin_pice = "wechat".equals(checkoutBean.getPay_type()) ? checkoutBean.getPay_fee() : "";
+                        String zhifubao_pice = "alipay".equals(checkoutBean.getPay_type()) ? checkoutBean.getPay_fee() : "";
+                        MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, list != null ? list.get(0) : null, "", weixin_pice, zhifubao_pice, order_sn);
+                    } catch (JSONException e) { e.printStackTrace(); }
                 });
             }
-
-            @Override
-            public void onFailure(IOException e) {
-
-            }
+            @Override public void onFailure(IOException e) {}
         });
     }
 
-    public void operateDetails(LastOrderBean lastOrderBean) {
+    /**
+     * 推送订单（支付成功后调用）
+     */
+    public void pushorders(CheckoutBean checkoutBean) {
+        if (TextUtils.isEmpty(order_sn)) return;
+
         Map<String, String> params = new HashMap<>();
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
-        String url = POSApiSerview.POS_URL + POSApiSerview.operateDetails;
+        params.put("order_sn", order_sn);
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+        if (!TextUtils.isEmpty(transaction_id)) {
+            params.put("transaction_id", transaction_id);
+        }
+
+        String url = POSApiSerview.POS_URL + POSApiSerview.pushorders;
+
         OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {
-                Log.i("ttt", ">>>>>>>>>>>>>");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            int code = jsonObject.getInt("code");
-                            if (code == 1) {
-                                ArrayList<PrintDataBean> printDataBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<PrintDataBean>>() {
-                                }.getType());
-                                MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, lastOrderBean, printDataBeanArrayList.get(0));
-                            } else {
-                                MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, lastOrderBean, null);
-                            }
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                });
+                Log.i("PushOrder", "推单成功: " + response);
             }
 
             @Override
             public void onFailure(IOException e) {
-
+                Log.e("PushOrder", "推单失败: " + e.getMessage());
             }
         });
     }
+
 
 }

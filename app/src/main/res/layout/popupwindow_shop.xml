@@ -42,7 +42,7 @@
                 android:orientation="vertical">
                 <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="70dp"
+                    android:layout_height="50dp"
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="25dp"
@@ -69,7 +69,7 @@
                 android:orientation="vertical">
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="70dp"
+                    android:layout_height="50dp"
                     android:orientation="horizontal">
                     <EditText
                         android:id="@+id/sousuo_tv"
@@ -79,7 +79,7 @@
                         android:background="@drawable/rounded_border"
                         android:hint="@string/pinming_bianma"
                         android:textColorHint="@color/mr_gray_888"
-                        android:textSize="25dp"
+                        android:textSize="20dp"
                         android:inputType="text"
                         android:textColor="@color/black"
                         android:gravity="center_vertical"/>
@@ -90,7 +90,7 @@
                         android:layout_height="match_parent"
                         android:text="@string/search"
                         android:textColor="@color/black"
-                        android:textSize="25dp"
+                        android:textSize="20dp"
                         android:gravity="center"
                         android:background="@drawable/rounded_border"
                         android:layout_marginLeft="20dp"/>
@@ -99,8 +99,8 @@
                         android:layout_width="160dp"
                         android:layout_height="match_parent"
                         android:text="@string/check_to_add"
-                        android:textColor="@color/black"
-                        android:textSize="25dp"
+                        android:textColor="@color/mr_blue"
+                        android:textSize="20dp"
                         android:gravity="center"
                         android:background="@drawable/rounded_border"
                         android:layout_marginLeft="20dp"/>
@@ -110,7 +110,7 @@
                         android:layout_height="match_parent"
                         android:text="@string/cancel"
                         android:textColor="@color/black"
-                        android:textSize="25dp"
+                        android:textSize="20dp"
                         android:gravity="center"
                         android:background="@drawable/rounded_border"
                         android:layout_marginLeft="20dp"/>
@@ -143,24 +143,24 @@
                             android:layout_weight="1"
                             android:gravity="center"
                             android:layout_height="wrap_content"
-                            android:textSize="25dp"
-                            android:textColor="@color/black"
+                            android:textSize="20dp"
+                            android:textColor="@color/text_gray"
                             android:text="@string/No" />
                         <TextView
                             android:layout_width="0dp"
                             android:layout_weight="1.5"
                             android:gravity="center"
                             android:layout_height="wrap_content"
-                            android:textSize="25dp"
-                            android:textColor="@color/black"
+                            android:textSize="20dp"
+                            android:textColor="@color/text_gray"
                             android:text="@string/sku" />
                         <TextView
                             android:layout_width="0dp"
                             android:layout_weight="2"
                             android:gravity="center"
                             android:layout_height="wrap_content"
-                            android:textSize="25dp"
-                            android:textColor="@color/black"
+                            android:textSize="20dp"
+                            android:textColor="@color/text_gray"
                             android:text="@string/product_name" />
                         <TextView
                             android:visibility="gone"
@@ -168,32 +168,32 @@
                             android:layout_weight="1.5"
                             android:gravity="center"
                             android:layout_height="wrap_content"
-                            android:textSize="25dp"
-                            android:textColor="@color/black"
+                            android:textSize="20dp"
+                            android:textColor="@color/text_gray"
                             android:text="副标题" />
                         <TextView
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:gravity="center"
                             android:layout_height="wrap_content"
-                            android:textSize="25dp"
-                            android:textColor="@color/black"
+                            android:textSize="20dp"
+                            android:textColor="@color/text_gray"
                             android:text="@string/selling_price" />
                         <TextView
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:gravity="center"
                             android:layout_height="wrap_content"
-                            android:textSize="25dp"
-                            android:textColor="@color/black"
+                            android:textSize="20dp"
+                            android:textColor="@color/text_gray"
                             android:text="@string/market_price" />
                         <TextView
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:gravity="center"
                             android:layout_height="wrap_content"
-                            android:textSize="25dp"
-                            android:textColor="@color/black"
+                            android:textSize="20dp"
+                            android:textColor="@color/text_gray"
                             android:text="@string/cost_price" />
                     </LinearLayout>
                     <View

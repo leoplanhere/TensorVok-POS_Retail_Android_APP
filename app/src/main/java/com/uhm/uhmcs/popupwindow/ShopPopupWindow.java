@@ -4,9 +4,9 @@ import static android.view.KeyEvent.KEYCODE_NUMPAD_ENTER;
 
 import android.app.Activity;
 import android.content.Context;
-import android.os.AsyncTask;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -23,13 +23,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.google.gson.Gson;
 import com.uhm.uhmcs.R;
-import com.uhm.uhmcs.adapter.GuaDanShopAdapter;
 import com.uhm.uhmcs.adapter.ShopAdapter;
 import com.uhm.uhmcs.adapter.ShopTypeAdapter1;
 import com.uhm.uhmcs.bean.CategoryListBean;
 import com.uhm.uhmcs.bean.GrouponGoodsBean;
 import com.uhm.uhmcs.utils.UserUtils;
 import com.uhm.uhmcs.utils.Utilis;
+
+import org.litepal.LitePal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,26 +40,24 @@ import java.util.stream.Collectors;
 public class ShopPopupWindow {
     private PopupWindow popupWindow;
     private Context context;
-    private ArrayList<GrouponGoodsBean.GrouponGoodsModel> allGrouponGoodsModelList;
-    private ArrayList<CategoryListBean.CategoryListModel> categoryListModelArrayList;
+    // 这里的 List 泛型应该是具体的 Model，而不是 DataWrapper
+    private List<GrouponGoodsBean.GrouponGoodsModel> allGrouponGoodsModelList = new ArrayList<>();
+    private ArrayList<CategoryListBean.CategoryListModel> categoryListModelArrayList = new ArrayList<>();
     private RecyclerView shop_type_rv;
     private ShopTypeAdapter1 shopTypeAdapter1;
     private ShopAdapter shopAdapter;
     private RecyclerView shop_rv;
-    private String category_ids="";
+    private String category_ids = "";
     private TextView all_select;
     private EditText sousuo_tv;
-    private boolean is_all_select=false;
+    private boolean is_all_select = false;
     private LinearLayout all_select_btn;
     private LinearLayoutManager shopTypeLinearLayoutManager;
-    private  PopupWindowOnClickListener.ShopOnClickListener shopOnClickListener;
+    private PopupWindowOnClickListener.ShopOnClickListener shopOnClickListener;
 
-
-    public ShopPopupWindow(Context context, PopupWindowOnClickListener.ShopOnClickListener shopOnClickListener){
-
+    public ShopPopupWindow(Context context, PopupWindowOnClickListener.ShopOnClickListener shopOnClickListener) {
         this.context = context;
-        this.shopOnClickListener=shopOnClickListener;
-
+        this.shopOnClickListener = shopOnClickListener;
         initPopup();
     }
 
@@ -70,41 +69,37 @@ public class ShopPopupWindow {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 true
         );
-//        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        popupView.setBackgroundColor(context.getColor(R.color.black60));
-//        popupWindow.setOutsideTouchable(true);
+        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // 修复透明背景可能导致的问题
+        // popupView.setBackgroundColor(context.getColor(R.color.black60)); // 如果xml里有背景色，这行可以注释
 
         // 绑定子 View 事件
-        popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
-            popupWindow.dismiss();
-        });
-        // 绑定子 View 事件
-        popupView.findViewById(R.id.btn_quxiao).setOnClickListener(v -> {
-            popupWindow.dismiss();
-        });
-        shop_type_rv=popupView.findViewById(R.id.shop_type_rv);
-        shopTypeLinearLayoutManager=new LinearLayoutManager(context, RecyclerView.VERTICAL,false);
+        popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> popupWindow.dismiss());
+        popupView.findViewById(R.id.btn_quxiao).setOnClickListener(v -> popupWindow.dismiss());
+
+        shop_type_rv = popupView.findViewById(R.id.shop_type_rv);
+        shopTypeLinearLayoutManager = new LinearLayoutManager(context, RecyclerView.VERTICAL, false);
         shop_type_rv.setLayoutManager(shopTypeLinearLayoutManager);
-        shopTypeAdapter1=new ShopTypeAdapter1();
+        shopTypeAdapter1 = new ShopTypeAdapter1();
         shop_type_rv.setAdapter(shopTypeAdapter1);
 
-
-        shop_rv=popupView.findViewById(R.id.shop_rv);
-        shop_rv.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL,false));
-        shopAdapter=new ShopAdapter();
+        shop_rv = popupView.findViewById(R.id.shop_rv);
+        shop_rv.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
+        shopAdapter = new ShopAdapter();
         shop_rv.setAdapter(shopAdapter);
-        all_select=popupView.findViewById(R.id.all_select);
-        all_select_btn=popupView.findViewById(R.id.all_select_btn);
+        all_select = popupView.findViewById(R.id.all_select);
+        all_select_btn = popupView.findViewById(R.id.all_select_btn);
 
         all_select_btn.setOnClickListener(v -> {
-            if (is_all_select){
-                is_all_select=false;
+            if (shopAdapter.getData().isEmpty()) return; // 没数据点全选无效
+
+            if (is_all_select) {
+                is_all_select = false;
                 all_select.setBackgroundResource(R.mipmap.checkbox_1);
                 for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : shopAdapter.getData()) {
                     grouponGoodsModel.setSelected(false);
                 }
-            }else {
-                is_all_select=true;
+            } else {
+                is_all_select = true;
                 all_select.setBackgroundResource(R.mipmap.checkbox_2);
                 for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : shopAdapter.getData()) {
                     grouponGoodsModel.setSelected(true);
@@ -112,157 +107,157 @@ public class ShopPopupWindow {
             }
             shopAdapter.notifyDataSetChanged();
         });
-        sousuo_tv=popupView.findViewById(R.id.sousuo_tv);
+
+        sousuo_tv = popupView.findViewById(R.id.sousuo_tv);
 
         sousuo_tv.setOnKeyListener((v, keyCode, event) -> {
-            if (event.getAction() == KeyEvent.ACTION_DOWN && (keyCode == KeyEvent.KEYCODE_ENTER|| keyCode ==KEYCODE_NUMPAD_ENTER)) {
-                // 处理 Enter 键
-                category_ids="";
-                // 预取搜索文本提高可读性
-                String searchText = sousuo_tv.getText().toString().trim();
-
-                if (TextUtils.isEmpty(searchText)){
-                    shopAdapter.setNewData(allGrouponGoodsModelList);
-                    return true;
-                }
-                shopAdapter.setNewData(allGrouponGoodsModelList.stream()
-                        .filter(grouponGoodsModel -> grouponGoodsModel.getTitle().contains(searchText)||(!TextUtils.isEmpty(grouponGoodsModel.getSn())&&grouponGoodsModel.getSn().equals(searchText)))
-                        .collect(Collectors.toCollection(ArrayList::new)));
-                shopTypeLinearLayoutManager.scrollToPositionWithOffset(0, 0); // 更平滑的滚动
-                sousuo_tv.setText("");
-                return true; // 消费事件
+            if (event.getAction() == KeyEvent.ACTION_DOWN && (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KEYCODE_NUMPAD_ENTER)) {
+                performSearch();
+                return true;
             }
-            return false; // 允许事件传递
+            return false;
         });
 
-        popupView.findViewById(R.id.sousuo_btn).setOnClickListener(v -> {
-            // 滚动到位置 0（第一条）
-            category_ids="";
-            // 预取搜索文本提高可读性
-            String searchText = sousuo_tv.getText().toString().trim();
+        popupView.findViewById(R.id.sousuo_btn).setOnClickListener(v -> performSearch());
 
-            if (TextUtils.isEmpty(searchText)){
-                shopAdapter.setNewData(allGrouponGoodsModelList);
-                return ;
-            }
-            shopAdapter.setNewData(allGrouponGoodsModelList.stream()
-                    .filter(grouponGoodsModel -> grouponGoodsModel.getTitle().contains(searchText)||(!TextUtils.isEmpty(grouponGoodsModel.getSn())&&grouponGoodsModel.getSn().equals(searchText)))
-                    .collect(Collectors.toCollection(ArrayList::new)));
-            shopTypeLinearLayoutManager.scrollToPositionWithOffset(0, 0); // 更平滑的滚动
-            sousuo_tv.setText("");
-
-        });
         popupView.findViewById(R.id.add_btn).setOnClickListener(v -> {
-            if (Utilis.isFastClick()){
-                return;
-            }
-            if (is_all_select){
-                shopOnClickListener.onClick((ArrayList<GrouponGoodsBean.GrouponGoodsModel>) shopAdapter.getData());
-            }else {
-                shopOnClickListener.onClick(shopAdapter.getData().stream()
+            if (Utilis.isFastClick()) return;
+
+            ArrayList<GrouponGoodsBean.GrouponGoodsModel> selectedList;
+            if (is_all_select) {
+                selectedList = new ArrayList<>(shopAdapter.getData());
+            } else {
+                selectedList = shopAdapter.getData().stream()
                         .filter(GrouponGoodsBean.GrouponGoodsModel::isSelected)
-                        .collect(Collectors.toCollection(ArrayList::new)));
+                        .collect(Collectors.toCollection(ArrayList::new));
+            }
+
+            if (selectedList != null && !selectedList.isEmpty()) {
+                shopOnClickListener.onClick(selectedList);
             }
             popupWindow.dismiss();
         });
 
+        shopTypeAdapter1.setOnItemClickListener((adapter, view, position) -> {
+            String clickedId = TextUtils.isEmpty(shopTypeAdapter1.getData().get(position).getId()) ? "" : shopTypeAdapter1.getData().get(position).getId();
 
+            if (clickedId.equals(category_ids)) return;
 
+            is_all_select = false;
+            all_select.setBackgroundResource(R.mipmap.checkbox_1);
 
-
-        shopTypeAdapter1.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                if ((TextUtils.isEmpty(shopTypeAdapter1.getData().get(position).getId()) ? "" : shopTypeAdapter1.getData().get(position).getId()).equals(category_ids)){
-                    return;
-                }
-                is_all_select=false;
-                all_select.setBackgroundResource(R.mipmap.checkbox_1);
-
+            // 清除之前的选中状态
+            if (allGrouponGoodsModelList != null) {
                 for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : allGrouponGoodsModelList) {
                     grouponGoodsModel.setSelected(false);
                 }
-                shopTypeAdapter1.setIndex(position);
-                category_ids = TextUtils.isEmpty(shopTypeAdapter1.getData().get(position).getId()) ? "" : shopTypeAdapter1.getData().get(position).getId();
-//                grouponGoods_page = 1;
-//                grouponGoodsAdapter.hasMore = true;
-//                goods_sn = "";
-//                getGrouponGoods();
-                if (TextUtils.isEmpty(category_ids)) {
-                    shopAdapter.setNewData(allGrouponGoodsModelList);
-                    return;
-                }
-                ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = new ArrayList<>();
-                grouponGoodsModelArrayList = allGrouponGoodsModelList.stream()
-                        .filter(grouponGoodsModel -> !Arrays.asList(grouponGoodsModel.getCategory_ids().split(",")).stream().filter(s ->s .equals(category_ids)) .collect(Collectors.toCollection(ArrayList::new)).isEmpty())
-                        .collect(Collectors.toCollection(ArrayList::new));
+            }
 
-                shopAdapter.setNewData(grouponGoodsModelArrayList);
+            shopTypeAdapter1.setIndex(position);
+            category_ids = clickedId;
+
+            if (TextUtils.isEmpty(category_ids)) {
+                shopAdapter.setNewData(allGrouponGoodsModelList);
+            } else {
+                // 根据分类ID过滤
+                List<GrouponGoodsBean.GrouponGoodsModel> filteredList = new ArrayList<>();
+                if (allGrouponGoodsModelList != null) {
+                    filteredList = allGrouponGoodsModelList.stream()
+                            .filter(goods -> {
+                                if (TextUtils.isEmpty(goods.getCategory_ids())) return false;
+                                String[] ids = goods.getCategory_ids().split(",");
+                                for (String id : ids) {
+                                    if (id.equals(category_ids)) return true;
+                                }
+                                return false;
+                            })
+                            .collect(Collectors.toList());
+                }
+                shopAdapter.setNewData(filteredList);
             }
         });
+
         shopAdapter.setOnItemClickListener((adapter, view, position) -> {
-            GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel=shopAdapter.getData().get(position);
-            if (grouponGoodsModel.isSelected()){
-                grouponGoodsModel.setSelected(false);
-                is_all_select=false;
+            GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = shopAdapter.getData().get(position);
+            grouponGoodsModel.setSelected(!grouponGoodsModel.isSelected());
+
+            // 检查是否全选/全不选
+            boolean hasUnselected = shopAdapter.getData().stream().anyMatch(model -> !model.isSelected());
+            if (hasUnselected) {
+                is_all_select = false;
                 all_select.setBackgroundResource(R.mipmap.checkbox_1);
-            }else {
-                grouponGoodsModel.setSelected(true);
-                ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = new ArrayList<>();
-                grouponGoodsModelArrayList = shopAdapter.getData().stream()
-                        .filter(grouponGoodsModel1 -> !grouponGoodsModel1.isSelected())
-                        .collect(Collectors.toCollection(ArrayList::new));
-                if (grouponGoodsModelArrayList.isEmpty()){
-                    is_all_select=true;
-                    all_select.setBackgroundResource(R.mipmap.checkbox_2);
-                }
+            } else if (!shopAdapter.getData().isEmpty()) {
+                is_all_select = true;
+                all_select.setBackgroundResource(R.mipmap.checkbox_2);
             }
             shopAdapter.notifyItemChanged(position);
         });
+    }
 
+    private void performSearch() {
+        category_ids = "";
+        String searchText = sousuo_tv.getText().toString().trim();
 
-
-
-
-
+        if (TextUtils.isEmpty(searchText)) {
+            shopAdapter.setNewData(allGrouponGoodsModelList);
+        } else {
+            if (allGrouponGoodsModelList != null) {
+                List<GrouponGoodsBean.GrouponGoodsModel> searchResult = allGrouponGoodsModelList.stream()
+                        .filter(goods -> (goods.getTitle() != null && goods.getTitle().contains(searchText))
+                                || (goods.getSn() != null && goods.getSn().equals(searchText)))
+                        .collect(Collectors.toList());
+                shopAdapter.setNewData(searchResult);
+            }
+        }
+        shopTypeLinearLayoutManager.scrollToPositionWithOffset(0, 0);
+        sousuo_tv.setText("");
     }
 
     public void show() {
         View rootView = ((Activity) context).getWindow().getDecorView();
         popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
         sousuo_tv.postDelayed(() -> sousuo_tv.requestFocus(), 100);
+
         new Thread(() -> {
+            // 1. 加载分类数据 (从 UserUtils)
             if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
-                Gson gson = new Gson();
-                CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
-                categoryListModelArrayList=categoryListBean.getData();
-                category_ids=categoryListModelArrayList.get(0).getCategory_id();
-
-            }
-            if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
-                Gson gson = new Gson();
-                GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
-                allGrouponGoodsModelList = grouponGoodsBean.getData();
-//            for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : allGrouponGoodsModelList) {
-//                grouponGoodsModel.setSelected(false);
-//            }
-
-
-
-            }
-
-
-            ((Activity) context).runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    shopTypeAdapter1.setNewData(categoryListModelArrayList);
-                    shopTypeAdapter1.setIndex(0);
-                    shopAdapter.setNewData(allGrouponGoodsModelList);
+                try {
+                    Gson gson = new Gson();
+                    CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
+                    if (categoryListBean != null && categoryListBean.getData() != null) {
+                        categoryListModelArrayList = categoryListBean.getData();
+                        if (!categoryListModelArrayList.isEmpty()) {
+                            // 默认选中第一个分类（通常是“全部”）
+                            // category_ids = categoryListModelArrayList.get(0).getCategory_id(); // 暂时不默认选中具体分类，显示全部
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+            }
+
+            // 2. ▼▼▼▼▼▼ 核心修改：改为从数据库查数据，而不是读 UserUtils 的大 JSON ▼▼▼▼▼▼
+            // 直接查询 LitePal 数据库里的所有商品
+            // 注意：如果数据量特别大(3万条)，一次性查出来可能会有短暂卡顿，但比解析 JSON 快得多。
+            // 如果觉得卡，这里也可以改成 limit(500) 先查一部分。
+            allGrouponGoodsModelList = LitePal.findAll(GrouponGoodsBean.GrouponGoodsModel.class);
+
+            // 初始化选中状态
+            if (allGrouponGoodsModelList != null) {
+                for (GrouponGoodsBean.GrouponGoodsModel model : allGrouponGoodsModelList) {
+                    model.setSelected(false);
+                }
+            } else {
+                allGrouponGoodsModelList = new ArrayList<>(); // 判空，防止崩溃
+            }
+            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+            ((Activity) context).runOnUiThread(() -> {
+                shopTypeAdapter1.setNewData(categoryListModelArrayList);
+                shopTypeAdapter1.setIndex(0);
+                shopAdapter.setNewData(allGrouponGoodsModelList);
             });
 
         }).start();
-
-
     }
 }

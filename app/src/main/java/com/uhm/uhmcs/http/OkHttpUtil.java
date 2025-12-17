@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.activity.LoginActivity;
 import com.uhm.uhmcs.popupwindow.DeleteShopPopupWindow;
@@ -44,12 +43,17 @@ public class OkHttpUtil {
      */
     private static void initClient() {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+
+        // ▼▼▼▼▼▼ 修改重点 ▼▼▼▼▼▼
+        // 为了防止返回数据过大导致内存溢出闪退，这里改为 NONE (不打印日志)
+        // 原代码: loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.NONE);
+        // ▲▲▲▲▲▲ 修改结束 ▲▲▲▲▲▲
 
         client = new OkHttpClient.Builder()
-                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10, TimeUnit.SECONDS)   // 写入超时
+                .connectTimeout(30, TimeUnit.SECONDS) // 连接超时
+                .readTimeout(30, TimeUnit.SECONDS)    // 读取超时
+                .writeTimeout(30, TimeUnit.SECONDS)   // 写入超时
                 .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
                 .addInterceptor(loggingInterceptor)   // 添加日志拦截器
                 .build();

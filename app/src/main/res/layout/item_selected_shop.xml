@@ -7,9 +7,12 @@
     android:id="@+id/all_view">
     <LinearLayout
         android:gravity="center"
+        android:background="@drawable/graylight_bg"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:radius="10dp"        android:orientation="horizontal">
         <TextView
             android:id="@+id/xuhao"
             android:gravity="center"
@@ -18,16 +21,17 @@
             android:layout_weight="1"
             android:textSize="20dp"
             android:textColor="@color/black"
-            android:text="序号"/>
+            android:text="5"/>
         <TextView
             android:id="@+id/pinming"
             android:gravity="center"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:textSize="20dp"
+            android:textSize="20sp"
+            android:textStyle="bold"
             android:textColor="@color/black"
-            android:text="品ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss名"/>
+            android:text="品ssssssssssssssssssssssssssssssssssssssssssssssssss名"/>
         <TextView
             android:visibility="gone"
             android:id="@+id/guige"
@@ -52,12 +56,12 @@
                 <TextView
                     android:id="@+id/shuliang_jian"
                     android:layout_marginLeft="8dp"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
                     android:background="@drawable/shulian"
                     android:text="-"
                     android:gravity="center"
-                    android:textSize="30dp"
+                    android:textSize="35sp"
                     android:textColor="@color/black"/>
                 <TextView
                     android:id="@+id/shuliang"
@@ -66,18 +70,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="1231"
-                    android:textSize="30dp"
+                    android:textSize="24sp"
                     android:textColor="@color/black"
                     android:gravity="center"/>
                 <TextView
                     android:id="@+id/shuliang_jia"
                     android:layout_marginRight="8dp"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
                     android:background="@drawable/shulian"
                     android:text="+"
                     android:gravity="center"
-                    android:textSize="30dp"
+                    android:textSize="35sp"
                     android:textColor="@color/black"/>
             </LinearLayout>
             <TextView
@@ -86,7 +90,7 @@
                 android:layout_height="wrap_content"
                 android:text="折: 0%"
                 android:textColor="@color/black"
-                android:textSize="20dp"
+                android:textSize="20sp"
                 android:layout_marginTop="5dp"/>
 
         </LinearLayout>
@@ -96,7 +100,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textSize="20dp"
+            android:textSize="20sp"
             android:textColor="@color/black"
             android:text="合计"/>
         <TextView
@@ -104,11 +108,11 @@
             android:id="@+id/zengsong"
             android:gravity="center"
             android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:background="@drawable/blue_bg1"
+            android:layout_height="45dp"
+            android:background="@drawable/blue_bg"
             android:layout_weight="1"
-            android:textSize="20dp"
-            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textColor="@color/black"
             android:text="@string/give_away"/>
     </LinearLayout>
 </LinearLayout>

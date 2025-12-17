@@ -59,7 +59,7 @@ public class SelectedShopAdapter extends BaseQuickAdapter<GrouponGoodsBean.Group
 
         if (item.isSelected()){
 
-            helper.setBackgroundColor(R.id.all_view,Color.parseColor("#65755a"));
+            helper.setBackgroundColor(R.id.all_view,Color.parseColor("#757fa4"));
         }else {
             helper.getView(R.id.all_view).setBackgroundColor(Color.TRANSPARENT);
         }

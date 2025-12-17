@@ -6,6 +6,8 @@ public class LastOrderBean {
     public String member_name;
     public String cardnumber;
     public String cash_user_sn;
+
+    public boolean isRefundedCache = false;
     public String order_sn;
     public int paytime;
     public int createtime;
@@ -27,11 +29,23 @@ public class LastOrderBean {
     public String shop_id;
     public int refund_type;
 
+    // ★★★ 新增：订单状态字段 (0=正常, 4=已退款, 其他根据业务定义) ★★★
+    public int order_status;
+
     public String cash_change;
 
     public String cash_price;
 
     public String transaction_id;
+
+    // ★★★ 新增：order_status 的 getter 和 setter ★★★
+    public int getOrder_status() {
+        return order_status;
+    }
+
+    public void setOrder_status(int order_status) {
+        this.order_status = order_status;
+    }
 
     public ArrayList<PaymentlogBean> getPayment() {
         return payment;
@@ -236,7 +250,7 @@ public class LastOrderBean {
         this.shop_id = shop_id;
     }
 
-     public static class GoodsJsonBean{
+    public static class GoodsJsonBean{
         public int goods_id;
         public String title;
         public String goods_sn;
@@ -253,7 +267,7 @@ public class LastOrderBean {
         public String pay_price;
         public String goods_sku_price_id;
 
-         private String goods_sku_text;
+        private String goods_sku_text;
 
 
 
@@ -314,39 +328,39 @@ public class LastOrderBean {
             this.weigh_id = weigh_id;
         }
 
-         public String getDiscount() {
-             return discount;
-         }
+        public String getDiscount() {
+            return discount;
+        }
 
-         public void setDiscount(String discount) {
-             this.discount = discount;
-         }
+        public void setDiscount(String discount) {
+            this.discount = discount;
+        }
 
-         public String getDiscounted_price() {
-             return discounted_price;
-         }
+        public String getDiscounted_price() {
+            return discounted_price;
+        }
 
-         public void setDiscounted_price(String discounted_price) {
-             this.discounted_price = discounted_price;
-         }
+        public void setDiscounted_price(String discounted_price) {
+            this.discounted_price = discounted_price;
+        }
 
-         public String getGoods_price() {
-             return goods_price;
-         }
+        public String getGoods_price() {
+            return goods_price;
+        }
 
-         public void setGoods_price(String goods_price) {
-             this.goods_price = goods_price;
-         }
+        public void setGoods_price(String goods_price) {
+            this.goods_price = goods_price;
+        }
 
-         public String getPay_price() {
-             return pay_price;
-         }
+        public String getPay_price() {
+            return pay_price;
+        }
 
-         public void setPay_price(String pay_price) {
-             this.pay_price = pay_price;
-         }
+        public void setPay_price(String pay_price) {
+            this.pay_price = pay_price;
+        }
 
-         public String getGoods_sku_price_id() {
+        public String getGoods_sku_price_id() {
             return goods_sku_price_id;
         }
 
@@ -354,69 +368,69 @@ public class LastOrderBean {
             this.goods_sku_price_id = goods_sku_price_id;
         }
 
-         public String getGoods_sku_text() {
-             return goods_sku_text;
-         }
+        public String getGoods_sku_text() {
+            return goods_sku_text;
+        }
 
-         public void setGoods_sku_text(String goods_sku_text) {
-             this.goods_sku_text = goods_sku_text;
-         }
-     }
+        public void setGoods_sku_text(String goods_sku_text) {
+            this.goods_sku_text = goods_sku_text;
+        }
+    }
 
-     public static class PaymentlogBean{
+    public static class PaymentlogBean{
         private String order_sn;
-         private String shop_id;
-         private String pay_type;
-         private String receivedmoney;
-         private String transaction_id;
-         private int order_status;
+        private String shop_id;
+        private String pay_type;
+        private String receivedmoney;
+        private String transaction_id;
+        private int order_status;
 
-         public String getOrder_sn() {
-             return order_sn;
-         }
+        public String getOrder_sn() {
+            return order_sn;
+        }
 
-         public void setOrder_sn(String order_sn) {
-             this.order_sn = order_sn;
-         }
+        public void setOrder_sn(String order_sn) {
+            this.order_sn = order_sn;
+        }
 
-         public String getShop_id() {
-             return shop_id;
-         }
+        public String getShop_id() {
+            return shop_id;
+        }
 
-         public void setShop_id(String shop_id) {
-             this.shop_id = shop_id;
-         }
+        public void setShop_id(String shop_id) {
+            this.shop_id = shop_id;
+        }
 
-         public String getPay_type() {
-             return pay_type;
-         }
+        public String getPay_type() {
+            return pay_type;
+        }
 
-         public void setPay_type(String pay_type) {
-             this.pay_type = pay_type;
-         }
+        public void setPay_type(String pay_type) {
+            this.pay_type = pay_type;
+        }
 
-         public String getReceivedmoney() {
-             return receivedmoney;
-         }
+        public String getReceivedmoney() {
+            return receivedmoney;
+        }
 
-         public void setReceivedmoney(String receivedmoney) {
-             this.receivedmoney = receivedmoney;
-         }
+        public void setReceivedmoney(String receivedmoney) {
+            this.receivedmoney = receivedmoney;
+        }
 
-         public String getTransaction_id() {
-             return transaction_id;
-         }
+        public String getTransaction_id() {
+            return transaction_id;
+        }
 
-         public void setTransaction_id(String transaction_id) {
-             this.transaction_id = transaction_id;
-         }
+        public void setTransaction_id(String transaction_id) {
+            this.transaction_id = transaction_id;
+        }
 
-         public int getOrder_status() {
-             return order_status;
-         }
+        public int getOrder_status() {
+            return order_status;
+        }
 
-         public void setOrder_status(int order_status) {
-             this.order_status = order_status;
-         }
-     }
+        public void setOrder_status(int order_status) {
+            this.order_status = order_status;
+        }
+    }
 }
