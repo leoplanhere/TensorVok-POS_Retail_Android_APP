@@ -102,6 +102,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private LinearLayout have_paid_view, wangluo_view;
     private View shop_mocheng;
 
+    // 【新增】上一单详情相关控件
+    private LinearLayout llLastOrderInfo;
+    private TextView tvLastTime, tvLastType, tvLastCount, tvLastTotal, tvLastDiscount, tvLastPay;
+    // 【新增】状态锁
+    private boolean isShowingLastOrder = false;
+
     // 数据变量
     private Integer selectedShopIndex;
     private BigDecimal zongjia = new BigDecimal("0.00");
@@ -243,6 +249,18 @@ public class MainActivity extends Activity implements View.OnClickListener {
         huiyuan_btn = findViewById(R.id.huiyuan_btn);
         daying_btn = findViewById(R.id.daying_btn);
 
+
+        // 【新增】初始化上一单控件
+        llLastOrderInfo = findViewById(R.id.ll_last_order_info);
+        tvLastTime = findViewById(R.id.tv_last_time);
+        tvLastType = findViewById(R.id.tv_last_type);
+        tvLastCount = findViewById(R.id.tv_last_count);
+        tvLastTotal = findViewById(R.id.tv_last_total);
+        tvLastDiscount = findViewById(R.id.tv_last_discount);
+        tvLastPay = findViewById(R.id.tv_last_pay);
+
+
+
         if (UserUtils.getInstance().getLoginBase() != null && UserUtils.getInstance().getLoginBase().getData() != null) {
             tv_nickname.setText(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname());
             tv_phone.setText(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getMobile());
@@ -252,7 +270,56 @@ public class MainActivity extends Activity implements View.OnClickListener {
         animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.scale_click);
         buildBean = DialogUIUtils.showLoading(this, getString(R.string.paying), true, false, false, false);
         timeCount = new TimeCount(30000, 5000);
+
+
+
     }
+
+
+
+    /**
+     * 【新增】显示上一单详情
+     */
+    private void showLastOrderInfo(String payType, int count, String total, String discount, String realPay) {
+        isShowingLastOrder = true;
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+        String currentTime = sdf.format(new java.util.Date());
+
+        // 转换支付名称
+        String typeName = "现金支付";
+        if ("wechat".equals(payType)) typeName = "微信支付";
+        else if ("alipay".equals(payType)) typeName = "支付宝";
+        else if ("cash".equals(payType)) typeName = "现金支付";
+
+        if (tvLastTime != null) {
+            tvLastTime.setText("时间：" + currentTime);
+            tvLastType.setText("方式：" + typeName);
+            tvLastCount.setText("数量：" + count);
+            tvLastTotal.setText("总额：" + (total.startsWith("￥") ? total : "￥" + total));
+            tvLastDiscount.setText("优惠：" + (discount.startsWith("￥") ? discount : "￥" + discount));
+            tvLastPay.setText("实付：" + (realPay.startsWith("￥") ? realPay : "￥" + realPay));
+        }
+
+        if (selected_shop_rv != null) selected_shop_rv.setVisibility(View.GONE);
+        if (tv_empty_cart != null) tv_empty_cart.setVisibility(View.GONE);
+        if (llLastOrderInfo != null) {
+            llLastOrderInfo.setVisibility(View.VISIBLE);
+            llLastOrderInfo.bringToFront();
+        }
+    }
+
+    /**
+     * 【新增】隐藏上一单详情
+     */
+    private void hideLastOrderInfo() {
+        isShowingLastOrder = false;
+        if (llLastOrderInfo != null && llLastOrderInfo.getVisibility() == View.VISIBLE) {
+            llLastOrderInfo.setVisibility(View.GONE);
+        }
+    }
+
+
 
     private void setupAdapters() {
         selected_shop_rv = findViewById(R.id.selected_shop_rv);
@@ -564,6 +631,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
      * 【优化】异步处理扫码
      */
     private void handleScanInput(String text) {
+
+        hideLastOrderInfo();
+
+
         if (TextUtils.isEmpty(text)) return;
 
         String code = text.trim().replace("\r", "").replace("\n", "");
@@ -636,6 +707,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
     // ----------------- 购物车逻辑 -----------------
 
     private void addGoodsToCart(GrouponGoodsBean.GrouponGoodsModel goods) {
+
+        hideLastOrderInfo();
+
+
         allNum++;
         for (int i = 0; i < selectedShopList.size(); i++) {
             GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
@@ -662,6 +737,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void handleCartItemAction(int viewId, int position) {
+
+
+        hideLastOrderInfo();
+
         if (position < 0 || position >= selectedShopList.size()) return;
         GrouponGoodsBean.GrouponGoodsModel model = selectedShopAdapter.getData().get(position);
 
@@ -723,18 +802,31 @@ public class MainActivity extends Activity implements View.OnClickListener {
         MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
         MyPresentation.setZongjia(zongjia.toString());
 
-        // ▼▼▼▼▼▼ 3. 新增：控制“暂无商品”显示的逻辑 ▼▼▼▼▼▼
+        // ▼▼▼▼▼▼ 【新增逻辑开始】 ▼▼▼▼▼▼
+        if (isShowingLastOrder) {
+            if (tv_empty_cart != null) tv_empty_cart.setVisibility(View.GONE);
+            if (selected_shop_rv != null) selected_shop_rv.setVisibility(View.GONE);
+            if (llLastOrderInfo != null) {
+                llLastOrderInfo.setVisibility(View.VISIBLE);
+                llLastOrderInfo.bringToFront();
+            }
+            return; // 阻止后续逻辑
+        }
+
+        if (llLastOrderInfo != null) llLastOrderInfo.setVisibility(View.GONE);
+        // ▲▲▲▲▲▲ 【新增逻辑结束】 ▲▲▲▲▲▲
+
         if (selectedShopList == null || selectedShopList.isEmpty()) {
-            // 购物车空了：显示提示字，隐藏列表
             if (tv_empty_cart != null) tv_empty_cart.setVisibility(View.VISIBLE);
             if (selected_shop_rv != null) selected_shop_rv.setVisibility(View.GONE);
         } else {
-            // 购物车有东西：隐藏提示字，显示列表
             if (tv_empty_cart != null) tv_empty_cart.setVisibility(View.GONE);
             if (selected_shop_rv != null) selected_shop_rv.setVisibility(View.VISIBLE);
         }
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
+
+
+
 
     private void showDeleteConfirm(int position) {
         deleteShopPopupWindow = new DeleteShopPopupWindow(MainActivity.this, text -> {
@@ -797,6 +889,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void handleQudan() {
+
+
+        hideLastOrderInfo();
+
         if (!registrationShopBeanArrayList.isEmpty()) {
             getRegistrationShopPopupWindow = new GetRegistrationShopPopupWindow(this, registrationShopBeanArrayList, (index, type) -> {
                 if (type == 1) { // 取单
@@ -974,6 +1070,35 @@ public class MainActivity extends Activity implements View.OnClickListener {
             new Handler(Looper.getMainLooper()).postDelayed(() -> have_paid_view.setVisibility(GONE), 3000);
             is_jiezhang_qingkong = true;
             onClick(qingkong_btn);
+
+            // ▼▼▼▼▼▼ 【插入显示逻辑】 ▼▼▼▼▼▼
+            String pType = checkoutBean.getPay_type();
+            if (TextUtils.isEmpty(pType)) pType = "cash"; // 默认为现金
+
+            int cCount = checkoutBean.getAllNum();
+            String cTotal = checkoutBean.getTotal_amount();
+            String cDiscount = checkoutBean.getDiscount_fee();
+            if (TextUtils.isEmpty(cDiscount)) cDiscount = "0.00";
+
+            String cRealPay = checkoutBean.getPay_fee();
+            if (TextUtils.isEmpty(cRealPay)) cRealPay = checkoutBean.getTotal_fee();
+
+            final String fPType = pType;
+            final String fRealPay = cRealPay;
+            final String fDiscount = cDiscount;
+
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                showLastOrderInfo(fPType, cCount, cTotal, fDiscount, fRealPay);
+            }, 200);
+            // ▲▲▲▲▲▲ 【插入结束】 ▲▲▲▲▲▲
+
+
+
+
+
+
+
+
         });
         currentCheckoutPopup.show();
     }
@@ -1121,6 +1246,37 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         is_jiezhang_qingkong = true;
         onClick(qingkong_btn);
+
+
+        // ▼▼▼▼▼▼ 【插入显示逻辑】 ▼▼▼▼▼▼
+        final String payType = checkoutBean.getPay_type();
+        final int count = checkoutBean.getAllNum();
+        final String total = checkoutBean.getTotal_amount();
+
+        // 获取优惠金额 (优先读 Bean，读不到算一下)
+        String discount = checkoutBean.getDiscount_fee();
+        if (TextUtils.isEmpty(discount)) {
+            BigDecimal original = new BigDecimal(TextUtils.isEmpty(checkoutBean.getGoods_original_amount()) ? "0" : checkoutBean.getGoods_original_amount());
+            BigDecimal paid = new BigDecimal(TextUtils.isEmpty(checkoutBean.getPay_fee()) ? "0" : checkoutBean.getPay_fee());
+            discount = original.subtract(paid).setScale(2, RoundingMode.HALF_UP).toString();
+        }
+        final String finalDiscount = discount;
+
+        // 获取实付
+        String rPay = checkoutBean.getPay_fee();
+        if (TextUtils.isEmpty(rPay)) rPay = checkoutBean.getTotal_fee();
+        final String realPay = rPay;
+
+        // 延迟 200ms 显示，避开清空后的刷新
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            showLastOrderInfo(payType, count, total, finalDiscount, realPay);
+        }, 200);
+        // ▲▲▲▲▲▲ 【插入结束】 ▲▲▲▲▲▲
+
+
+
+
+
         new DeleteShopPopupWindow(this, getString(R.string.Payment_succeeded), true).show();
     }
 
