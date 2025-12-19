@@ -1,5 +1,6 @@
 package com.uhm.uhmcs.bean;
 
+import com.google.gson.annotations.SerializedName; // ★★★ 必须加上这一行 ★★★
 import java.util.ArrayList;
 
 public class LastOrderBean {
@@ -252,7 +253,11 @@ public class LastOrderBean {
 
     public static class GoodsJsonBean{
         public int goods_id;
+
+        // ★★★ 核心修复：加上这个注解，历史订单里的商品名就不会空了！ ★★★
+        @SerializedName(value = "title", alternate = {"goods_name", "name", "product_name", "goods_title"})
         public String title;
+
         public String goods_sn;
         public String sn;
         public String discount;

@@ -87,16 +87,20 @@ public class MorefunctionPopupWindow {
             morefunctionOnClickListener.onClick(5);
             popupWindow.dismiss();
         });
-        popupView.findViewById(R.id.qianxiangshezhi_btn).setOnClickListener(v -> {
-            v.startAnimation(animation);
-            morefunctionOnClickListener.onClick(6);
-            popupWindow.dismiss();
-        });
-        popupView.findViewById(R.id.jiaojieban_btn).setOnClickListener(v -> {
-            v.startAnimation(animation);
-            morefunctionOnClickListener.onClick(7);
-            popupWindow.dismiss();
-        });
+
+
+//        popupView.findViewById(R.id.qianxiangshezhi_btn).setOnClickListener(v -> {
+//            v.startAnimation(animation);
+//            morefunctionOnClickListener.onClick(6);
+//            popupWindow.dismiss();
+//        });
+//        popupView.findViewById(R.id.jiaojieban_btn).setOnClickListener(v -> {
+//            v.startAnimation(animation);
+//            morefunctionOnClickListener.onClick(7);
+//            popupWindow.dismiss();
+//        });
+
+
 
         popupView.findViewById(R.id.zhangdandayingji_btn).setOnClickListener(v -> {
             v.startAnimation(animation);

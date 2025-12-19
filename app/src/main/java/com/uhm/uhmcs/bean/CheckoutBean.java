@@ -1,5 +1,6 @@
 package com.uhm.uhmcs.bean;
 
+import com.google.gson.annotations.SerializedName; // ★★★ 必须导入这个包 ★★★
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
@@ -222,9 +223,13 @@ public class CheckoutBean {
         this.shop_id = shop_id;
     }
 
-     public static class GoodsJsonBean{
+    public static class GoodsJsonBean{
         public int goods_id;
+
+        // ★★★ 修改重点：添加注解，兼容所有可能的字段名 ★★★
+        @SerializedName(value = "title", alternate = {"goods_name", "name", "product_name", "goods_title"})
         public String title;
+
         public String goods_sn;
         public String sn;
         public String discount;
@@ -239,7 +244,7 @@ public class CheckoutBean {
         public String pay_price;
         public String goods_sku_price_id;
 
-         private String goods_sku_text;
+        private String goods_sku_text;
 
 
 
@@ -252,7 +257,18 @@ public class CheckoutBean {
         }
 
         public String getTitle() {
-            return title;
+            // 1. 如果 title 有值，直接返回
+            if (title != null && !title.isEmpty()) {
+                return title;
+            }
+
+            // 2. ★★★ 兜底策略：如果 title 是空的，尝试拼接其他信息，或者返回默认值 ★★★
+            // 这样至少你能看出是哪个商品出了问题，而不是一片空白
+            if (goods_sn != null && !goods_sn.isEmpty()) {
+                return "商品(" + goods_sn + ")";
+            }
+
+            return "未知商品"; // 最后防线
         }
 
         public void setTitle(String title) {
@@ -300,39 +316,39 @@ public class CheckoutBean {
             this.weigh_id = weigh_id;
         }
 
-         public String getDiscount() {
-             return discount;
-         }
+        public String getDiscount() {
+            return discount;
+        }
 
-         public void setDiscount(String discount) {
-             this.discount = discount;
-         }
+        public void setDiscount(String discount) {
+            this.discount = discount;
+        }
 
-         public String getDiscounted_price() {
-             return discounted_price;
-         }
+        public String getDiscounted_price() {
+            return discounted_price;
+        }
 
-         public void setDiscounted_price(String discounted_price) {
-             this.discounted_price = discounted_price;
-         }
+        public void setDiscounted_price(String discounted_price) {
+            this.discounted_price = discounted_price;
+        }
 
-         public String getGoods_price() {
-             return goods_price;
-         }
+        public String getGoods_price() {
+            return goods_price;
+        }
 
-         public void setGoods_price(String goods_price) {
-             this.goods_price = goods_price;
-         }
+        public void setGoods_price(String goods_price) {
+            this.goods_price = goods_price;
+        }
 
-         public String getPay_price() {
-             return pay_price;
-         }
+        public String getPay_price() {
+            return pay_price;
+        }
 
-         public void setPay_price(String pay_price) {
-             this.pay_price = pay_price;
-         }
+        public void setPay_price(String pay_price) {
+            this.pay_price = pay_price;
+        }
 
-         public String getGoods_sku_price_id() {
+        public String getGoods_sku_price_id() {
             return goods_sku_price_id;
         }
 
@@ -340,12 +356,12 @@ public class CheckoutBean {
             this.goods_sku_price_id = goods_sku_price_id;
         }
 
-         public String getGoods_sku_text() {
-             return goods_sku_text;
-         }
+        public String getGoods_sku_text() {
+            return goods_sku_text;
+        }
 
-         public void setGoods_sku_text(String goods_sku_text) {
-             this.goods_sku_text = goods_sku_text;
-         }
-     }
+        public void setGoods_sku_text(String goods_sku_text) {
+            this.goods_sku_text = goods_sku_text;
+        }
+    }
 }

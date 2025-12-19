@@ -101,27 +101,40 @@ public class GrouponGoodsBean implements Serializable {
     // 商品实体类
     public static class GrouponGoodsModel extends LitePalSupport implements Serializable {
 
-        private int id; // LitePal 默认主键
+        // LitePal 默认主键 (本地自增ID，如 1, 2, 3...)
+        // 不要把后台ID映射到这里，否则会被覆盖
+        @SerializedName("litepal_id")
+        private int id;
 
-        // ▼▼▼ 1. 加上索引，加速同步比对 ▼▼▼
+        // ★★★ [新增关键字段] pid ★★★
+        // 专门用来存后台那个数字 ID (如 54142)
+        // 解析 JSON 时，把 "id" 的值赋给这个变量，而不是上面的 id
+        @SerializedName("id")
+        private int pid;
+
+        // 字符串 ID (如 SPDP...)
         @Column(index = true)
         private String goods_id;
 
-        // ▼▼▼ 2. 补上缺失的 shop_id 字段，防止串货 ▼▼▼
+        // 补上缺失的 shop_id 字段
         @SerializedName("shop_id")
         private String shop_id;
 
-        // ▼▼▼ 3. 核心修复：加上映射注解，把 barcode 存进 sn 里 ▼▼▼
+        // 加上映射注解，把 barcode 存进 sn 里
         @Column(index = true) // 加索引，扫码秒查
         @SerializedName(value = "sn", alternate = {"barcode", "bar_code", "code"})
         private String sn;
 
-        // 这里的 goods_sn 是商品内部编码，不需要映射
+        // 这里的 goods_sn 是商品内部编码
         private String goods_sn;
 
         private int ggspid;
         private int goods_sku_price_id;
+
+        // 加上映射注解，防止 title 为空
+        @SerializedName(value = "title", alternate = {"goods_name", "name", "product_name", "goods_title"})
         private String title;
+
         private String image;
         private String price;
         private String ggprice;
@@ -154,6 +167,15 @@ public class GrouponGoodsBean implements Serializable {
 
         public void setId(int id) {
             this.id = id;
+        }
+
+        // ★★★ 新增 pid 的 getter 和 setter ★★★
+        public int getPid() {
+            return pid;
+        }
+
+        public void setPid(int pid) {
+            this.pid = pid;
         }
 
         public String getGoods_id() {

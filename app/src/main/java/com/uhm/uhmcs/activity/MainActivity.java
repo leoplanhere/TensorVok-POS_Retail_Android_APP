@@ -488,6 +488,20 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         List<GrouponGoodsBean.GrouponGoodsModel> list = (bean != null && bean.getData() != null) ? bean.getData().getGoodsList() : null;
                         GrouponGoodsBean.Pagination pagination = (bean != null && bean.getData() != null) ? bean.getData().getPagination() : null;
 
+                        // ============ ★★★ 加这一段日志 ★★★ ============
+                        if (list != null && list.size() > 0) {
+                            GrouponGoodsBean.GrouponGoodsModel firstItem = list.get(0);
+                            Log.e("SYNC_CHECK", "---------------------------------------");
+                            Log.e("SYNC_CHECK", "【验证字段归位情况】");
+                            // 1. 打印字符串ID (这是原本就有的)
+                            Log.e("SYNC_CHECK", "String ID (goods_id): " + firstItem.getGoods_id());
+
+                            // 2. ★★★ 打印新字段 (pid) ★★★ (这里应该显示 54142 这种数字)
+                            Log.e("SYNC_CHECK", "Int ID (pid/server_id): " + firstItem.getPid());
+                            Log.e("SYNC_CHECK", "---------------------------------------");
+                        }
+                        // ===============================================
+
                         if (list != null && !list.isEmpty()) {
                             // 准备待插入列表
                             List<GrouponGoodsBean.GrouponGoodsModel> toInsertList = new ArrayList<>();
@@ -793,11 +807,28 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private void updateCartSummary() {
         zongjia = BigDecimal.ZERO;
+
+
+        // ★★★ 新增：每次更新摘要时，重新根据列表计算总件数 ★★★
+        int realAllNum = 0;
+
+
+
         for (GrouponGoodsBean.GrouponGoodsModel model : selectedShopList) {
             zongjia = zongjia.add(model.getHeji());
+            // 累加每个商品的实际购买数量
+            realAllNum += model.getShuliang();
+
+
         }
+
+// ★★★ 更新全局变量 allNum，确保它和列表一致 ★★★
+        this.allNum = realAllNum;
+
+
         zongjia = zongjia.setScale(2, RoundingMode.UP);
         tv_zongjia.setText(zongjia.toString());
+
         tv_zongjian.setText(String.valueOf(allNum));
         MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
         MyPresentation.setZongjia(zongjia.toString());
@@ -1036,7 +1067,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             }
 
             CheckoutBean.GoodsJsonBean jsonBean = new CheckoutBean.GoodsJsonBean();
-            jsonBean.setGoods_id(model.getId());
+            jsonBean.setGoods_id(model.getPid());
             jsonBean.setTitle(model.getTitle() != null ? model.getTitle() : "未知商品");
             jsonBean.setGoods_sn(model.getGoods_sn() != null ? model.getGoods_sn() : "");
             jsonBean.setSn(model.getSn() != null ? model.getSn() : "");
@@ -1132,20 +1163,62 @@ public class MainActivity extends Activity implements View.OnClickListener {
         if (Utilis.isFastClick()) return;
         buildBean.show();
         String url = POSApiSerview.POS_URL + POSApiSerview.addOrder;
+
+        // ================= ★★★ 开始：打印详细参数列表 ★★★ =================
+        Log.e("ORDER_LIST", "⬇️⬇️⬇️⬇️⬇️⬇️⬇️ 下单参数清单开始 ⬇️⬇️⬇️⬇️⬇️⬇️⬇️");
+        Log.e("ORDER_LIST", "1. [shop_id] 店铺ID:       " + checkoutBean.getShop_id());
+        Log.e("ORDER_LIST", "2. [user_id] 操作员ID:     " + checkoutBean.getUser_id());
+        Log.e("ORDER_LIST", "3. [machineNumber] 机器号: " + checkoutBean.getMachineNumber());
+        Log.e("ORDER_LIST", "4. [allNum] 商品总数:      " + checkoutBean.getAllNum());
+        Log.e("ORDER_LIST", "5. [total_amount] 应付金额:" + checkoutBean.getTotal_amount());
+        Log.e("ORDER_LIST", "6. [total_fee] 实付金额:   " + checkoutBean.getTotal_fee());
+        Log.e("ORDER_LIST", "7. [discount_fee] 优惠金额:" + checkoutBean.getDiscount_fee());
+        Log.e("ORDER_LIST", "8. [pay_fee] 支付金额:     " + checkoutBean.getPay_fee());
+        Log.e("ORDER_LIST", "9. [pay_type] 支付方式:    " + checkoutBean.getPay_type());
+        Log.e("ORDER_LIST", "10.[order_status] 订单状态:" + checkoutBean.getOrder_status());
+        Log.e("ORDER_LIST", "11.[type] 订单类型:        " + checkoutBean.getType());
+        Log.e("ORDER_LIST", "12.[cash_price] 现金金额:  " + checkoutBean.getCash_price());
+        Log.e("ORDER_LIST", "13.[cash_change] 找零金额: " + checkoutBean.getCash_change());
+        Log.e("ORDER_LIST", "14.[goods_original] 原价:  " + checkoutBean.getGoods_original_amount());
+        Log.e("ORDER_LIST", "15.[order_sn] 订单号:      " + checkoutBean.getOrder_sn());
+        Log.e("ORDER_LIST", "16.[authCode] 授权码:      " + checkoutBean.getAuthCode());
+
+        Log.e("ORDER_LIST", ">>>> [goodsjson] 商品JSON数据详情:");
+        // 把 json 打印出来，防止太长被截断，单独打一行
+        String json = checkoutBean.getGoodsjson();
+        if(json != null && json.length() > 3000) {
+            // 如果太长分段打印
+            int chunkCount = json.length() / 2000;
+            for (int i = 0; i <= chunkCount; i++) {
+                int max = 2000 * (i + 1);
+                if (max >= json.length()) {
+                    Log.e("ORDER_LIST", json.substring(2000 * i));
+                } else {
+                    Log.e("ORDER_LIST", json.substring(2000 * i, max));
+                }
+            }
+        } else {
+            Log.e("ORDER_LIST", json);
+        }
+        Log.e("ORDER_LIST", "⬆️⬆️⬆️⬆️⬆️⬆️⬆️ 下单参数清单结束 ⬆️⬆️⬆️⬆️⬆️⬆️⬆️");
+        // ================= ★★★ 结束：打印详细参数列表 ★★★ =================
+
         OkHttpUtil.postJsonAsync(url, new Gson().toJson(checkoutBean), this, new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {
                 runOnUiThread(() -> {
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        // ... (原有成功逻辑保持不变) ...
                         String msg = jsonObject.optString("msg");
                         if (msg.contains("成功") || msg.contains("Success")) {
                             handlePaymentSuccess(jsonObject);
                         } else if (msg.contains("密码") || msg.contains("process")) {
-                            handlePaymentProcess(jsonObject);
+                            try {
+                                handlePaymentProcess(jsonObject);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
                         } else {
-                            // 其他错误
                             DialogUIUtils.dismiss(buildBean);
                             new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_failed) + msg, true).show();
                         }
@@ -1160,7 +1233,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
             public void onFailure(IOException e) {
                 runOnUiThread(() -> {
                     DialogUIUtils.dismiss(buildBean);
-                    // ★★★ 建议打印具体错误信息，方便排查是超时还是DNS解析失败 ★★★
                     Log.e("PayError", "支付请求失败: " + e.getMessage());
                     new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected) + "\n" + e.getMessage(), true).show();
                 });
