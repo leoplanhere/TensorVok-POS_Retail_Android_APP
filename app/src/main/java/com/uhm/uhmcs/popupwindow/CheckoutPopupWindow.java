@@ -353,9 +353,22 @@ public class CheckoutPopupWindow {
 
         }
     }
-    public void dismiss(){
-        popupWindow.dismiss();
+
+
+    public boolean isShowing() {
+        if (popupWindow != null) {
+            return popupWindow.isShowing();
+        }
+        return false;
     }
+
+    public void dismiss() {
+        if (popupWindow != null && popupWindow.isShowing()) {
+            popupWindow.dismiss();
+        }
+    }
+
+
     @SuppressLint("SetTextI18n")
     private void initKey(){
         try{

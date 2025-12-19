@@ -3,7 +3,7 @@ package com.uhm.uhmcs.activity;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static android.widget.Toast.LENGTH_SHORT;
-
+import org.json.JSONArray;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -89,6 +89,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private RecyclerView rv_choose_menu3, shop_rv, selected_shop_rv;
     private LinearLayoutManager selected_LinearLayoutManager;
     private ShopTypeAdapter shopTypeAdapter;
+    private CheckoutPopupWindow currentCheckoutPopup;
 
     private TextView tv_empty_cart;
     private GrouponGoodsAdapter grouponGoodsAdapter;
@@ -912,6 +913,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
     // ----------------- 支付逻辑 -----------------
 
     private void handleCheckout() {
+        // 1. 防重复弹窗检查 (修复弹窗关不掉的问题)
+        if (currentCheckoutPopup != null && currentCheckoutPopup.isShowing()) {
+            currentCheckoutPopup.dismiss();
+        }
+
         checkoutBean = new CheckoutBean();
         checkoutBean.setAllNum(allNum);
         if (UserUtils.getInstance().getLoginBase() != null && UserUtils.getInstance().getLoginBase().getData() != null) {
@@ -923,50 +929,77 @@ public class MainActivity extends Activity implements View.OnClickListener {
         checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
         is_kuangjie = false;
 
+        // 2. 【关键】定义 discount_fee 变量 (解决找不到符号报错)
         BigDecimal discount_fee = BigDecimal.ZERO;
         ArrayList<CheckoutBean.GoodsJsonBean> goodsJsonList = new ArrayList<>();
 
+        // 3. 循环构建商品数据 (包含防空指针和默认值逻辑)
         for (GrouponGoodsBean.GrouponGoodsModel model : selectedShopList) {
-            if (model.getDiscounted_price() != null) discount_fee = discount_fee.add(model.getDiscounted_price());
+            if (model.getDiscounted_price() != null) {
+                discount_fee = discount_fee.add(model.getDiscounted_price());
+            }
+
             CheckoutBean.GoodsJsonBean jsonBean = new CheckoutBean.GoodsJsonBean();
             jsonBean.setGoods_id(model.getId());
-            jsonBean.setTitle(model.getTitle());
-            jsonBean.setGoods_sn(model.getGoods_sn());
-            jsonBean.setSn(model.getSn());
+            jsonBean.setTitle(model.getTitle() != null ? model.getTitle() : "未知商品");
+            jsonBean.setGoods_sn(model.getGoods_sn() != null ? model.getGoods_sn() : "");
+            jsonBean.setSn(model.getSn() != null ? model.getSn() : "");
             jsonBean.setDiscount(TextUtils.isEmpty(model.getDiscount()) ? "100" : model.getDiscount());
             jsonBean.setDiscounted_price(model.getDiscounted_price() == null ? "0.00" : model.getDiscounted_price().toString());
             jsonBean.setGoods_price(model.getPrice());
             jsonBean.setGoods_num(model.getShuliang());
-            jsonBean.setPay_price(model.getHeji().toString());
+            jsonBean.setPay_price(model.getHeji() != null ? model.getHeji().toString() : "0.00");
             jsonBean.setGoods_sku_price_id(String.valueOf(model.getGgspid()));
-            jsonBean.setGoods_sku_text(TextUtils.isEmpty(model.getGoods_sku_text()) ? "" : model.getGoods_sku_text());
+
+            // 修复 goods_sku_text 为空导致 500 错误的问题
+            String safeSkuText = model.getGoods_sku_text();
+            if (TextUtils.isEmpty(safeSkuText)) {
+                safeSkuText = "[\"商品\"]";
+            }
+            jsonBean.setGoods_sku_text(safeSkuText);
+
             goodsJsonList.add(jsonBean);
         }
 
         checkoutBean.setGoodsjson(new Gson().toJson(goodsJsonList));
+
+        // 4. 设置金额 (现在 discount_fee 已经定义了，不会报错)
         checkoutBean.setDiscount_fee(discount_fee.toString());
         checkoutBean.setTotal_amount(zongjia.add(discount_fee).toString());
         checkoutBean.setGoods_original_amount(zongjia.add(discount_fee).toString());
 
-        CheckoutPopupWindow popup = new CheckoutPopupWindow(this, checkoutBean, () -> {
+        // 5. 创建弹窗并赋值给全局变量
+        currentCheckoutPopup = new CheckoutPopupWindow(this, checkoutBean, () -> {
             have_paid_view.setVisibility(VISIBLE);
             new Handler(Looper.getMainLooper()).postDelayed(() -> have_paid_view.setVisibility(GONE), 3000);
             is_jiezhang_qingkong = true;
             onClick(qingkong_btn);
         });
-        popup.show();
+        currentCheckoutPopup.show();
     }
+
+
 
     private void processPayment(String authCode, String payType) {
         if (selectedShopAdapter.getItemCount() <= 0) return;
+
+        // 1. 必须先调用这个，弹出窗口并初始化 checkoutBean
         handleCheckout();
+
+        // 2. 然后再设置扫码特有的属性
+        // 注意：因为 handleCheckout 重新 new 了一个 checkoutBean，
+        // 所以必须在 handleCheckout 之后再 setPay_type
         checkoutBean.setPay_type(payType);
         checkoutBean.setAuthCode(authCode);
+
+        // 3. 这些金额设置可能在 handleCheckout 里已经设过了，但这里覆盖一下也没错
         checkoutBean.setPay_fee(zongjia.toString());
         checkoutBean.setCash_price(zongjia.toString());
         checkoutBean.setCash_change("0.00");
         checkoutBean.setType(1);
         checkoutBean.setOrder_status(2);
+
+        // 4. 提交支付
         SubmitCheckout(checkoutBean);
     }
 
@@ -1012,25 +1045,90 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
 
 
+    // 替换 MainActivity.java 中的 handlePaymentSuccess 方法
     private void handlePaymentSuccess(JSONObject jsonObject) {
+
+
+        // --- 确保这段代码在最前面 ---
+        if (currentCheckoutPopup != null && currentCheckoutPopup.isShowing()) {
+            currentCheckoutPopup.dismiss();
+        }
+
+
+        order_sn = ""; // 先重置
+
         if (jsonObject != null) {
-            order_sn = jsonObject.optString("data");
+            // 1. 智能解析 data 字段
+            Object dataObj = jsonObject.opt("data");
+
+            if (dataObj instanceof JSONArray) {
+                // 情况A：data 是数组 (对应你日志里的情况)
+                JSONArray arr = (JSONArray) dataObj;
+                if (arr.length() > 0) {
+                    JSONObject item = arr.optJSONObject(0);
+                    if (item != null) {
+                        // 优先取 order_sn，如果没有则取 sn
+                        order_sn = item.optString("order_sn");
+                        if (TextUtils.isEmpty(order_sn)) {
+                            order_sn = item.optString("sn");
+                        }
+                    }
+                }
+            } else if (dataObj instanceof JSONObject) {
+                // 情况B：data 是对象
+                JSONObject item = (JSONObject) dataObj;
+                order_sn = item.optString("order_sn");
+                if (TextUtils.isEmpty(order_sn)) {
+                    order_sn = item.optString("sn");
+                }
+            } else if (dataObj instanceof String) {
+                // 情况C：data 是字符串 (可能是支付宝的情况)
+                String dataStr = (String) dataObj;
+                // 简单判断是否是 JSON 格式的字符串，如果不是才直接用
+                if (!dataStr.startsWith("[") && !dataStr.startsWith("{")) {
+                    order_sn = dataStr;
+                }
+            }
+
+            // 2. 微信支付的兜底逻辑 (保留你原有的逻辑，防止结构变化)
             if (TextUtils.isEmpty(order_sn) && "wechat".equals(checkoutBean.getPay_type())) {
-                order_sn = jsonObject.optJSONObject("code") != null ? jsonObject.optJSONObject("code").optString("order_sn") : "";
-            } else if (TextUtils.isEmpty(order_sn) && "alipay".equals(checkoutBean.getPay_type())) {
+                JSONObject codeObj = jsonObject.optJSONObject("code");
+                if (codeObj != null) {
+                    order_sn = codeObj.optString("order_sn");
+                }
+            }
+
+            // 3. 支付宝的兜底逻辑
+            if (TextUtils.isEmpty(order_sn) && "alipay".equals(checkoutBean.getPay_type())) {
                 order_sn = jsonObject.optString("order_sn");
             }
         }
-        if (TextUtils.isEmpty(order_sn)) order_sn = TextUtils.isEmpty(checkoutBean.getOrder_sn()) ? "LOC" + System.currentTimeMillis() : checkoutBean.getOrder_sn();
+
+        // 4. 最终保底：如果都没拿到，使用本地生成的单号
+        if (TextUtils.isEmpty(order_sn)) {
+            order_sn = TextUtils.isEmpty(checkoutBean.getOrder_sn()) ? "LOC" + System.currentTimeMillis() : checkoutBean.getOrder_sn();
+        }
+
+        // 更新 Bean 中的单号，确保打印时使用的是解析出来的正确单号
+        checkoutBean.setOrder_sn(order_sn);
 
         DialogUIUtils.dismiss(buildBean);
         have_paid_view.setVisibility(VISIBLE);
         new Handler(Looper.getMainLooper()).postDelayed(() -> have_paid_view.setVisibility(GONE), 3000);
+
+        // 执行打印和后续操作
         operateDetails(checkoutBean);
+
         is_jiezhang_qingkong = true;
         onClick(qingkong_btn);
         new DeleteShopPopupWindow(this, getString(R.string.Payment_succeeded), true).show();
     }
+
+
+
+
+
+
 
     private void handlePaymentProcess(JSONObject jsonObject) throws JSONException {
         if ("wechat".equals(checkoutBean.getPay_type())) {
