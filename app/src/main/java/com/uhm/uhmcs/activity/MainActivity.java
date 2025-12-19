@@ -29,6 +29,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.text.TextWatcher;
+import android.text.Editable;
+import android.widget.EditText;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -64,6 +68,7 @@ import com.uhm.uhmcs.utils.UserUtils;
 import com.uhm.uhmcs.utils.Utilis;
 import com.uhm.uhmcs.view.CustomInputTextView;
 import com.uhm.uhmcs.view.MyPresentation;
+import android.widget.EditText;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -95,6 +100,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private GrouponGoodsAdapter grouponGoodsAdapter;
     private SelectedShopAdapter selectedShopAdapter;
     private CustomInputTextView et_tiaoxingma;
+
+    private EditText et_search_keyword; // 【新增】手动关键词搜索框
+
+
     private Animation animation;
     private TextView tv_zongjia, tv_zongjian, qingkong_btn, qudan_btn, guadan_btn, dazhe_one_btn, dazhe_all_btn, checkout_btn, daying_btn;
     private LinearLayout huiyuan_btn;
@@ -220,6 +229,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void bindViews() {
+
+
+
+
         pingText = findViewById(R.id.pingValue);
 
         tv_empty_cart = findViewById(R.id.tv_empty_cart);
@@ -239,6 +252,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         have_paid_view = findViewById(R.id.have_paid_view);
         huiyuan_name = findViewById(R.id.huiyuan_name);
         et_tiaoxingma = findViewById(R.id.et_tiaoxingma);
+        et_search_keyword = findViewById(R.id.et_search_keyword); // ★ 新增这一行
 
         qingkong_btn = findViewById(R.id.qingkong_btn);
         guadan_btn = findViewById(R.id.guadan_btn);
@@ -366,6 +380,69 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         et_tiaoxingma.setOnInputCompleteListener(this::handleScanInput);
 
+        // ★★★ 新增：手动关键词搜索监听逻辑 ★★★
+        if (et_search_keyword != null) {
+            // 1. 设置触摸监听：判定是否点击了右侧的“叉叉”
+            et_search_keyword.setOnTouchListener((v, event) -> {
+                // 获取右侧图标 (index 为 2)
+                android.graphics.drawable.Drawable drawableRight = et_search_keyword.getCompoundDrawables()[2];
+
+                // 如果没有叉叉图标，直接放行，让系统处理点击（弹出键盘）
+                if (drawableRight == null) return false;
+
+                // 计算点击区域是否在叉叉图标上
+                // 计算公式：输入框总宽度 - 右侧内边距 - 图标宽度 - 额外感应区
+                boolean isClickClear = event.getX() >= (et_search_keyword.getWidth() - et_search_keyword.getPaddingRight() - drawableRight.getIntrinsicWidth() - 50);
+
+                if (isClickClear) {
+                    // 只有手指抬起时才执行清空动作
+                    if (event.getAction() == android.view.MotionEvent.ACTION_UP) {
+                        et_search_keyword.setText("");
+                        et_tiaoxingma.requestFocus();
+                    }
+                    // 关键点：点击叉叉区域时，无论是按下还是抬起，都返回 true，表示这个点击是我们要拦截的
+                    return true;
+                }
+
+                // 关键点：点击非叉叉区域（即文字区域），必须返回 false
+                // 这样系统才会认为你是在正常点击输入框，从而立即弹出键盘
+                return false;
+            });
+
+            // 2. 键盘回车监听（保留之前的逻辑）
+            et_search_keyword.setOnKeyListener((v, keyCode, event) -> {
+                if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                    et_tiaoxingma.requestFocus();
+                    return true;
+                }
+                return false;
+            });
+
+            // 3. 文字变化监听：根据是否有文字显示/隐藏“叉叉”
+            et_search_keyword.addTextChangedListener(new android.text.TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    String keyword = s.toString().trim();
+
+                    if (keyword.length() > 0) {
+                        // 有文字时，显示右侧图标 (使用你的 guanbi.xml)
+                        et_search_keyword.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.guanbi, 0);
+                    } else {
+                        // 没文字时，隐藏图标
+                        et_search_keyword.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                    }
+
+                    searchLocalGoods(keyword); // 执行实时本地搜索
+                }
+                @Override public void afterTextChanged(android.text.Editable s) {}
+            });
+        }
+
+
+
+
+
+
         selectedShopAdapter.setOnItemClickListener((adapter, view, position) -> {
             for (GrouponGoodsBean.GrouponGoodsModel model : selectedShopAdapter.getData()) {
                 model.setSelected(false);
@@ -395,6 +472,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
             }
 
             Log.i("MainActivity", "切换分类: " + (item != null ? item.getName() : "null") + " ID: " + current_category_id);
+
+            // ★ 切换分类时自动清空手动搜索框，确保显示的是该分类下的数据
+            if (et_search_keyword != null) {
+                et_search_keyword.setText("");
+            }
 
             // 4. 重置列表并加载第一页
             loadLocalGoods(0);
@@ -600,7 +682,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
         if (page == 0) {
             ui_current_page = 0;
             grouponGoodsAdapter.hasMore = true;
-            if (shop_rv != null) shop_rv.scrollToPosition(0);
+
+
+            // ★ 修复：UI操作必须切回主线程
+            runOnUiThread(() -> {
+                if (shop_rv != null) shop_rv.scrollToPosition(0);
+            });
         }
 
         dbExecutor.execute(() -> {
@@ -1535,6 +1622,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
         return super.dispatchKeyEvent(event);
     }
 
+
+
+
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
@@ -1675,5 +1765,43 @@ public class MainActivity extends Activity implements View.OnClickListener {
         });
     }
 
+
+    /**
+     * 【新增】根据关键词搜索本地商品库并实时更新 UI
+     */
+    private void searchLocalGoods(String keyword) {
+        dbExecutor.execute(() -> {
+            // 1. 如果关键词为空，安全地调用 loadLocalGoods
+            if (TextUtils.isEmpty(keyword)) {
+                runOnUiThread(() -> loadLocalGoods(0));
+                return;
+            }
+
+            // 2. 数据库模糊查询
+            List<GrouponGoodsBean.GrouponGoodsModel> results = LitePal
+                    .where("title like ? or sn like ? or goods_sn like ?",
+                            "%" + keyword + "%", "%" + keyword + "%", "%" + keyword + "%")
+                    .limit(50)
+                    .find(GrouponGoodsBean.GrouponGoodsModel.class);
+
+            runOnUiThread(() -> {
+                if (isFinishing()) return;
+                grouponGoodsAdapter.setNewData(results);
+                grouponGoodsAdapter.hasMore = false;
+                if (shop_rv != null) shop_rv.scrollToPosition(0);
+
+//                // ★ 核心修复：搜索完立即把焦点还给“条形码框”，确保下次扫码能正常录入
+//                if (et_tiaoxingma != null) {
+//                    et_tiaoxingma.requestFocus();
+//                }
+
+
+            });
+
+
+
+
+        });
+    }
 
 }

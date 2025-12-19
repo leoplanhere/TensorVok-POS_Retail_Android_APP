@@ -4,6 +4,7 @@
     android:layout_height="match_parent"
     android:background="#e2e2e2"
     android:orientation="vertical">
+
     <LinearLayout
         android:padding="@dimen/dp_10"
         android:layout_width="match_parent"
@@ -18,10 +19,12 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:background="@drawable/white_bg">
+
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1">
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/shop_rv"
                     android:layout_width="match_parent"
@@ -33,21 +36,23 @@
                     android:scrollbarThumbVertical="@drawable/scrollbar_vertical_thumb"
                     android:scrollbars="vertical"
                     android:visibility="visible" />
+
                 <View
                     android:visibility="gone"
                     android:id="@+id/shop_mocheng"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
+                    android:layout_height="match_parent" />
             </RelativeLayout>
 
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="80dp">
+
                 <ImageView
                     android:layout_centerVertical="true"
                     android:id="@+id/more_function_btn"
                     android:paddingLeft="10dp"
-                    android:layout_width="80dp"
+                    android:layout_width="75dp"
                     android:paddingRight="10dp"
                     android:layout_height="match_parent"
                     android:src="@drawable/more_function" />
@@ -60,6 +65,7 @@
                     android:layout_marginLeft="120dp"
                     android:layout_height="match_parent"
                     android:src="@drawable/add_no_code" />
+
                 <LinearLayout
                     android:id="@+id/wangluo_view"
                     android:visibility="gone"
@@ -68,19 +74,22 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:orientation="horizontal">
+
                     <ImageView
                         android:paddingLeft="10dp"
                         android:layout_width="70dp"
                         android:paddingRight="10dp"
                         android:layout_height="match_parent"
-                        android:src="@mipmap/wangluo"/>
+                        android:src="@mipmap/wangluo" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/no_network_detected"
                         android:textColor="@color/mr_red_000"
-                        android:textSize="24dp"/>
+                        android:textSize="24dp" />
                 </LinearLayout>
+
                 <TextView
                     android:id="@+id/bendin_view"
                     android:visibility="gone"
@@ -90,38 +99,74 @@
                     android:layout_centerVertical="true"
                     android:text="@string/Local_bill_upload_required"
                     android:textColor="@color/color_login_079752"
-                    android:textSize="24dp"/>
+                    android:textSize="24dp" />
+
                 <LinearLayout
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
                     android:layout_alignParentRight="true"
-                    android:layout_margin="5dp"
-                    android:layout_width="440dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:background="@drawable/rounded_border"
+                    android:gravity="center_vertical"
                     android:orientation="horizontal">
-                    <com.uhm.uhmcs.view.CustomInputTextView
-                        android:id="@+id/et_tiaoxingma"
-                        android:hint="@string/barcode"
-                        android:textColorHint="#c1c1c1"
-                        android:textSize="24dp"
-                        android:textColor="@color/black"
-                        android:layout_margin="10dp"
-                        android:layout_width="0dp"
+
+                    <LinearLayout
+                        android:layout_margin="5dp"
+                        android:layout_width="220dp"
                         android:layout_height="match_parent"
-                        android:layout_weight="2"
-                        android:gravity="center_vertical"/>
+                        android:background="@drawable/rounded_border"
+                        android:orientation="horizontal">
 
-                    <ImageView
-                        android:visibility="gone"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@mipmap/jianpan"/>
+                        <EditText
+                            android:id="@+id/et_search_keyword"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_margin="10dp"
+                            android:background="@null"
+                            android:gravity="center_vertical"
+                            android:hint="商品名/拼音"
+                            android:imeOptions="actionSearch"
+                            android:singleLine="true"
+                            android:textColor="@color/black"
+                            android:textColorHint="#c1c1c1"
+                            android:textSize="22dp"
 
+                            android:paddingRight="15dp"
+                            android:drawablePadding="8dp"
+
+                            />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:layout_margin="5dp"
+                        android:layout_width="320dp"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/rounded_border"
+                        android:orientation="horizontal">
+
+                        <com.uhm.uhmcs.view.CustomInputTextView
+                            android:id="@+id/et_tiaoxingma"
+                            android:hint="@string/barcode"
+                            android:textColorHint="#c1c1c1"
+                            android:textSize="24dp"
+                            android:textColor="@color/black"
+                            android:layout_margin="10dp"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="2"
+                            android:gravity="center_vertical" />
+
+                        <ImageView
+                            android:visibility="gone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@mipmap/jianpan" />
+                    </LinearLayout>
                 </LinearLayout>
 
             </RelativeLayout>
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -135,12 +180,13 @@
                 android:layout_height="50dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
+
                 <ImageView
                     android:layout_width="150dp"
                     android:layout_height="45dp"
                     android:scaleType="fitCenter"
                     android:layout_gravity="center_vertical"
-                    android:src="@mipmap/pos_ui_logo_01"/>
+                    android:src="@mipmap/pos_ui_logo_01" />
 
                 <LinearLayout
                     android:layout_weight="1"
@@ -149,6 +195,7 @@
                     android:layout_marginLeft="@dimen/pos_main_top_text_margin_size_01"
                     android:layout_gravity="center_vertical"
                     android:orientation="vertical">
+
                     <TextView
                         android:id="@+id/tv_nickname"
                         android:layout_width="wrap_content"
@@ -158,6 +205,7 @@
                         android:layout_gravity="center_vertical"
                         android:layout_marginLeft="0dp"
                         android:text="" />
+
                     <TextView
                         android:id="@+id/tv_phone"
                         android:layout_width="wrap_content"
@@ -168,12 +216,14 @@
                         android:layout_marginLeft="0dp"
                         android:text="" />
                 </LinearLayout>
+
                 <LinearLayout
                     android:layout_marginStart="@dimen/dp_10"
                     android:layout_marginEnd="@dimen/dp_10"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -184,14 +234,14 @@
                             android:layout_height="wrap_content"
                             android:text="ping:"
                             android:textColor="@color/black"
-                            android:textSize="14sp"/>
+                            android:textSize="14sp" />
 
                         <TextView
                             android:id="@+id/pingValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="@color/black"
-                            android:textSize="14sp"/>
+                            android:textSize="14sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -199,11 +249,10 @@
                             android:text="ms"
                             android:textColor="@color/black"
                             android:textSize="14sp"
-                            android:layout_marginLeft="4dp"/>
+                            android:layout_marginLeft="4dp" />
                     </LinearLayout>
 
                     <LinearLayout
-
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
@@ -213,14 +262,14 @@
                             android:layout_height="wrap_content"
                             android:text="server:"
                             android:textColor="@color/black"
-                            android:textSize="14sp"/>
+                            android:textSize="14sp" />
 
                         <TextView
                             android:id="@+id/httpValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="@color/black"
-                            android:textSize="14sp"/>
+                            android:textSize="14sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -228,9 +277,10 @@
                             android:text="ms"
                             android:layout_marginLeft="4dp"
                             android:textColor="@color/black"
-                            android:textSize="14sp"/>
+                            android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
+
                 <TextClock
                     android:layout_marginEnd="20dp"
                     android:layout_width="wrap_content"
@@ -242,7 +292,7 @@
                     android:gravity="right"
                     android:layout_gravity="center_vertical"
                     android:layout_marginLeft="7dp"
-                    android:timeZone="GMT+8"/>
+                    android:timeZone="GMT+8" />
 
             </LinearLayout>
 
@@ -250,6 +300,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:orientation="horizontal">
+
                 <LinearLayout
                     android:gravity="center_vertical"
                     android:layout_width="0dp"
@@ -258,6 +309,7 @@
                     android:layout_weight="1"
                     android:layout_margin="5dp"
                     android:background="@drawable/blue_bg">
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -265,7 +317,8 @@
                         android:textSize="18dp"
                         android:text="@string/grand_total"
                         android:textStyle="bold"
-                        android:layout_marginLeft="@dimen/dp_10"/>
+                        android:layout_marginLeft="@dimen/dp_10" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -273,7 +326,8 @@
                         android:textSize="20sp"
                         android:text="￥"
                         android:textStyle="bold"
-                        android:layout_marginLeft="@dimen/dp_10"/>
+                        android:layout_marginLeft="@dimen/dp_10" />
+
                     <TextView
                         android:id="@+id/tv_zongjia"
                         android:layout_width="wrap_content"
@@ -283,6 +337,7 @@
                         android:textStyle="bold"
                         android:text="0.00" />
                 </LinearLayout>
+
                 <LinearLayout
                     android:gravity="center_vertical"
                     android:layout_width="0dp"
@@ -291,6 +346,7 @@
                     android:layout_weight="1"
                     android:layout_margin="5dp"
                     android:background="@drawable/blue_bg">
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -298,7 +354,7 @@
                         android:textSize="18dp"
                         android:text="@string/total_items"
                         android:textStyle="bold"
-                        android:layout_marginStart="@dimen/dp_10"/>
+                        android:layout_marginStart="@dimen/dp_10" />
 
                     <TextView
                         android:id="@+id/tv_zongjian"
@@ -318,11 +374,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:orientation="horizontal">
+
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:orientation="horizontal"
                     android:layout_weight="2">
+
                     <TextView
                         android:id="@+id/delete_shop"
                         android:background="@drawable/red_bg"
@@ -334,7 +392,8 @@
                         android:textColor="@color/white"
                         android:gravity="center"
                         android:textStyle="bold"
-                        android:layout_marginRight="@dimen/dp_10"/>
+                        android:layout_marginRight="@dimen/dp_10" />
+
                     <TextView
                         android:id="@+id/qingkong_btn"
                         android:background="@drawable/red_bg"
@@ -346,8 +405,9 @@
                         android:textColor="@color/white"
                         android:gravity="center"
                         android:textStyle="bold"
-                        android:layout_marginRight="@dimen/dp_10"/>
+                        android:layout_marginRight="@dimen/dp_10" />
                 </LinearLayout>
+
                 <LinearLayout
                     android:id="@+id/huiyuan_btn"
                     android:gravity="center_vertical"
@@ -356,11 +416,13 @@
                     android:layout_height="match_parent"
                     android:orientation="horizontal"
                     android:background="@drawable/rounded_border">
+
                     <ImageView
                         android:layout_marginLeft="5dp"
                         android:layout_width="40dp"
                         android:layout_height="match_parent"
-                        android:src="@drawable/huiyuan"/>
+                        android:src="@drawable/huiyuan" />
+
                     <TextView
                         android:id="@+id/huiyuan_name"
                         android:layout_marginLeft="5dp"
@@ -369,7 +431,8 @@
                         android:layout_height="wrap_content"
                         android:text="@string/member_nickname"
                         android:textColor="@color/text_gray"
-                        android:textSize="20dp"/>
+                        android:textSize="20dp" />
+
                     <ImageView
                         android:paddingLeft="20dp"
                         android:id="@+id/shanchuhuiyuan_btn"
@@ -379,11 +442,13 @@
                         android:src="@drawable/shanchu" />
                 </LinearLayout>
             </LinearLayout>
+
             <LinearLayout
                 android:padding="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:orientation="horizontal">
+
                 <TextView
                     android:id="@+id/guadan_btn"
                     android:background="@drawable/blue_bg3"
@@ -395,7 +460,8 @@
                     android:textColor="@color/white"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
+                    android:layout_marginRight="@dimen/dp_10" />
+
                 <TextView
                     android:id="@+id/qudan_btn"
                     android:background="@drawable/blue_bg1"
@@ -407,7 +473,8 @@
                     android:textColor="@color/white"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
+                    android:layout_marginRight="@dimen/dp_10" />
+
                 <TextView
                     android:id="@+id/dazhe_one_btn"
                     android:background="@drawable/yellow_bg"
@@ -419,7 +486,8 @@
                     android:textColor="@color/white"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
+                    android:layout_marginRight="@dimen/dp_10" />
+
                 <TextView
                     android:id="@+id/dazhe_all_btn"
                     android:background="@drawable/yellow_bg"
@@ -431,7 +499,8 @@
                     android:textColor="@color/white"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
+                    android:layout_marginRight="@dimen/dp_10" />
+
                 <TextView
                     android:id="@+id/daying_btn"
                     android:background="@drawable/blue_bg1"
@@ -444,16 +513,19 @@
                     android:gravity="center"
                     android:textStyle="bold" />
             </LinearLayout>
+
             <LinearLayout
                 android:layout_margin="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:orientation="vertical">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="30dp"
                     android:orientation="horizontal">
+
                     <TextView
                         android:gravity="center"
                         android:layout_width="0dp"
@@ -461,7 +533,8 @@
                         android:layout_weight="1"
                         android:textSize="16sp"
                         android:textColor="@color/text_gray"
-                        android:text="@string/No"/>
+                        android:text="@string/No" />
+
                     <TextView
                         android:gravity="center"
                         android:layout_width="0dp"
@@ -469,7 +542,8 @@
                         android:layout_weight="2"
                         android:textSize="16sp"
                         android:textColor="@color/text_gray"
-                        android:text="@string/product_name"/>
+                        android:text="@string/product_name" />
+
                     <TextView
                         android:visibility="gone"
                         android:gravity="center"
@@ -478,7 +552,8 @@
                         android:layout_weight="1.5"
                         android:textSize="20dp"
                         android:textColor="@color/black"
-                        android:text="规格"/>
+                        android:text="规格" />
+
                     <TextView
                         android:gravity="center"
                         android:layout_width="0dp"
@@ -486,7 +561,8 @@
                         android:layout_weight="1.5"
                         android:textSize="16sp"
                         android:textColor="@color/text_gray"
-                        android:text="@string/qty"/>
+                        android:text="@string/qty" />
+
                     <TextView
                         android:gravity="center"
                         android:layout_width="0dp"
@@ -494,7 +570,8 @@
                         android:layout_weight="1"
                         android:textSize="16sp"
                         android:textColor="@color/text_gray"
-                        android:text="@string/total"/>
+                        android:text="@string/total" />
+
                     <TextView
                         android:id="@+id/caozuo_view"
                         android:gravity="center"
@@ -503,12 +580,14 @@
                         android:layout_weight="1"
                         android:textSize="16sp"
                         android:textColor="@color/text_gray"
-                        android:text="@string/action"/>
+                        android:text="@string/action" />
                 </LinearLayout>
+
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1">
+
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/selected_shop_rv"
                         android:layout_width="match_parent"
@@ -553,7 +632,7 @@
                                 android:textSize="28sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/color_login_079752"
-                                android:layout_marginBottom="20dp"/>
+                                android:layout_marginBottom="20dp" />
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
@@ -561,21 +640,70 @@
                                 android:orientation="vertical"
                                 android:gravity="left">
 
-                                <TextView android:id="@+id/tv_last_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="时间：" android:textSize="20sp" android:textColor="#333" android:layout_marginBottom="5dp"/>
-                                <TextView android:id="@+id/tv_last_type" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="方式：" android:textSize="20sp" android:textColor="#333" android:layout_marginBottom="5dp"/>
-                                <TextView android:id="@+id/tv_last_count" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="数量：" android:textSize="20sp" android:textColor="#333" android:layout_marginBottom="5dp"/>
+                                <TextView
+                                    android:id="@+id/tv_last_time"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="时间："
+                                    android:textSize="20sp"
+                                    android:textColor="#333"
+                                    android:layout_marginBottom="5dp" />
 
-                                <View android:layout_width="300dp" android:layout_height="1dp" android:background="#ccc" android:layout_marginTop="10dp" android:layout_marginBottom="10dp"/>
+                                <TextView
+                                    android:id="@+id/tv_last_type"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="方式："
+                                    android:textSize="20sp"
+                                    android:textColor="#333"
+                                    android:layout_marginBottom="5dp" />
 
-                                <TextView android:id="@+id/tv_last_total" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="总额：" android:textSize="20sp" android:textColor="#333" android:layout_marginBottom="5dp"/>
-                                <TextView android:id="@+id/tv_last_discount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="优惠：" android:textSize="20sp" android:textColor="#333" android:layout_marginBottom="5dp"/>
-                                <TextView android:id="@+id/tv_last_pay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="实付：" android:textSize="26sp" android:textStyle="bold" android:textColor="@color/mr_red_000" android:layout_marginTop="5dp"/>
+                                <TextView
+                                    android:id="@+id/tv_last_count"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="数量："
+                                    android:textSize="20sp"
+                                    android:textColor="#333"
+                                    android:layout_marginBottom="5dp" />
+
+                                <View
+                                    android:layout_width="300dp"
+                                    android:layout_height="1dp"
+                                    android:background="#ccc"
+                                    android:layout_marginTop="10dp"
+                                    android:layout_marginBottom="10dp" />
+
+                                <TextView
+                                    android:id="@+id/tv_last_total"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="总额："
+                                    android:textSize="20sp"
+                                    android:textColor="#333"
+                                    android:layout_marginBottom="5dp" />
+
+                                <TextView
+                                    android:id="@+id/tv_last_discount"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="优惠："
+                                    android:textSize="20sp"
+                                    android:textColor="#333"
+                                    android:layout_marginBottom="5dp" />
+
+                                <TextView
+                                    android:id="@+id/tv_last_pay"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="实付："
+                                    android:textSize="26sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/mr_red_000"
+                                    android:layout_marginTop="5dp" />
                             </LinearLayout>
                         </LinearLayout>
                     </FrameLayout>
-
-
-
 
 
                     <LinearLayout
@@ -585,6 +713,7 @@
                         android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:gravity="center">
+
                         <ImageView
                             android:id="@+id/image"
                             android:layout_width="200dp"
@@ -594,11 +723,13 @@
 
 
             </LinearLayout>
+
             <LinearLayout
                 android:padding="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="78dp"
                 android:orientation="horizontal">
+
                 <TextView
                     android:visibility="invisible"
                     android:background="@drawable/blue_bg1"
@@ -610,7 +741,8 @@
                     android:textColor="@color/white"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
+                    android:layout_marginRight="@dimen/dp_10" />
+
                 <TextView
                     android:visibility="invisible"
                     android:background="@drawable/blue_bg1"
@@ -622,7 +754,8 @@
                     android:textColor="@color/white"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
+                    android:layout_marginRight="@dimen/dp_10" />
+
                 <TextView
                     android:visibility="invisible"
                     android:background="@drawable/yellow_bg"
@@ -634,7 +767,8 @@
                     android:textColor="@color/white"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
+                    android:layout_marginRight="@dimen/dp_10" />
+
                 <TextView
                     android:visibility="invisible"
                     android:background="@drawable/yellow_bg"
@@ -646,7 +780,8 @@
                     android:textColor="@color/white"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:layout_marginRight="@dimen/dp_10"/>
+                    android:layout_marginRight="@dimen/dp_10" />
+
                 <TextView
                     android:id="@+id/checkout_btn"
                     android:background="@drawable/green_bg"
@@ -664,6 +799,7 @@
 
 
     </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:background="@color/white"
         android:id="@+id/rv_choose_menu3"
@@ -672,7 +808,7 @@
         android:fadeScrollbars="false"
         android:scrollbarFadeDuration="0"
         android:scrollbarSize="6dp"
-        android:scrollbars="horizontal"/>
+        android:scrollbars="horizontal" />
 
 
 </LinearLayout>
