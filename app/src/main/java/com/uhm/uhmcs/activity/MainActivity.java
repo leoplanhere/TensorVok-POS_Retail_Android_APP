@@ -522,12 +522,19 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private void syncGoodsData() {
         is_tongbu = true;
-        loadingPopup = (SyncLoadingPopup) new XPopup.Builder(this)
-                .dismissOnTouchOutside(false)
-                .dismissOnBackPressed(false)
-                .asCustom(new SyncLoadingPopup(this))
-                .show();
-        downloadGoodsPage(1);
+        // ★ 核心修改 1：同步前先在子线程清空本地库，防止新旧数据冲突
+        dbExecutor.execute(() -> {
+            LitePal.deleteAll(GrouponGoodsBean.GrouponGoodsModel.class);
+
+            runOnUiThread(() -> {
+                loadingPopup = (SyncLoadingPopup) new XPopup.Builder(this)
+                        .dismissOnTouchOutside(false)
+                        .dismissOnBackPressed(false)
+                        .asCustom(new SyncLoadingPopup(this))
+                        .show();
+                downloadGoodsPage(1); // 开始从第一页下载
+            });
+        });
     }
 
 
@@ -570,46 +577,30 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         List<GrouponGoodsBean.GrouponGoodsModel> list = (bean != null && bean.getData() != null) ? bean.getData().getGoodsList() : null;
                         GrouponGoodsBean.Pagination pagination = (bean != null && bean.getData() != null) ? bean.getData().getPagination() : null;
 
-                        // ============ ★★★ 加这一段日志 ★★★ ============
+                        // ============ ★★★ 日志校验段 ★★★ ============
                         if (list != null && list.size() > 0) {
                             GrouponGoodsBean.GrouponGoodsModel firstItem = list.get(0);
                             Log.e("SYNC_CHECK", "---------------------------------------");
-                            Log.e("SYNC_CHECK", "【验证字段归位情况】");
-                            // 1. 打印字符串ID (这是原本就有的)
+                            Log.e("SYNC_CHECK", "第 " + requestPage + " 页数据校验中...");
                             Log.e("SYNC_CHECK", "String ID (goods_id): " + firstItem.getGoods_id());
-
-                            // 2. ★★★ 打印新字段 (pid) ★★★ (这里应该显示 54142 这种数字)
-                            Log.e("SYNC_CHECK", "Int ID (pid/server_id): " + firstItem.getPid());
+                            Log.e("SYNC_CHECK", "Int ID (pid): " + firstItem.getPid());
                             Log.e("SYNC_CHECK", "---------------------------------------");
                         }
                         // ===============================================
 
                         if (list != null && !list.isEmpty()) {
-                            // 准备待插入列表
-                            List<GrouponGoodsBean.GrouponGoodsModel> toInsertList = new ArrayList<>();
-
                             LitePal.beginTransaction();
                             try {
+                                // ★★★ 核心修复：解决 9688 变 9614 的关键 ★★★
+                                // 不再调用 updateAll，因为重复的 goods_id 必须存为多行
                                 for (GrouponGoodsBean.GrouponGoodsModel newItem : list) {
-
-                                    // ★★★ 优化1：删除了 shop_id 的比对过滤，防止因字段为空导致数据全被跳过 ★★★
-
-                                    // ★★★ 优化2：极速写入策略 ★★★
-                                    // 尝试按 goods_id 更新。LitePal的updateAll返回受影响行数。
-                                    // 如果返回 0，说明数据库里没这条数据，那么就加到 insert 列表里。
-                                    // 这样省去了 9000 次 findFirst 的读取耗时。
-                                    int rowsAffected = newItem.updateAll("goods_id = ?", String.valueOf(newItem.getGoods_id()));
-
-                                    if (rowsAffected == 0) {
-                                        toInsertList.add(newItem);
-                                    }
+                                    // 必须清除 LitePal 内部 ID 引用，强制作为新数据插入
+                                    newItem.assignBaseObjId(0);
                                 }
 
-                                // ★★★ 优化3：批量插入，速度比循环 save 快几十倍 ★★★
-                                if (!toInsertList.isEmpty()) {
-                                    LitePal.saveAll(toInsertList);
-                                    Log.i("SyncDebug", "本页批量新增数据条数: " + toInsertList.size());
-                                }
+                                // 批量插入本页所有数据
+                                LitePal.saveAll(list);
+                                Log.i("SyncDebug", "第 " + requestPage + " 页成功插入数据: " + list.size() + " 条");
 
                                 LitePal.setTransactionSuccessful();
                             } catch (Exception e) {
@@ -634,11 +625,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
                                 }
 
                                 if (requestPage < totalPage) {
+                                    // 递归请求下一页
                                     downloadGoodsPage(requestPage + 1);
                                     return;
                                 }
                             }
                         }
+                        // 全部页面加载完毕
                         finishSync();
                     } catch (Exception e) {
                         e.printStackTrace();
