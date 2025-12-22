@@ -10,7 +10,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
+import android.media.AudioAttributes; // ★ 新增
 import android.media.MediaRouter;
+import android.media.SoundPool;      // ★ 新增
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -152,6 +154,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private boolean is_chaoshi = false;
     private CheckoutBean checkoutBean;
 
+    // ★★★ 新增：声音反馈相关变量 ★★★
+    private SoundPool soundPool;
+    private int soundID_success;
+    private int soundID_error;
+
     // 退款监听
     private PaymentStatusListener paymentStatusListener;
 
@@ -167,6 +174,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // ★★★ 初始化声音池 ★★★
+        initSoundPool();
+
         initView();
         Log.i("MainActivity", ">>>>onCreate>>>>");
         MyUsbDeviceHelper.getInstance().inti(this);
@@ -197,6 +208,42 @@ public class MainActivity extends Activity implements View.OnClickListener {
         if (networkChangeReceiver == null) {
             networkChangeReceiver = new NetworkChangeReceiver(this);
             registerReceiver(networkChangeReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        }
+    }
+
+    // ★★★ 新增：初始化 SoundPool 的方法 ★★★
+    private void initSoundPool() {
+        try {
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build();
+
+            soundPool = new SoundPool.Builder()
+                    .setMaxStreams(2) // 允许同时播放2个声音
+                    .setAudioAttributes(audioAttributes)
+                    .build();
+
+            // 加载资源文件 (需确保 res/raw 下有这两个文件，否则可以注释掉避免崩溃)
+            soundID_success = soundPool.load(this, R.raw.scan_success, 1);
+            soundID_error = soundPool.load(this, R.raw.scan_error, 1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ★★★ 新增：播放成功声音 ★★★
+    private void playSuccessSound() {
+        if (soundPool != null) {
+            // 参数：ID, 左声道, 右声道, 优先级, 循环次数, 速率
+            soundPool.play(soundID_success, 1.0f, 1.0f, 0, 0, 1.0f);
+        }
+    }
+
+    // ★★★ 新增：播放失败声音 ★★★
+    private void playErrorSound() {
+        if (soundPool != null) {
+            soundPool.play(soundID_error, 1.0f, 1.0f, 0, 0, 1.0f);
         }
     }
 
@@ -747,7 +794,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 if (results != null && !results.isEmpty()) {
                     GrouponGoodsBean.GrouponGoodsModel finalGoods = results.get(0);
                     Log.i("Scan", "查询成功: " + finalGoods.getTitle());
-                    runOnUiThread(() -> addGoodsToCart(finalGoods));
+
+                    // ★★★ 修改：播放成功音效
+                    runOnUiThread(() -> {
+                        playSuccessSound();
+                        addGoodsToCart(finalGoods);
+                    });
                 } else {
                     // 2. 没查到，尝试模糊
                     List<GrouponGoodsBean.GrouponGoodsModel> fuzzyList = LitePal
@@ -757,6 +809,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
                     runOnUiThread(() -> {
                         if (fuzzyList.isEmpty()) {
+                            // ★★★ 修改：没找到商品，播放错误音效
+                            playErrorSound();
+
                             // ★★★★★ 强力调试：批量打印前 20 条正常商品 ★★★★★
                             int totalCount = LitePal.count(GrouponGoodsBean.GrouponGoodsModel.class);
                             Log.e("ScanDebug", "【查询失败】 库内总数: " + totalCount);
@@ -782,8 +837,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
                             new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
                         } else if (fuzzyList.size() == 1) {
+                            // ★★★ 修改：模糊找到一个，播放成功音效
+                            playSuccessSound();
                             addGoodsToCart(fuzzyList.get(0));
                         } else {
+                            // ★★★ 修改：模糊找到多个，也算成功
+                            playSuccessSound();
                             grouponGoodsAdapter.setNewData(fuzzyList);
                             grouponGoodsAdapter.hasMore = false;
                         }
@@ -791,6 +850,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 }
             });
         } else {
+            // ★★★ 修改：扫描支付码，播放成功音效
+            playSuccessSound();
             processPayment(code, textType);
         }
     }
@@ -1630,6 +1691,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
         if (networkChangeReceiver != null) unregisterReceiver(networkChangeReceiver);
         MyUsbDeviceHelper.getInstance().unregisterReceiver();
         if (timeCount != null) timeCount.cancel();
+
+        // ★★★ 释放 SoundPool
+        if (soundPool != null) {
+            soundPool.release();
+            soundPool = null;
+        }
+
         dbExecutor.shutdown();
     }
 

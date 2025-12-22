@@ -3,7 +3,6 @@ package com.uhm.uhmcs.popupwindow;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -30,7 +29,6 @@ import com.uhm.uhmcs.utils.MyPrinterHelper;
 import com.uhm.uhmcs.utils.UserUtils;
 import com.uhm.uhmcs.view.CustomInputTextView;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -56,10 +54,10 @@ public class HistoryOrderPopupWindow {
     private CustomInputTextView order_sn_et;
     private boolean isRequesting = false;
 
-    // ★ 状态备份变量
+    // 状态备份变量
     private List<LastOrderBean> lastFullList = new ArrayList<>();
-    private int lastFullPage = 1;      // 备份离开时的页码
-    private int lastFullTotalPage = 1; // 备份离开时的总页数
+    private int lastFullPage = 1;
+    private int lastFullTotalPage = 1;
     private boolean isSearchResult = false;
 
     public HistoryOrderPopupWindow(Activity context) {
@@ -86,6 +84,14 @@ public class HistoryOrderPopupWindow {
         order_rv.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
         historyOrderAdapter = new HistoryOrderAdapter();
         order_rv.setAdapter(historyOrderAdapter);
+
+        // ★★★ 优化点：设置空布局 ★★★
+        // 注意：inflate 的 root 参数要传 null 或者 order_rv 的 parent (但这里不在 Activity 的 onCreate 里，传 null 更安全通用)
+        View emptyView = LayoutInflater.from(context).inflate(R.layout.layout_empty_view, null);
+        // 如果想让空布局充满整个 RecyclerView 区域，需要手动设置 LayoutParams
+        emptyView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        historyOrderAdapter.setEmptyView(emptyView);
+        // ★★★ 优化结束 ★★★
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.CHINA);
         String today = sdf.format(System.currentTimeMillis());
@@ -155,7 +161,6 @@ public class HistoryOrderPopupWindow {
         });
     }
 
-    // ★ 进入搜索前备份当前的分页状态
     private void prepareSearch() {
         if (!isSearchResult) {
             lastFullList = new ArrayList<>(historyOrderAdapter.getData());
@@ -172,7 +177,6 @@ public class HistoryOrderPopupWindow {
         if (isSearchResult) {
             isSearchResult = false;
             order_sn_et.setText("");
-            // ★ 恢复列表及分页状态
             historyOrderAdapter.setNewData(lastFullList);
             page = lastFullPage;
             totalpage = lastFullTotalPage;
@@ -237,6 +241,7 @@ public class HistoryOrderPopupWindow {
                         }
 
                         context.runOnUiThread(() -> {
+                            // Adapter逻辑：如果有数据则显示，没数据(null或size=0)则自动显示 EmptyView
                             if (page > 1) historyOrderAdapter.addData(list);
                             else historyOrderAdapter.setNewData(list);
 
@@ -247,6 +252,10 @@ public class HistoryOrderPopupWindow {
                         context.runOnUiThread(() -> {
                             isRequesting = false;
                             hideProgress();
+                            // 如果是搜索且没找到，setNewData(null) 会触发空布局显示
+                            if (page == 1) {
+                                historyOrderAdapter.setNewData(null);
+                            }
                             if (!TextUtils.isEmpty(sn)) Toast.makeText(context, "单号不存在", Toast.LENGTH_SHORT).show();
                         });
                     }
