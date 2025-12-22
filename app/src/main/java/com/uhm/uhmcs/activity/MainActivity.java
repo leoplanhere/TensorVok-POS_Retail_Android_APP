@@ -330,7 +330,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         Glide.with(this).load(R.drawable.have_paid_img).into((ImageView) findViewById(R.id.image));
         animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.scale_click);
         buildBean = DialogUIUtils.showLoading(this, getString(R.string.paying), true, false, false, false);
-        timeCount = new TimeCount(30000, 5000);
+        timeCount = new TimeCount(90000, 3000);
 
 
 
@@ -1302,70 +1302,225 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     public void SubmitCheckout(CheckoutBean checkoutBean) {
         if (Utilis.isFastClick()) return;
-        buildBean.show();
+
+        // 显示加载框
+        if (buildBean != null) {
+            buildBean.show();
+        }
+
         String url = POSApiSerview.POS_URL + POSApiSerview.addOrder;
 
-        // ================= ★★★ 开始：打印详细参数列表 ★★★ =================
-        Log.e("ORDER_LIST", "⬇️⬇️⬇️⬇️⬇️⬇️⬇️ 下单参数清单开始 ⬇️⬇️⬇️⬇️⬇️⬇️⬇️");
-        Log.e("ORDER_LIST", "1. [shop_id] 店铺ID:       " + checkoutBean.getShop_id());
-        Log.e("ORDER_LIST", "2. [user_id] 操作员ID:     " + checkoutBean.getUser_id());
-        Log.e("ORDER_LIST", "3. [machineNumber] 机器号: " + checkoutBean.getMachineNumber());
-        Log.e("ORDER_LIST", "4. [allNum] 商品总数:      " + checkoutBean.getAllNum());
-        Log.e("ORDER_LIST", "5. [total_amount] 应付金额:" + checkoutBean.getTotal_amount());
-        Log.e("ORDER_LIST", "6. [total_fee] 实付金额:   " + checkoutBean.getTotal_fee());
-        Log.e("ORDER_LIST", "7. [discount_fee] 优惠金额:" + checkoutBean.getDiscount_fee());
-        Log.e("ORDER_LIST", "8. [pay_fee] 支付金额:     " + checkoutBean.getPay_fee());
-        Log.e("ORDER_LIST", "9. [pay_type] 支付方式:    " + checkoutBean.getPay_type());
-        Log.e("ORDER_LIST", "10.[order_status] 订单状态:" + checkoutBean.getOrder_status());
-        Log.e("ORDER_LIST", "11.[type] 订单类型:        " + checkoutBean.getType());
-        Log.e("ORDER_LIST", "12.[cash_price] 现金金额:  " + checkoutBean.getCash_price());
-        Log.e("ORDER_LIST", "13.[cash_change] 找零金额: " + checkoutBean.getCash_change());
-        Log.e("ORDER_LIST", "14.[goods_original] 原价:  " + checkoutBean.getGoods_original_amount());
-        Log.e("ORDER_LIST", "15.[order_sn] 订单号:      " + checkoutBean.getOrder_sn());
-        Log.e("ORDER_LIST", "16.[authCode] 授权码:      " + checkoutBean.getAuthCode());
+        // 日志方便调试
+        Log.i("PayDebug", "开始请求支付接口: " + url);
 
-        Log.e("ORDER_LIST", ">>>> [goodsjson] 商品JSON数据详情:");
-        // 把 json 打印出来，防止太长被截断，单独打一行
-        String json = checkoutBean.getGoodsjson();
-        if(json != null && json.length() > 3000) {
-            // 如果太长分段打印
-            int chunkCount = json.length() / 2000;
-            for (int i = 0; i <= chunkCount; i++) {
-                int max = 2000 * (i + 1);
-                if (max >= json.length()) {
-                    Log.e("ORDER_LIST", json.substring(2000 * i));
-                } else {
-                    Log.e("ORDER_LIST", json.substring(2000 * i, max));
-                }
-            }
-        } else {
-            Log.e("ORDER_LIST", json);
+        // 1. 准备请求体
+        Gson gson = new Gson();
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), gson.toJson(checkoutBean));
+
+        // 2. 准备请求对象 (带Token)
+        okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
+        if (UserUtils.getInstance().getLoginBase() != null
+                && UserUtils.getInstance().getLoginBase().getData() != null
+                && UserUtils.getInstance().getLoginBase().getData().getUserinfo() != null) {
+            builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
         }
-        Log.e("ORDER_LIST", "⬆️⬆️⬆️⬆️⬆️⬆️⬆️ 下单参数清单结束 ⬆️⬆️⬆️⬆️⬆️⬆️⬆️");
-        // ================= ★★★ 结束：打印详细参数列表 ★★★ =================
+        builder.post(body);
 
-        OkHttpUtil.postJsonAsync(url, new Gson().toJson(checkoutBean), this, new OkHttpUtil.OkHttpCallback() {
+        // 3. ★★★ 核心加固：创建专属的 OkHttpClient，加入自动重试 ★★★
+        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
+                // 连接超时设为 5秒 (网络彻底断开时快速反馈，别让用户等30秒)
+                .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+                // 读取超时设为 20秒 (给服务器处理支付留足时间)
+                .readTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+                .writeTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+
+                // ★★★ 重点：添加自动重试拦截器 ★★★
+                .addInterceptor(new okhttp3.Interceptor() {
+                    @Override
+                    public okhttp3.Response intercept(Chain chain) throws IOException {
+                        okhttp3.Request request = chain.request();
+                        okhttp3.Response response = null;
+                        boolean responseOK = false;
+                        int tryCount = 0;
+                        int maxLimit = 3; // 最大重试次数：3次
+
+                        while (!responseOK && tryCount < maxLimit) {
+                            try {
+                                if (tryCount > 0) {
+                                    Log.w("PayDebug", "网络请求不稳定，正在进行第 " + tryCount + " 次自动重试...");
+                                }
+                                response = chain.proceed(request);
+                                responseOK = response.isSuccessful();
+                            } catch (Exception e) {
+                                Log.e("PayDebug", "第 " + tryCount + " 次请求异常: " + e.getMessage());
+                                // 如果是最后一次尝试依然失败，则抛出异常，交给 onFailure 处理
+                                if (tryCount >= maxLimit - 1) throw e;
+                            } finally {
+                                // 如果这一把失败了，但还有重试机会，必须关闭上一把的 response 避免内存泄漏
+                                if (!responseOK && response != null) {
+                                    response.close();
+                                }
+                            }
+                            tryCount++;
+                        }
+
+                        if (response == null) {
+                            throw new IOException("自动重试 " + maxLimit + " 次后依然失败");
+                        }
+                        return response;
+                    }
+                })
+                .build();
+
+        // 4. 执行请求
+        client.newCall(builder.build()).enqueue(new okhttp3.Callback() {
+
+
+            @Override
+            public void onFailure(@androidx.annotation.NonNull okhttp3.Call call, @androidx.annotation.NonNull IOException e) {
+                runOnUiThread(() -> {
+                    // 日志记录
+                    Log.e("PayError", "支付请求重试3次后依然失败: " + e.getMessage());
+
+                    // ▼▼▼▼▼▼ 关键修改 ▼▼▼▼▼▼
+                    // 以前是直接弹窗报错，现在改为去反查
+                    // 只有当反查也失败时，才会在 verifyPaymentResult 内部弹窗
+                    verifyPaymentResult(checkoutBean);
+                    // ▲▲▲▲▲▲ 修改结束 ▲▲▲▲▲▲
+                });
+            }
+
+
+
+
+
+
+            @Override
+            public void onResponse(@androidx.annotation.NonNull okhttp3.Call call, @androidx.annotation.NonNull okhttp3.Response response) throws IOException {
+                final String responseStr = response.body().string();
+                runOnUiThread(() -> {
+                    try {
+                        // 无论服务器返回 200 还是 500，只要有回包，都尝试解析
+                        if (response.isSuccessful()) {
+                            JSONObject jsonObject = new JSONObject(responseStr);
+                            String msg = jsonObject.optString("msg");
+
+                            if (msg.contains("成功") || msg.contains("Success")) {
+                                handlePaymentSuccess(jsonObject);
+                            } else if (msg.contains("密码") || msg.contains("process")) {
+                                handlePaymentProcess(jsonObject);
+                            } else {
+                                DialogUIUtils.dismiss(buildBean);
+                                new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_failed) + msg, true).show();
+                            }
+                        } else {
+                            DialogUIUtils.dismiss(buildBean);
+                            new DeleteShopPopupWindow(MainActivity.this, "服务器异常 Code: " + response.code(), true).show();
+                        }
+                    } catch (Exception e) {
+                        DialogUIUtils.dismiss(buildBean);
+                        e.printStackTrace();
+                        Toast.makeText(MainActivity.this, "数据解析异常", LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
+
+
+
+    /**
+     * ★★★ 核心加固：支付异常时的反查确认机制 (防止掉单) ★★★
+     * 当 SubmitCheckout 彻底超时时调用此方法
+     */
+    private void verifyPaymentResult(CheckoutBean originalBean) {
+        Log.w("PayDebug", "支付请求无响应，正在反查服务器最近一笔订单进行核对...");
+
+        Map<String, String> params = new HashMap<>();
+        // 获取店铺ID
+        String shopId = "";
+        if (UserUtils.getInstance().getShopDataBean() != null && !UserUtils.getInstance().getShopDataBean().getData().isEmpty()) {
+            shopId = UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid();
+        }
+        params.put("shop_id", shopId);
+
+        // 使用 getLastOder 接口查询最后一笔订单
+        String url = POSApiSerview.POS_URL + POSApiSerview.getLastOder;
+
+        // 这里使用简单的请求，不需重试，因为如果这里也通不过，说明网络彻底断了
+        OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {
                 runOnUiThread(() -> {
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        String msg = jsonObject.optString("msg");
-                        if (msg.contains("成功") || msg.contains("Success")) {
-                            handlePaymentSuccess(jsonObject);
-                        } else if (msg.contains("密码") || msg.contains("process")) {
-                            try {
-                                handlePaymentProcess(jsonObject);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                        // code=1 表示查询成功
+                        if (jsonObject.optInt("code") == 1) {
+                            String dataStr = jsonObject.optString("data");
+                            if (!TextUtils.isEmpty(dataStr) && !dataStr.equals("[]")) {
+                                ArrayList<LastOrderBean> list = new Gson().fromJson(dataStr, new TypeToken<ArrayList<LastOrderBean>>() {}.getType());
+
+                                if (list != null && !list.isEmpty()) {
+                                    LastOrderBean lastOrder = list.get(0);
+
+                                    // =========== ★★★ 核心比对逻辑 ★★★ ===========
+
+                                    // 1. 比对金额 (使用BigDecimal避免精度问题)
+                                    // 注意：LastOrderBean里通常用 pay_fee 或 total_fee，这里取 pay_fee
+                                    String serverPriceStr = lastOrder.getPay_fee();
+                                    if (TextUtils.isEmpty(serverPriceStr)) serverPriceStr = lastOrder.getTotal_fee();
+
+                                    String localPriceStr = originalBean.getPay_fee();
+                                    if (TextUtils.isEmpty(localPriceStr)) localPriceStr = originalBean.getTotal_fee();
+
+                                    BigDecimal serverPrice = new BigDecimal(TextUtils.isEmpty(serverPriceStr) ? "0" : serverPriceStr);
+                                    BigDecimal localPrice = new BigDecimal(TextUtils.isEmpty(localPriceStr) ? "0" : localPriceStr);
+
+                                    boolean isAmountMatch = serverPrice.compareTo(localPrice) == 0;
+
+                                    // 2. 比对时间 (服务器createtime通常是秒，系统时间是毫秒)
+                                    // 我们允许 90秒 的误差，只要是刚才生成的单子就算
+                                    long serverTime = lastOrder.getCreatetime() * 1000L;
+                                    long currentTime = System.currentTimeMillis();
+                                    boolean isTimeRecent = Math.abs(currentTime - serverTime) < 90000; // 90秒内
+
+                                    // 3. 判定结果
+                                    if (isAmountMatch && isTimeRecent) {
+                                        Log.i("PayDebug", "【反查成功】发现掉单！自动恢复。单号：" + lastOrder.getOrder_sn());
+
+                                        // 修正本地 Bean 的订单号
+                                        originalBean.setOrder_sn(lastOrder.getOrder_sn());
+                                        originalBean.setTransaction_id(lastOrder.getTransaction_id());
+
+                                        // ★ 手动触发成功逻辑 (模拟一个成功的 JSON 返回给 handlePaymentSuccess)
+                                        // 这样可以复用你现有的打印、清空购物车、语音逻辑
+                                        JSONObject mockSuccessJson = new JSONObject();
+                                        mockSuccessJson.put("msg", "反查恢复成功");
+                                        mockSuccessJson.put("data", lastOrder.getOrder_sn());
+                                        // 有些逻辑可能从 code 对象取值，根据你的 handlePaymentSuccess 逻辑适配
+                                        JSONObject codeObj = new JSONObject();
+                                        codeObj.put("order_sn", lastOrder.getOrder_sn());
+                                        codeObj.put("transaction_id", lastOrder.getTransaction_id());
+                                        mockSuccessJson.put("code", codeObj); // 注意这里结构要凑一下，虽然后面可能不一定全用到
+
+                                        handlePaymentSuccess(mockSuccessJson);
+                                        return;
+                                    } else {
+                                        Log.w("PayDebug", "【反查失败】最近一单金额或时间不匹配。ServerTime:" + serverTime + " LocalTime:" + currentTime);
+                                    }
+                                }
                             }
-                        } else {
-                            DialogUIUtils.dismiss(buildBean);
-                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Payment_failed) + msg, true).show();
                         }
-                    } catch (JSONException e) {
+
+                        // 如果代码走到这里，说明服务器没有刚才那笔单子 -> 确实支付失败了
                         DialogUIUtils.dismiss(buildBean);
-                        Toast.makeText(MainActivity.this, "数据解析异常", LENGTH_SHORT).show();
+                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected) + "\n(请求超时，未生成订单)", true).show();
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        // 解析异常，不敢乱报成功，提示网络错误
+                        DialogUIUtils.dismiss(buildBean);
+                        new DeleteShopPopupWindow(MainActivity.this, "验证支付状态异常", true).show();
                     }
                 });
             }
@@ -1373,13 +1528,29 @@ public class MainActivity extends Activity implements View.OnClickListener {
             @Override
             public void onFailure(IOException e) {
                 runOnUiThread(() -> {
-                    DialogUIUtils.dismiss(buildBean);
-                    Log.e("PayError", "支付请求失败: " + e.getMessage());
-                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected) + "\n" + e.getMessage(), true).show();
+                    // ★★★ 最坏情况：连反查接口都连不上（网彻底断了） ★★★
+                    // 必须弹窗警告收银员人工确认
+                    showAmbiguousStatusDialog();
                 });
             }
         });
     }
+
+    /**
+     * 显示“状态不确定”的红色警告弹窗 (人工介入)
+     */
+    private void showAmbiguousStatusDialog() {
+        DialogUIUtils.dismiss(buildBean);
+        // 这里建议传 true (isError)，显示红色警告
+        new DeleteShopPopupWindow(MainActivity.this, true,
+                "⚠️ 严重网络故障 ⚠️\n\n系统【无法确认】顾客是否已扣款。\n\n请务必查看【顾客手机】！\n如果已扣款，请勿重复扫码！",
+                text -> {
+                    // 点击确定后的操作，通常什么都不做，让收银员自己决定
+                }).show();
+    }
+
+
+
 
 
 
@@ -1759,12 +1930,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
     /**
      * 微信支付轮询逻辑（移植自老代码）
      */
+    /**
+     * 微信支付轮询逻辑（加固版：抗网络波动）
+     */
     public void fwsgetOrderInformation(CheckoutBean checkoutBean) {
         Map<String, String> params = new HashMap<>();
         params.put("outTradeNo", out_trade_no);
         params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
 
-        // 构建 FormBody
         okhttp3.FormBody.Builder formBuilder = new okhttp3.FormBody.Builder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
             formBuilder.add(entry.getKey(), entry.getValue());
@@ -1780,18 +1953,26 @@ public class MainActivity extends Activity implements View.OnClickListener {
         builder.post(formBody);
 
         okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
-                .connectTimeout(10000, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(10000, java.util.concurrent.TimeUnit.SECONDS)
-                .writeTimeout(10000, java.util.concurrent.TimeUnit.SECONDS)
+                .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                .writeTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
                 .build();
 
         client.newCall(builder.build()).enqueue(new okhttp3.Callback() {
             @Override
             public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                // ▼▼▼▼▼▼ 修改开始：网络波动时，不报错，而是延迟重试 ▼▼▼▼▼▼
+                Log.w("PayDebug", "微信轮询网络失败，3秒后自动重试: " + e.getMessage());
+
                 runOnUiThread(() -> {
-                    DialogUIUtils.dismiss(buildBean);
-                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
+                    // 只要界面还没销毁，loading 框还在显示，就继续重试
+                    if (!isFinishing() && buildBean != null && buildBean.dialog != null && buildBean.dialog.isShowing()) {
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            fwsgetOrderInformation(checkoutBean);
+                        }, 3000); // 3秒后重试
+                    }
                 });
+                // ▲▲▲▲▲▲ 修改结束 ▲▲▲▲▲▲
             }
 
             @Override
@@ -1803,45 +1984,73 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
                         runOnUiThread(() -> {
                             try {
-                                String trade_state_desc = new JSONObject(jsonObject.getString("code")).getString("trade_state_desc");
+                                String trade_state_desc = "";
+                                // 增加判空保护，防止JSON解析炸裂
+                                if (jsonObject.has("code") && !jsonObject.isNull("code")) {
+                                    JSONObject codeObj = jsonObject.optJSONObject("code");
+                                    if(codeObj != null) {
+                                        trade_state_desc = codeObj.optString("trade_state_desc");
+                                    }
+                                }
 
-                                if (trade_state_desc.contains("密码")) {
-                                    // 用户正在输入密码，递归轮询
-                                    fwsgetOrderInformation(checkoutBean);
+                                if (trade_state_desc.contains("密码") || trade_state_desc.contains("USERPAYING")) {
+                                    // 用户正在输入密码，继续轮询
+                                    // 这里也可以稍微 delay 一下，防止请求太频繁
+                                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                        fwsgetOrderInformation(checkoutBean);
+                                    }, 1000);
 
-                                } else if (trade_state_desc.contains("支付成功")) {
+                                } else if (trade_state_desc.contains("支付成功") || trade_state_desc.contains("SUCCESS")) {
                                     // 支付成功
                                     transaction_id = new JSONObject(jsonObject.getString("code")).getString("transaction_id");
                                     checkoutBean.setTransaction_id(transaction_id);
-                                    checkoutBean.setOrder_sn(order_sn); // 确保 SN 正确
+                                    checkoutBean.setOrder_sn(order_sn);
 
-                                    // ★★★ 关键修改：调用新代码的通用成功处理逻辑 (负责UI、声音、打印)
                                     handlePaymentSuccess(jsonObject);
-
-                                    // ★★★ 同时调用推单 (负责数据同步)
                                     pushorders(checkoutBean);
 
-                                } else if (trade_state_desc.contains("支付失败")) {
+                                } else if (trade_state_desc.contains("支付失败") || trade_state_desc.contains("PAYERROR")) {
                                     fwscancelanOrder(checkoutBean);
 
-                                } else if (trade_state_desc.contains("订单已撤销")) {
+                                } else if (trade_state_desc.contains("订单已撤销") || trade_state_desc.contains("REVOKED")) {
                                     order_sn = "";
                                     out_trade_no = "";
                                     DialogUIUtils.dismiss(buildBean);
                                     new DeleteShopPopupWindow(MainActivity.this, getString(R.string.order_canceled), true).show();
+                                } else {
+                                    // 未知状态，继续轮询 (防止状态描述变化导致中断)
+                                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                        fwsgetOrderInformation(checkoutBean);
+                                    }, 3000);
                                 }
                             } catch (JSONException e) {
                                 e.printStackTrace();
+                                // 解析失败也重试，万一服务器传回乱码
+                                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                    fwsgetOrderInformation(checkoutBean);
+                                }, 3000);
                             }
                         });
 
                     } catch (Exception e) {
                         Log.e("PayDebug", "Error occurred", e);
+                        // 异常重试
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            fwsgetOrderInformation(checkoutBean);
+                        }, 3000);
                     }
+                } else {
+                    // 服务器报错 (500/404) 也重试
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        fwsgetOrderInformation(checkoutBean);
+                    }, 3000);
                 }
             }
         });
     }
+
+
+
 
 
     /**

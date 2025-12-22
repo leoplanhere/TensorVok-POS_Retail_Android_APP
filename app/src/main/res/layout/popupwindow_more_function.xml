@@ -47,31 +47,38 @@
             <TextView
                 android:id="@+id/tongbushuju_btn"
                 style="@style/MoreFeatureBtnStyle"
+                android:drawablePadding="-22dp"
                 android:drawableTop="@drawable/baseline_sync_24"
+
                 android:text="@string/sync_data"
+
                 android:textColor="@color/mr_red_000" />
 
             <TextView
                 android:id="@+id/bianqiandaying_btn"
                 style="@style/MoreFeatureBtnStyle"
+                android:drawablePadding="-22dp"
                 android:drawableTop="@drawable/outline_aod_tablet_24"
                 android:text="@string/label_printing" />
 
             <TextView
                 android:id="@+id/shangpinruku_btn"
                 style="@style/MoreFeatureBtnStyle"
+                android:drawablePadding="-22dp"
                 android:drawableTop="@drawable/outline_add_ad_24"
                 android:text="@string/stock_in" />
 
             <TextView
                 android:id="@+id/lishizhangdan_btn"
                 style="@style/MoreFeatureBtnStyle"
+                android:drawablePadding="-22dp"
                 android:drawableTop="@drawable/outline_browse_gallery_24"
                 android:text="@string/order_history" />
 
             <TextView
                 android:id="@+id/tuichudenglv_btn"
                 style="@style/MoreFeatureBtnStyle"
+                android:drawablePadding="-22dp"
                 android:drawableTop="@drawable/outline_all_out_24"
                 android:textColor="@color/mr_red_000"
                 android:text="@string/log_out" />
@@ -87,12 +94,14 @@
             <TextView
                 android:id="@+id/zhangdandayingji_btn"
                 style="@style/MoreFeatureBtnStyle"
+                android:drawablePadding="-22dp"
                 android:drawableTop="@drawable/baseline_print_24"
                 android:text="@string/receipt_printer_setup" />
 
             <TextView
                 android:id="@+id/bianqiandayingji_btn"
                 style="@style/MoreFeatureBtnStyle"
+                android:drawablePadding="-22dp"
                 android:drawableTop="@drawable/outline_adf_scanner_24"
                 android:text="@string/label_printer_setup" />
 
