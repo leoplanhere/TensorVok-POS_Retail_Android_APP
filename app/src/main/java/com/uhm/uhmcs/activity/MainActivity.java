@@ -1755,7 +1755,146 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
 
 
-    public void fwsgetOrderInformation(CheckoutBean checkoutBean) {}
+
+    /**
+     * 微信支付轮询逻辑（移植自老代码）
+     */
+    public void fwsgetOrderInformation(CheckoutBean checkoutBean) {
+        Map<String, String> params = new HashMap<>();
+        params.put("outTradeNo", out_trade_no);
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
+
+        // 构建 FormBody
+        okhttp3.FormBody.Builder formBuilder = new okhttp3.FormBody.Builder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        RequestBody formBody = formBuilder.build();
+
+        String url = POSApiSerview.POS_URL + POSApiSerview.fwsgetOrderInformation;
+        okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
+
+        if (UserUtils.getInstance().getLoginBase() != null && UserUtils.getInstance().getLoginBase().getData() != null) {
+            builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+        }
+        builder.post(formBody);
+
+        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
+                .connectTimeout(10000, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(10000, java.util.concurrent.TimeUnit.SECONDS)
+                .writeTimeout(10000, java.util.concurrent.TimeUnit.SECONDS)
+                .build();
+
+        client.newCall(builder.build()).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                runOnUiThread(() -> {
+                    DialogUIUtils.dismiss(buildBean);
+                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
+                });
+            }
+
+            @Override
+            public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success = response.body().string();
+                        JSONObject jsonObject = new JSONObject(success);
+
+                        runOnUiThread(() -> {
+                            try {
+                                String trade_state_desc = new JSONObject(jsonObject.getString("code")).getString("trade_state_desc");
+
+                                if (trade_state_desc.contains("密码")) {
+                                    // 用户正在输入密码，递归轮询
+                                    fwsgetOrderInformation(checkoutBean);
+
+                                } else if (trade_state_desc.contains("支付成功")) {
+                                    // 支付成功
+                                    transaction_id = new JSONObject(jsonObject.getString("code")).getString("transaction_id");
+                                    checkoutBean.setTransaction_id(transaction_id);
+                                    checkoutBean.setOrder_sn(order_sn); // 确保 SN 正确
+
+                                    // ★★★ 关键修改：调用新代码的通用成功处理逻辑 (负责UI、声音、打印)
+                                    handlePaymentSuccess(jsonObject);
+
+                                    // ★★★ 同时调用推单 (负责数据同步)
+                                    pushorders(checkoutBean);
+
+                                } else if (trade_state_desc.contains("支付失败")) {
+                                    fwscancelanOrder(checkoutBean);
+
+                                } else if (trade_state_desc.contains("订单已撤销")) {
+                                    order_sn = "";
+                                    out_trade_no = "";
+                                    DialogUIUtils.dismiss(buildBean);
+                                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.order_canceled), true).show();
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        Log.e("PayDebug", "Error occurred", e);
+                    }
+                }
+            }
+        });
+    }
+
+
+    /**
+     * 微信支付撤销逻辑（移植自老代码，补充依赖）
+     */
+    public void fwscancelanOrder(CheckoutBean checkoutBean) {
+        Map<String, String> params = new HashMap<>();
+        params.put("outTradeNo", out_trade_no);
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
+
+        okhttp3.FormBody.Builder formBuilder = new okhttp3.FormBody.Builder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        RequestBody formBody = formBuilder.build();
+
+        String url = POSApiSerview.POS_URL + POSApiSerview.fwscancelanOrder;
+        okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
+
+        if (UserUtils.getInstance().getLoginBase() != null && UserUtils.getInstance().getLoginBase().getData() != null) {
+            builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+        }
+        builder.post(formBody);
+
+        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
+                .connectTimeout(10000, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(10000, java.util.concurrent.TimeUnit.SECONDS)
+                .writeTimeout(10000, java.util.concurrent.TimeUnit.SECONDS)
+                .build();
+
+        client.newCall(builder.build()).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                runOnUiThread(() -> {
+                    DialogUIUtils.dismiss(buildBean);
+                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
+                });
+            }
+
+            @Override
+            public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success = response.body().string();
+                        runOnUiThread(() -> fwsgetOrderInformation(checkoutBean));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
+
     public void getLastOder() {
         Map<String, String> params = new HashMap<>();
         params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
@@ -1801,27 +1940,53 @@ public class MainActivity extends Activity implements View.OnClickListener {
     /**
      * 推送订单（支付成功后调用）
      */
+    /**
+     * 推送订单（移植老代码逻辑：使用JSON提交 + Token头）
+     */
     public void pushorders(CheckoutBean checkoutBean) {
-        if (TextUtils.isEmpty(order_sn)) return;
-
-        Map<String, String> params = new HashMap<>();
-        params.put("order_sn", order_sn);
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-        if (!TextUtils.isEmpty(transaction_id)) {
-            params.put("transaction_id", transaction_id);
-        }
-
+        // 使用老代码的 URL 和 JSON 逻辑
         String url = POSApiSerview.POS_URL + POSApiSerview.pushorders;
+        Gson gson = new Gson();
 
-        OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
+        // 1. 构建 JSON Body
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), gson.toJson(checkoutBean));
+
+        // 2. 构建带 Token 的请求
+        okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
+        if (UserUtils.getInstance().getLoginBase() != null && UserUtils.getInstance().getLoginBase().getData() != null) {
+            builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
+        }
+        builder.post(body);
+
+        // 3. 配置 OkHttpClient (使用老代码的超时设置)
+        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
+                .connectTimeout(10000, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(10000, java.util.concurrent.TimeUnit.SECONDS)
+                .writeTimeout(10000, java.util.concurrent.TimeUnit.SECONDS)
+                .build();
+
+        // 4. 执行请求
+        client.newCall(builder.build()).enqueue(new okhttp3.Callback() {
             @Override
-            public void onSuccess(String response) {
-                Log.i("PushOrder", "推单成功: " + response);
+            public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                runOnUiThread(() -> {
+                    // 推单失败仅记录日志，不弹窗打断用户，因为订单实际上已经支付成功了
+                    Log.e("PushOrder", "推单失败: " + e.getMessage());
+                });
             }
 
             @Override
-            public void onFailure(IOException e) {
-                Log.e("PushOrder", "推单失败: " + e.getMessage());
+            public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String success = response.body().string();
+                        Log.i("PushOrder", "推单成功: " + success);
+                        // 注意：此处移除了老代码中重复的打印、清空购物车等UI逻辑
+                        // 因为新代码的 handlePaymentSuccess 已经处理了这些界面操作
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
     }

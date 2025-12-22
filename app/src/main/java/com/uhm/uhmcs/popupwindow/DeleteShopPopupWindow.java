@@ -212,7 +212,7 @@ public class DeleteShopPopupWindow {
                         deleteShopOnClickListener.onClick("");
                     }
                 }
-            }, 600);
+            }, 500);
         }
     }
     public void dismiss(){
