@@ -18,7 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.view.KeyEvent;
 import com.dou361.dialogui.DialogUIUtils;
 import com.dou361.dialogui.bean.BuildBean;
 import com.google.gson.Gson;
@@ -77,6 +77,11 @@ public class CheckoutPopupWindow {
 
     private boolean weixin_type=false;
     private boolean zhifubao_type=false;
+
+
+    // ★★★ 新增变量：记录最后一次按数字键的时间
+    private long lastNumericKeyTime = 0;
+
     private Runnable shoukuan_tvRunnable = new Runnable() {
         @Override
         public void run() {
@@ -128,6 +133,46 @@ public class CheckoutPopupWindow {
         shijishou_tv.setText("￥"+checkoutBean.getTotal_fee());
         youhui_tv.setText("￥"+checkoutBean.getDiscount_fee());
         shoukuan_tv=popupView.findViewById(R.id.shoukuan_tv);
+
+
+        // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 新增拦截逻辑开始 ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+        shoukuan_tv.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+
+                    // 1. 如果是数字键，记录当前时间
+                    // 扫码枪输入数字的速度极快（通常几毫秒一个）
+                    if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+                        lastNumericKeyTime = System.currentTimeMillis();
+                        return false; // 不拦截数字，让它正常处理（虽然你说金额没变，但逻辑上不能断）
+                    }
+
+                    // 2. 拦截回车键
+                    if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                        // 计算距离上一次按数字键过了多久
+                        long interval = System.currentTimeMillis() - lastNumericKeyTime;
+
+                        // 判断条件：
+                        // A. 当前是现金模式
+                        // B. 距离上一次数字输入非常近（< 100ms），说明是扫码枪连着发过来的回车
+                        //    (人类手动输入通常慢于 200ms，或者按完数字会停顿一下再按回车)
+                        if ("cash".equals(pay_type) && interval < 200) {
+
+                            // 弹窗提示
+                            new DeleteShopPopupWindow(context, "现金支付无法扫码", true).show();
+
+                            // ★★★ 关键：返回 true，表示“这个回车键我消费掉了”，不再传给后面的 InputCompleteListener
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        });
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 新增拦截逻辑结束 ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+
 
         shoukuan_tv.addTextChangedListener(new TextWatcher() {
             @Override
