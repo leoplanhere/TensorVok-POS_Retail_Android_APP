@@ -8,6 +8,7 @@ common = "9.8.2"
 convenientbanner = "2.0.5"
 core = "3.4.1"
 cosmoCalendar = "1.0.2"
+pinyin4j = "2.5.0"
 cosmocalendarVersion = "1.0.4"
 glide = "4.12.0"
 gson = "2.12.1"
@@ -33,6 +34,7 @@ zxingAndroidEmbedded = "4.3.0"
 
 
 [libraries]
+
 apm = { module = "com.umeng.umsdk:apm", version.ref = "apm" }
 appupdate = { module = "com.github.gh_mirrors:AppUpdate", version.ref = "appupdate" }
 asms = { module = "com.umeng.umsdk:asms", version.ref = "asms" }
@@ -44,6 +46,9 @@ cosmo-calendar = { module = "com.github.applikeysolutions:cosmo-calendar", versi
 cosmocalendar = { module = "com.github.applikeysolutions:cosmocalendar", version.ref = "cosmocalendarVersion" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+
+pinyin4j = { group = "com.belerweb", name = "pinyin4j", version.ref = "pinyin4j" }
+
 jjdxm-dialogui = { module = "com.dou361.dialogui:jjdxm-dialogui", version.ref = "jjdxmDialogui" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

@@ -32,25 +32,34 @@ public class GrouponGoodsAdapter extends BaseQuickAdapter <GrouponGoodsBean.Grou
 
     @Override
     protected void convert(BaseViewHolder helper, GrouponGoodsBean.GrouponGoodsModel item) {
-        TextView textView=helper.getView(R.id.title);
-        helper.setText(R.id.title,item.getTitle());
-        ImageView imageView=(ImageView) helper.getView(R.id.image);
-        if (TextUtils.isEmpty(item.getImage())){
-            imageView.setVisibility(GONE);
-            textView.setTextSize(40);
-        }else {
-            imageView.setVisibility(VISIBLE);
-            textView.setTextSize(24);
-            Glide.with(context)
-                    .load(item.getImage())
-//                    .placeholder(R.mipmap.ic_launcher)
-//                    .error(R.mipmap.ic_launcher)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .into(imageView);
-        }
-        helper.setText(R.id.price,"￥"+item.getPrice());
+        // 1. 获取标题控件
+        TextView textView = helper.getView(R.id.title);
+        helper.setText(R.id.title, item.getTitle());
 
+        // 设置你想要的字号
+        textView.setTextSize(20);
+
+        // 2. 图片相关逻辑全部注释掉，防止 NullPointerException
+        /*
+        ImageView imageView = (ImageView) helper.getView(R.id.image);
+        if (TextUtils.isEmpty(item.getImage())){
+            if (imageView != null) imageView.setVisibility(GONE);
+        } else {
+            if (imageView != null) {
+                imageView.setVisibility(VISIBLE);
+                Glide.with(context)
+                        .load(item.getImage())
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(imageView);
+            }
+        }
+        */
+
+        // 3. 设置价格
+        helper.setText(R.id.price, "￥" + item.getPrice());
     }
+
+
     public void loadMoreData(List<GrouponGoodsBean.GrouponGoodsModel> newData) {
         if (!isLoading && hasMore) {
             isLoading = true; // 开始加载更多数据

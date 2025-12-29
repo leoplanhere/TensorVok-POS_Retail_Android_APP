@@ -3,6 +3,7 @@ plugins {
 }
 
 android {
+    // 保持你原本的命名空间
     namespace 'com.uhm.uhmcs'
     compileSdk 35
 
@@ -12,6 +13,45 @@ android {
         targetSdk 35
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // =====================================================================
+        // 核心修复 1：架构锁定
+        // 因为 AclasScaleLib.so 通常只有 32 位版本，必须强制 App 以 32 位模式运行
+        // =====================================================================
+        ndk {
+            abiFilters 'armeabi-v7a'
+        }
+    }
+
+    // =========================================================================
+    // 核心修复 2：JNI 路径映射
+    // 显式告诉 Gradle 你的 .so 文件在 libs 文件夹里
+    // =========================================================================
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    // =========================================================================
+    // 核心修复 3：打包与冲突解决策略
+    // 1. useLegacyPackaging: 解决 Android 11+ 无法加载某些硬件 .so 的问题
+    // 2. pickFirsts: 解决多个 SDK 之间 libc++_shared.so 和 libimageproc.so 的重复冲突
+    // =========================================================================
+    packaging {
+        jniLibs {
+            useLegacyPackaging true
+            // 解决 32 位冲突
+            pickFirsts.add("lib/armeabi-v7a/libc++_shared.so")
+            pickFirsts.add("lib/armeabi-v7a/libimageproc.so")
+
+            // --- 新增：彻底解决 64 位路径下的冲突 ---
+            pickFirsts.add("lib/arm64-v8a/libc++_shared.so")
+            pickFirsts.add("lib/arm64-v8a/libimageproc.so")
+        }
+        resources {
+            excludes += ['META-INF/NOTICE', 'META-INF/LICENSE', 'META-INF/DEPENDENCIES']
+        }
     }
 
     buildTypes {
@@ -20,6 +60,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -27,36 +68,59 @@ android {
 }
 
 dependencies {
+    // --- 保持你原本的依赖，并补充硬件/工具所需 ---
 
+    // 1. 自动引用 libs 目录下所有的 jar 和 aar
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+
+    // 2. 基础组件 (你原本的内容)
     implementation libs.appcompat
     implementation libs.material
     implementation libs.activity
     implementation libs.constraintlayout
-    testImplementation libs.junit
-    androidTestImplementation libs.ext.junit
-    androidTestImplementation libs.espresso.core
+
+    // 3. 网络与图片 (你原本的内容)
     implementation libs.okhttp
-    implementation libs.okhttp3.logging.interceptor // 日志拦截器
-
-    implementation libs.baserecyclerviewadapterhelper
-
+    implementation libs.okhttp3.logging.interceptor
     implementation libs.glide
-    implementation libs.recyclerview
-
     implementation libs.gson
-    implementation libs.zxing.android.embedded // 封装了ZXing的核心功能
-    implementation libs.core                 // 核心编码库
-    implementation libs.cosmocalendar
 
+
+    // --- 1. 修复当前的 FileUtils 报错 ---
+    implementation 'commons-io:commons-io:2.11.0'
+
+    // --- 2. 之前的 Retrofit 依赖（确保已添加） ---
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+
+    // --- 3. 建议补齐的常用底层工具（SDK 内部大概率会用到） ---
+    // JNA (用于 Java 调用 C++ 原生库)
+    implementation 'net.java.dev.jna:jna:5.12.1@aar'
+    // RxJava 2 (异步处理)
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
+
+    // 4. UI 库与功能 (你原本的内容)
+    implementation libs.recyclerview
+    implementation libs.baserecyclerviewadapterhelper
+    implementation libs.zxing.android.embedded
+    implementation libs.core
+    implementation libs.cosmocalendar
     implementation libs.jjdxm.dialogui
     implementation libs.materialdatetimepicker
     implementation libs.rangepicker
-    implementation libs.convenientbanner  // 轮播图核心库‌:ml-citation{ref="5" data="citationList"}
+    implementation libs.convenientbanner
     implementation libs.updateapputilsx
     implementation libs.xpopup
+
+    // 5. 解决 riv_corner_radius 报错的关键行
     implementation libs.roundedimageview
 
+    // 6. 解决 Utilis.java 拼音报错的关键行
+    implementation libs.pinyin4j
 
-
-
+    // 7. 测试
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
 }

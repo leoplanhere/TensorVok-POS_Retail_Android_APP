@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" >优海猫-零售</string>
+    <string name="app_name" >优海猫-零售1229</string>
     <string name="qudan_null">取单(F3)</string>
     <string name="qudan_null1">取单</string>
     <string name="qudan_num">取单(F3)(%s)</string>
@@ -10,6 +10,9 @@
     <string name="delete">删除</string>
     <string name="barcode">条形码</string>
     <string name="grand_total">总价:</string>
+    <string name="qfrsp">请放入商品</string>
+    <string name="zlyc">重量异常</string>
+    <string name="zlbwd">重量不稳定</string>
     <string name="total_items">总件数:</string>
     <string name="delete_item">删除商品</string>
     <string name="clear_all">清空(F5)</string>

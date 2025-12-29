@@ -6,17 +6,17 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="5dp"
     android:background="@drawable/shop_btn_bg"
-    android:minHeight="300dp">
+    android:minHeight="120dp">
 
 
-    <ImageView
-        android:layout_marginTop="@dimen/dp_10"
-        android:id="@+id/image"
-        android:layout_width="match_parent"
-        android:layout_height="180dp"
-        android:background="@drawable/imageview_round_corner"
-        android:visibility="visible"
-        android:layout_gravity="center_horizontal"/>
+<!--    <ImageView-->
+<!--        android:layout_marginTop="@dimen/dp_10"-->
+<!--        android:id="@+id/image"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="50dp"-->
+<!--        android:background="@drawable/imageview_round_corner"-->
+<!--        android:visibility="visible"-->
+<!--        android:layout_gravity="center_horizontal"/>-->
     <LinearLayout
         android:gravity="center_horizontal"
         android:layout_width="match_parent"
@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="商品名称"
-            android:textSize="24dp"
+            android:textSize="16sp"
             android:textColor="@color/white"
             android:textStyle="bold"
             android:gravity="center" />
@@ -39,7 +39,7 @@
             android:layout_height="wrap_content"
             android:text="23元/500克"
             android:textColor="@color/white"
-            android:textSize="18dp"
+            android:textSize="16sp"
             android:layout_centerHorizontal="true"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="10dp"/>

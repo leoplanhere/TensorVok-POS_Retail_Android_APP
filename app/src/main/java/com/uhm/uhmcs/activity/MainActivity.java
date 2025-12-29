@@ -1,13 +1,20 @@
 package com.uhm.uhmcs.activity;
 
+import com.example.scaler.AclasScaler;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static android.widget.Toast.LENGTH_SHORT;
-
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
@@ -62,6 +69,7 @@ import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.adapter.GrouponGoodsAdapter;
 import com.uhm.uhmcs.adapter.SelectedShopAdapter;
 import com.uhm.uhmcs.adapter.ShopTypeAdapter;
+import android.os.Message;
 import com.uhm.uhmcs.bean.CategoryListBean;
 import com.uhm.uhmcs.bean.CheckoutBean;
 import com.uhm.uhmcs.bean.GrouponGoodsBean;
@@ -128,6 +136,40 @@ import okhttp3.logging.HttpLoggingInterceptor;
 
 public class MainActivity extends Activity {
 
+    // --- 称重平移变量 ---
+    private final int MSG_Weight = 5;
+    private AclasScaler m_scaler = null;
+    private AclasScaler.WeightInfoNew m_weight = null;
+    private TextView weight_id;      // 对应收银 UI 的 tv_real_weight
+    private TextView tv_tareWeight;  // 对应收银 UI 的 tv_tare_weight
+
+    // --- 新增下面这两行，解决你现在的报错 ---
+    private TextView tv_main_shop_name;
+    private TextView tv_nickname;
+
+
+
+    // --- 确保添加了这两行声明 ---
+    private TextView tv_real_weight;
+    private TextView tv_tare_weight;
+    private TextView btn_qupi;
+
+
+
+    @SuppressLint("HandlerLeak")
+    Handler handler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_Weight:
+                    showWeight(getWeightInfo());
+                    break;
+            }
+        }
+    };
+
+
+
+
     private Integer selectedShopIndex;
     private RecyclerView rv_choose_menu3, shop_rv, selected_shop_rv;
     private LinearLayoutManager selected_LinearLayoutManager;
@@ -183,45 +225,68 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+
+
+        // --- 称重初始化平移 ---
+        InitDevice(0);
+        OpenScale();
+
+
         Log.i("ttt", ">>>>onCreate>>>>");
         MyUsbDeviceHelper.getInstance().inti(this);
 
+        // 1. 处理网络状态图标显示
         if (NetworkUtils.getInstance().isNetworkConnected(this)) {
-            OverviewList();
-            getGrouponGoods();
             wangluo_view.setVisibility(GONE);
-            if (TextUtils.isEmpty(UserUtils.getInstance().getOrderListJson())) {
-                bendin_view.setVisibility(GONE);
-            } else {
-                bendin_view.setVisibility(VISIBLE);
-            }
-
         } else {
             wangluo_view.setVisibility(VISIBLE);
+        }
+
+        // 2. 处理本地待上传账单提示
+        if (TextUtils.isEmpty(UserUtils.getInstance().getOrderListJson())) {
             bendin_view.setVisibility(GONE);
-            if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
-                Gson gson = new Gson();
-                CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
-                shopTypeAdapter.setNewData(categoryListBean.getData());
-            } else {
+        } else {
+            bendin_view.setVisibility(VISIBLE);
+        }
+
+        // 3. 加载分类列表数据：优先本地，本地没有才联网
+        if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
+            // 存在缓存，直接解析显示
+            Gson gson = new Gson();
+            CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
+            shopTypeAdapter.setNewData(categoryListBean.getData());
+        } else {
+            // 本地完全没数据（初次安装），才自动获取一次
+            if (NetworkUtils.getInstance().isNetworkConnected(this)) {
                 OverviewList();
             }
-            if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
-                Gson gson = new Gson();
-                GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
-                allGrouponGoodsModelList = grouponGoodsBean.getData();
-                indexGrouponGoodsModelList = allGrouponGoodsModelList;
-                grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
-            } else {
+        }
+
+        // 4. 加载商品列表数据：优先本地，本地没有才联网
+        if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
+            // 存在缓存，直接解析显示
+            Gson gson = new Gson();
+            GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
+            allGrouponGoodsModelList = grouponGoodsBean.getData();
+            indexGrouponGoodsModelList = allGrouponGoodsModelList;
+            grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+        } else {
+            // 本地完全没数据（初次安装），才自动获取一次
+            if (NetworkUtils.getInstance().isNetworkConnected(this)) {
                 getGrouponGoods();
             }
         }
+
+        // 5. 注册网络监听
         if (networkChangeReceiver == null) {
             networkChangeReceiver = registerNetworkReceiver(this);
         }
-
-
     }
+
+
+
+
+
 
     private NetworkChangeReceiver networkChangeReceiver;
 
@@ -284,6 +349,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        // --- 必须加入下面这一段 ---
+        if (m_scaler != null) {
+            m_scaler.AclasDisconnect();
+        }
+
         if (networkChangeReceiver != null) {
             unregisterReceiver(networkChangeReceiver);
         }
@@ -295,6 +366,8 @@ public class MainActivity extends Activity {
     int allNum = 0;
     public MemberBean memberBean1;
     @SuppressLint({"SetTextI18n", "NotifyDataSetChanged", "SimpleDateFormat"})
+
+
     private void initView() {
         MediaRouter mediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
         MediaRouter.RouteInfo route = mediaRouter.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_VIDEO);
@@ -305,6 +378,7 @@ public class MainActivity extends Activity {
                 presentation.show();
             }
         }
+
         yingfu_tv=findViewById(R.id.yingfu_tv);
         shifu_tv=findViewById(R.id.shifu_tv);
         youhui_tv=findViewById(R.id.youhui_tv);
@@ -315,6 +389,20 @@ public class MainActivity extends Activity {
         zhifubao_tv=findViewById(R.id.zhifubao_tv);
         zhaolin_tv=findViewById(R.id.zhaolin_tv);
         zhifuxinxi_view=findViewById(R.id.zhifuxinxi_view);
+
+        tv_real_weight = findViewById(R.id.tv_real_weight);
+        tv_tare_weight = findViewById(R.id.tv_tare_weight);
+        weight_id = tv_real_weight;
+        tv_tareWeight = tv_tare_weight;
+
+        findViewById(R.id.btn_qupi).setOnClickListener(v -> {
+            if (m_scaler != null && m_weight != null && m_weight.isStable) {
+                m_scaler.AclasTare();
+            }
+        });
+
+
+
 
 
         onClickListener = new View.OnClickListener() {
@@ -1068,6 +1156,18 @@ public class MainActivity extends Activity {
         });
 
 
+        // --- 称重 UI 绑定平移 ---
+        weight_id = findViewById(R.id.tv_real_weight); // 实时重量
+        tv_tareWeight = findViewById(R.id.tv_tare_weight); // 皮重
+        View btn_qupi = findViewById(R.id.btn_qupi); // 去皮按钮
+
+        btn_qupi.setOnClickListener(v -> {
+            if (m_scaler != null && m_weight != null && m_weight.isStable) {
+                m_scaler.AclasTare(); // 执行去皮逻辑
+            }
+        });
+
+
 
         shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji() ? VISIBLE : GONE);
         bendin_view = findViewById(R.id.bendin_view);
@@ -1562,7 +1662,7 @@ public class MainActivity extends Activity {
 
         //=================================商品列表start=========================================//
         shop_rv = findViewById(R.id.shop_rv);
-        shop_rv.setLayoutManager(new GridLayoutManager(this, 4)); // 设置3列，横向布局，不反转方向（false）
+        shop_rv.setLayoutManager(new GridLayoutManager(this, 2)); // 设置3列，横向布局，不反转方向（false）
         grouponGoodsAdapter = new GrouponGoodsAdapter(this, R.layout.item_groupon_goods);
         shop_rv.setAdapter(grouponGoodsAdapter);
 //        grouponGoodsAdapter.setOnLoadMoreListener(() -> {
@@ -1611,79 +1711,156 @@ public class MainActivity extends Activity {
         });
 
         grouponGoodsAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
-
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-//                if (!is_kedian){
-//                    return;
-//                }
-//                is_kedian=false;
-//                new Handler().postDelayed(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                       is_kedian=true;
-//                    }
-//                }, 700);
+                // 播放点击动画
                 view.startAnimation(animation);
-                allNum++;
+
+                // 获取当前点击的商品数据
                 GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = grouponGoodsAdapter.getData().get(position);
-                if (selectedShopList != null && !selectedShopList.isEmpty()) {
 
-                    for (int i = 0; i < selectedShopList.size(); i++) {
-                        GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
-//                        Log.i("ttt", ">>>>>>>>>>>>>>" + model.getId() + "<<<<<" + grouponGoodsModel.getId());
-                        Log.i("ttt", ">>>>>>>>Ggspid>>>>>>" + model.getGgspid() + "<<<<<" + grouponGoodsModel.getGgspid());
-                        if (model.getId() == grouponGoodsModel.getId() && model.getGgspid() == grouponGoodsModel.getGgspid()) {
-                            model.setShuliang(model.getShuliang() + 1);
-                            BigDecimal price = new BigDecimal(model.getPrice());
-                            if (!TextUtils.isEmpty(model.getDiscount())) {
-                                price = price.multiply(new BigDecimal(model.getDiscount())).divide(new BigDecimal(100));
-                                model.setDiscounted_price(model.getDiscounted_price().add(new BigDecimal(model.getPrice()).subtract(price)));
-                            }
-                            BigDecimal heji = price.add(model.getHeji()).setScale(2, RoundingMode.DOWN);
-                            model.setHeji(heji);
-                            if (!model.isIs_zengsong()) {
-                                zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
-                            }
+                // --- 更新左侧展示区域 ---
+                if (zhifuxinxi_view != null) zhifuxinxi_view.setVisibility(GONE);
+                if (shop_image != null) shop_image.setVisibility(VISIBLE);
 
-                            tv_zongjia.setText(zongjia + "");
-                            selectedShopAdapter.notifyItemChanged(i);
-                            tv_zongjian.setText(allNum + "");
-                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                            MyPresentation.setZongjia(zongjia.toString());
-                            availableAmount();
-                            return;
+                Glide.with(MainActivity.this)
+                        .load(grouponGoodsModel.getImage())
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(shop_image);
+
+                // ========================== 核心移植逻辑：处理称重商品 ==========================
+
+                if ("weight".equals(grouponGoodsModel.getOnline_type())) {
+                    // 1. 核心校验：秤是否正常、重量是否大于0、是否超重、是否稳定
+                    if (m_weight == null || m_weight.netWeight <= 0) {
+                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.qfrsp), true).show();
+                        return;
+                    }
+                    if (m_weight.isOverWeight) {
+                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.zlyc), true).show();
+                        return;
+                    }
+                    if (!m_weight.isStable) {
+                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.zlbwd), true).show();
+                        return;
+                    }
+
+                    // 2. 数据克隆：防止修改原始数据对象
+                    GrouponGoodsBean.GrouponGoodsModel weightItem = SerializableUtils.deepCopy(grouponGoodsModel);
+
+                    // 3. 重量换算：底层 netWeight 是 kg，业务逻辑需要 g（500g为一斤）
+                    BigDecimal zhongliang = new BigDecimal(String.valueOf(m_weight.netWeight))
+                            .multiply(new BigDecimal("1000"))
+                            .setScale(0, RoundingMode.DOWN);
+
+                    // 4. 计算合计金额：(单价 / 500) * 重量(g)
+                    BigDecimal price = new BigDecimal(weightItem.getPrice());
+                    BigDecimal heji = price.divide(new BigDecimal("500"), 4, RoundingMode.HALF_UP)
+                            .multiply(zhongliang)
+                            .setScale(2, RoundingMode.DOWN);
+
+                    // 5. 处理会员折扣逻辑
+                    if (!TextUtils.isEmpty(memben_discount) && !memben_discount.equals("100")) {
+                        BigDecimal zhehou = heji.multiply(new BigDecimal(memben_discount))
+                                .divide(new BigDecimal("100"), 2, RoundingMode.DOWN);
+                        weightItem.setDiscounted_price(heji.subtract(zhehou)); // 保存优惠了多少钱
+                        weightItem.setDiscount(memben_discount);
+                        heji = zhehou; // 最终支付金额变为折后价
+                    } else {
+                        weightItem.setDiscount("100");
+                        weightItem.setDiscounted_price(new BigDecimal("0.00"));
+                    }
+
+                    // 6. 属性注入
+                    weightItem.setHeji(heji);
+                    weightItem.setGoods_weight(zhongliang.toString());
+                    weightItem.setShuliang(1); // 称重品单条计件为1
+
+                    // 7. 更新全局变量与列表
+                    allNum++;
+                    zongjia = zongjia.add(heji).setScale(2, RoundingMode.DOWN);
+                    selectedShopList.add(0, weightItem);
+
+                    // 8. 触发 UI 刷新与副屏同步 (这三行必带)
+                    selectedShopAdapter.setNewData(selectedShopList);
+                    selected_LinearLayoutManager.scrollToPosition(0);
+                    updateUiAndPresentation(-1); // 如果你没封装这个方法，就手动调 setText 和 Presentation 的同步
+                }
+
+
+                else {
+                    // ========================== 原有逻辑：处理普通计件商品 ==========================
+                    allNum++;
+                    if (selectedShopList != null && !selectedShopList.isEmpty()) {
+                        for (int i = 0; i < selectedShopList.size(); i++) {
+                            GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
+                            if (model.getId().equals(grouponGoodsModel.getId()) && model.getGgspid().equals(grouponGoodsModel.getGgspid())) {
+                                model.setShuliang(model.getShuliang() + 1);
+                                BigDecimal price = new BigDecimal(model.getPrice());
+
+                                if (!TextUtils.isEmpty(model.getDiscount())) {
+                                    price = price.multiply(new BigDecimal(model.getDiscount())).divide(new BigDecimal(100));
+                                    model.setDiscounted_price(model.getDiscounted_price().add(new BigDecimal(model.getPrice()).subtract(price)));
+                                }
+
+                                BigDecimal heji = price.add(model.getHeji()).setScale(2, RoundingMode.DOWN);
+                                model.setHeji(heji);
+
+                                if (!model.isIs_zengsong()) {
+                                    zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
+                                }
+
+                                updateUiAndPresentation(i);
+                                return;
+                            }
                         }
                     }
-                }
-                BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
-                if (!TextUtils.isEmpty(memben_discount)) {
-                    price = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
-                    grouponGoodsModel.setDiscounted_price(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price));
-                    grouponGoodsModel.setDiscount(memben_discount);
+
+                    // 处理新计件商品
+                    BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
+                    if (!TextUtils.isEmpty(memben_discount)) {
+                        price = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
+                        grouponGoodsModel.setDiscounted_price(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price));
+                        grouponGoodsModel.setDiscount(memben_discount);
+                    }
+
+                    BigDecimal heji = price.setScale(2, RoundingMode.DOWN);
+                    grouponGoodsModel.setHeji(heji);
+                    grouponGoodsModel.setShuliang(1);
+                    grouponGoodsModel.setGoods_weight("0");
+                    selectedShopList.add(0, SerializableUtils.deepCopy(grouponGoodsModel));
+                    zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
                 }
 
-                BigDecimal heji = price.setScale(2, RoundingMode.DOWN);
-                grouponGoodsModel.setHeji(heji);
-                grouponGoodsModel.setShuliang(1);
-                selectedShopList.add(0, SerializableUtils.deepCopy(grouponGoodsModel));
+                // --- 统一更新 UI 和副屏 ---
+                updateUiAndPresentation(-1);
+            }
 
+            // 为了减少重复代码，封装一个更新 UI 的方法
+            private void updateUiAndPresentation(int changedIndex) {
                 have_paid_view.setVisibility(GONE);
                 selectedShopAdapter.setNewData(selectedShopList);
-                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
+                if (changedIndex != -1) {
+                    selectedShopAdapter.notifyItemChanged(changedIndex);
+                }
+                selected_LinearLayoutManager.scrollToPosition(0);
 
-                // 滚动到位置 0（第一条）
-                selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
                 tv_zongjian.setText(allNum + "");
-                zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
-                tv_zongjia.setText(zongjia + "");
+                tv_zongjia.setText(zongjia.toString());
+                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
                 MyPresentation.setZongjia(zongjia.toString());
                 availableAmount();
             }
         });
 
+
+
+
+
         time = new TimeCount(30000, 5000);//一共执行30000毫秒，每2000执行一次。
     }
+
+
 
     CheckoutBean checkoutBean;
 
@@ -2804,5 +2981,140 @@ public class MainActivity extends Activity {
         config.setLocale(locale);
         return context.createConfigurationContext(config);
     }
+
+
+    // ================================= 称重 SDK 支撑方法平移 (开始) =================================
+
+    /**
+     * 初始化称重设备
+     * @param iType 0:串口, 1:USB
+     */
+    private void InitDevice(int iType) {
+        if (m_scaler != null && m_scaler.AclasIsConnect()) {
+            m_scaler.AclasDisconnect();
+        }
+        m_scaler = new AclasScaler(iType, this, m_listener);
+        m_weight = m_scaler.new WeightInfoNew();
+        m_scaler.setLog(false);
+        m_scaler.AclasSetMulTare(false);
+    }
+
+    /**
+     * 打开秤连接
+     */
+    private void OpenScale() {
+        new Thread(() -> {
+            try {
+                // 1. 尝试获取 Root 权限并修改物理文件权限
+                java.lang.Process p = Runtime.getRuntime().exec("su");
+                java.io.DataOutputStream os = new java.io.DataOutputStream(p.getOutputStream());
+                os.writeBytes("chmod 666 /dev/ttyS4\n");
+                os.writeBytes("setenforce 0\n"); // 尝试临时关闭 SELinux 拦截
+                os.writeBytes("exit\n");
+                os.flush();
+                p.waitFor();
+                Log.i("Scale", "已尝试执行权限提权");
+            } catch (Exception e) {
+                Log.e("Scale", "提权失败（设备可能未Root）: " + e.getMessage());
+            }
+
+            // 2. 提权尝试完成后，再开始连接秤
+            runOnUiThread(() -> {
+                if (m_scaler != null) openInThread();
+            });
+        }).start();
+    }
+
+
+    /**
+     * 开启线程连接串口，防止 UI 线程卡顿
+     */
+    // 串口连接 - 原 App 逻辑
+    private void openInThread() {
+        m_weight.init();
+        new Thread() {
+            public void run() {
+                // 关键：不要在这里循环，直接取 UserUtils 里的地址
+                String port = UserUtils.getInstance().getSerialPortName();
+                if (TextUtils.isEmpty(port)) port = "/dev/ttyS4"; // 保底值
+                m_scaler.AclasConnect(port, 9600, 500);
+            }
+        }.start();
+    }
+
+
+
+    /**
+     * 秤数据监听回调
+     */
+    private AclasScaler.AclasScalerListener m_listener = new AclasScaler.AclasScalerListener() {
+        @Override
+        public void onError(int errornum, String str) {
+            Log.e("Scale", "onError: " + errornum + " str:" + str);
+        }
+
+        @Override
+        public void onDisConnected() {
+            Log.i("Scale", "秤已断开");
+        }
+
+        @Override
+        public void onConnected() {
+            Log.i("Scale", "秤连接成功");
+        }
+
+        @Override
+        public void onRcvData(AclasScaler.WeightInfoNew info) {
+            if (setWeightInfo(info)) {
+                // 收到数据，通过 Handler 发送到 UI 线程更新
+                handler.sendEmptyMessage(MSG_Weight);
+            }
+        }
+
+        @Override
+        public void onUpdateProcess(int iIndex, int iTotal) {}
+    };
+
+    /**
+     * 实时更新主界面称重 UI
+     */
+    private void showWeight(final AclasScaler.WeightInfoNew info) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (!info.isOverWeight) {
+                    // 更新你收银界面上的两个 TextView
+                    if (tv_tare_weight != null) {
+                        tv_tare_weight.setText("皮重:" + String.format("%.3f", info.tareWeight));
+                    }
+                    if (tv_real_weight != null) {
+                        tv_real_weight.setText(String.format("%.3f", info.netWeight));
+                    }
+                } else {
+                    if (tv_real_weight != null) tv_real_weight.setText("OVER");
+                }
+            }
+        });
+    }
+
+
+
+
+    // 必须加 synchronized，防止多线程冲突
+    private synchronized boolean setWeightInfo(AclasScaler.WeightInfoNew info) {
+        if (m_weight == null) return false;
+        return m_weight.setData(info);
+    }
+
+
+
+    private synchronized AclasScaler.WeightInfoNew getWeightInfo() {
+        return m_weight;
+    }
+
+    // ================================= 称重 SDK 支撑方法平移 (结束) =================================
+
+
+
 
 }
