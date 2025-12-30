@@ -90,7 +90,7 @@ public class CheckoutPopupWindow {
 //    private boolean weixin_type=false;
 //    private boolean zhifubao_type=false;
 
-    private boolean isyouhuijuan = true;
+    private boolean isyouhuijuan = false;
 
     private Runnable shoukuan_tvRunnable = new Runnable() {
         @Override
@@ -153,17 +153,30 @@ public class CheckoutPopupWindow {
 
         shoukuan_tv = popupView.findViewById(R.id.shoukuan_tv);
 
+
+
+        // --- 找到这段代码进行替换 ---
         if (!TextUtils.isEmpty(checkoutBean.getCoupon_fee())) {
             youhuijuan_view.setVisibility(VISIBLE);
             youhuijuan_jine.setText(checkoutBean.getCoupon_fee());
-            checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
-            youhui_tv.setText("￥" + new BigDecimal(checkoutBean.getDiscount_fee()).add(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
+            // 默认不使用，所以这里不需要 subtract 扣除金额
+            youhui_tv.setText("￥" + checkoutBean.getDiscount_fee());
         } else {
             youhui_tv.setText("￥" + checkoutBean.getDiscount_fee());
         }
+
+// 设置“不使用”按钮为选中样式，“使用”按钮为普通样式
+        shiyong_btn.setBackgroundResource(R.drawable.blue_line);
+        shiyong_btn.setTextColor(Color.parseColor("#FF3B82F6"));
+        bushiyong_btn.setBackgroundResource(R.drawable.blue_bg5);
+        bushiyong_btn.setTextColor(Color.parseColor("#FFFFFFFF"));
+
         yishou_tv.setText("￥0.00");
         yingshou_tv.setText("￥" + checkoutBean.getTotal_amount());
         shijishou_tv.setText("￥" + checkoutBean.getTotal_fee());
+// -----------------------------
+
+
 
 
         shiyong_btn.setOnClickListener(v -> {
