@@ -711,7 +711,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             if (loadingPopup != null) loadingPopup.dismiss();
             is_tongbu = false;
             loadLocalGoods(0);
-            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Sync_completed), true).show();
+            //new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Sync_completed), true).show();
         });
     }
 
