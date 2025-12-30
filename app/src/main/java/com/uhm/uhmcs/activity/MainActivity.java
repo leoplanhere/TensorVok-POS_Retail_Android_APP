@@ -421,6 +421,9 @@ public class MainActivity extends Activity {
     private void initView() {
 
 
+        // 1. 【核心修复】必须把这一行提到最前面，防止空指针崩溃
+        et_search_pinyin = findViewById(R.id.et_search_pinyin);
+
         MediaRouter mediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
         MediaRouter.RouteInfo route = mediaRouter.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_VIDEO);
         if (route != null) {
@@ -1646,71 +1649,70 @@ public class MainActivity extends Activity {
 
 
 
+        // --- 搜索框逻辑开始 ---
+
+        if (et_search_pinyin != null) {
+            // 1. 触摸监听：处理“叉叉”图标点击
+            et_search_pinyin.setOnTouchListener((v, event) -> {
+                android.graphics.drawable.Drawable drawableRight = et_search_pinyin.getCompoundDrawables()[2];
+                if (drawableRight != null && event.getAction() == android.view.MotionEvent.ACTION_UP) {
+                    // 计算点击区域是否在叉叉图标上
+                    boolean isClickClear = event.getX() >= (et_search_pinyin.getWidth() - et_search_pinyin.getPaddingRight() - drawableRight.getIntrinsicWidth() - 50);
+                    if (isClickClear) {
+                        et_search_pinyin.setText("");
+                        hideKeyboard();              // ★ 收起键盘
+                        et_tiaoxingma.requestFocus(); // ★ 焦点归还扫码框
+                        return true;
+                    }
+                }
+                return false;
+            });
+
+            // 2. 软键盘右下角“搜索/完成”按钮监听
+            et_search_pinyin.setOnEditorActionListener((v, actionId, event) -> {
+                // 当点击软键盘上的搜索图标时
+                if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH ||
+                        actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
+                    hideKeyboard();                  // ★ 收起键盘
+                    et_tiaoxingma.requestFocus();     // ★ 焦点归还扫码框
+                    return true;
+                }
+                return false;
+            });
+
+            // 3. 物理键盘/扫码枪回车监听
+            et_search_pinyin.setOnKeyListener((v, keyCode, event) -> {
+                if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                    hideKeyboard();                  // ★ 收起键盘
+                    et_tiaoxingma.requestFocus();     // ★ 焦点归还扫码框
+                    return true;
+                }
+                return false;
+            });
+
+            // 4. 文字变化监听
+            et_search_pinyin.addTextChangedListener(new android.text.TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    String keyword = s.toString().trim();
+                    // 动态控制叉叉图标显隐 (确保 R.drawable.guanbi 存在)
+                    et_search_pinyin.setCompoundDrawablesWithIntrinsicBounds(0, 0, keyword.length() > 0 ? R.drawable.guanbi : 0, 0);
+                    searchLocalGoods(keyword);
+                }
+                @Override public void afterTextChanged(android.text.Editable s) {}
+            });
+        }
+
+// --- 搜索框逻辑结束 ---
+
+
+
+
+
+
+
 
         time = new TimeCount(30000, 5000);//一共执行30000毫秒，每2000执行一次。
-
-
-
-
-
-        et_search_pinyin = findViewById(R.id.et_search_pinyin);
-
-
-
-        // 1. 先绑定清空按钮并设置点击监听 (放在 addTextChangedListener 之前)
-        ImageView iv_clear_search = findViewById(R.id.iv_clear_search);
-        iv_clear_search.setOnClickListener(v -> {
-            et_search_pinyin.setText(""); // 清空文字，会自动触发下面的 onTextChanged
-        });
-
-// 2. 完整的输入框监听
-        et_search_pinyin.addTextChangedListener(new android.text.TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String keyword = s.toString().trim().toLowerCase();
-
-                // --- 核心优化：控制清空按钮的显示/隐藏 ---
-                iv_clear_search.setVisibility(keyword.length() > 0 ? View.VISIBLE : View.GONE);
-
-                // 实时从本地库过滤
-                dbExecutor.execute(() -> {
-                    List<GrouponGoodsBean.GrouponGoodsModel> filterResults;
-
-                    if (TextUtils.isEmpty(keyword)) {
-                        // 如果搜索框彻底清空了，恢复到当前分类显示的初始状态
-                        runOnUiThread(() -> loadLocalGoods(0));
-                        return;
-                    } else {
-                        // 同时匹配：名称、全拼、首字母、条码
-                        // 使用 % 关键字 % 实现模糊匹配
-                        filterResults = org.litepal.LitePal
-                                .where("title like ? or pinyin like ? or pyInitial like ? or sn like ?",
-                                        "%" + keyword + "%", "%" + keyword + "%", "%" + keyword + "%", "%" + keyword + "%")
-                                .limit(50)
-                                .find(GrouponGoodsBean.GrouponGoodsModel.class);
-                    }
-
-                    runOnUiThread(() -> {
-                        if (grouponGoodsAdapter != null) {
-                            grouponGoodsAdapter.setNewData(filterResults);
-                            // 搜索结果模式下，关闭“滑动加载更多”功能，避免混合显示
-                            grouponGoodsAdapter.hasMore = false;
-                        }
-                    });
-                });
-            }
-
-            @Override
-            public void afterTextChanged(android.text.Editable s) {}
-        });
-
-
-
-
-
 
 
     }
@@ -2463,7 +2465,7 @@ public class MainActivity extends Activity {
             loadLocalGoods(0);
 
             // 3. 弹出同步成功提示
-            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Sync_completed), true).show();
+            // new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Sync_completed), true).show();
         });
     }
 
@@ -2531,25 +2533,24 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+
 //        hideKeyboard();
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             int keyCode = event.getKeyCode();
 
-            // ========================== 核心优化：扫码枪自动夺取焦点 ==========================
-            // 逻辑说明：如果当前正在“拼音搜索框”输入，但扣动了扫码枪（发出数字键），
-            // 则判定为扫码操作，自动将焦点转回“条形码输入框”。
+            // ========================== 核心：扫码枪静默夺取焦点 ==========================
+            // 逻辑：如果光标在拼音框，但扫码枪射出了第一个数字
             if (et_search_pinyin != null && et_search_pinyin.hasFocus()) {
-                // 绝大多数商品条码以数字开头（0-9）
                 if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
-                    // 1. 强制切换焦点到条码框
+                    // 1. 静默切换焦点（不手动调用 hideKeyboard，避免闪烁）
                     et_tiaoxingma.requestFocus();
-                    // 2. 隐藏拼音输入时弹出的软键盘，避免遮挡
-                    hideKeyboard();
-                    // 3. 【关键】将当前这第一个数字分发给条码框，确保不丢码
+                    // 2. 将当前按键直接传给条码框
                     et_tiaoxingma.dispatchKeyEvent(event);
-                    return true; // 拦截此事件，防止第一个数字留在拼音搜索框内
+                    return true;
                 }
             }
+
+
             // ==============================================================================
 
             Log.i("ttt", "外部键盘点击" + keyCode);
@@ -3256,6 +3257,37 @@ public class MainActivity extends Activity {
             // 如果接口没有返回分页信息，默认结束同步
             finishSync();
         }
+    }
+
+
+    /**
+     * 【新增】根据拼音/名称/条码搜索本地数据库
+     */
+    private void searchLocalGoods(String keyword) {
+        dbExecutor.execute(() -> {
+            List<GrouponGoodsBean.GrouponGoodsModel> filterResults;
+
+            if (android.text.TextUtils.isEmpty(keyword)) {
+                // 如果关键词清空了，恢复显示当前分类的前20条
+                runOnUiThread(() -> loadLocalGoods(0));
+                return;
+            } else {
+                // 同时模糊匹配：标题、全拼、首字母、条码
+                filterResults = org.litepal.LitePal
+                        .where("title like ? or pinyin like ? or pyInitial like ? or sn like ?",
+                                "%" + keyword + "%", "%" + keyword + "%", "%" + keyword + "%", "%" + keyword + "%")
+                        .limit(50)
+                        .find(GrouponGoodsBean.GrouponGoodsModel.class);
+            }
+
+            runOnUiThread(() -> {
+                if (grouponGoodsAdapter != null) {
+                    grouponGoodsAdapter.setNewData(filterResults);
+                    grouponGoodsAdapter.hasMore = false; // 搜索模式下关闭加载更多
+                    if (shop_rv != null) shop_rv.scrollToPosition(0);
+                }
+            });
+        });
     }
 
 }
