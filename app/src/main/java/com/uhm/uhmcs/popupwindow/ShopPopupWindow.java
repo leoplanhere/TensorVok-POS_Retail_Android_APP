@@ -219,7 +219,10 @@ public class ShopPopupWindow {
         if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
             Gson gson = new Gson();
             GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
-            allGrouponGoodsModelList = grouponGoodsBean.getData();
+            // 因为 getData() 现在返回的是 DataWrapper 容器，需要通过 getGoodsList() 拿到里面的列表
+            if (grouponGoodsBean.getData() != null) {
+                allGrouponGoodsModelList = grouponGoodsBean.getData().getGoodsList();
+            }
 //            for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : allGrouponGoodsModelList) {
 //                grouponGoodsModel.setSelected(false);
 //            }

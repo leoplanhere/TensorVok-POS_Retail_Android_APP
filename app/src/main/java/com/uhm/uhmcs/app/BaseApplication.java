@@ -28,6 +28,9 @@ public class BaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+
+        org.litepal.LitePal.initialize(this);
         UserUtils.getInstance().inti(getApplicationContext());
         if ( UserUtils.getInstance().getLoginBase()!=null&& UserUtils.getInstance().getLoginBase().getData()!=null&& UserUtils.getInstance().getLoginBase().getData().getUserinfo()!=null){
             Map<String, String> params = new HashMap<>();

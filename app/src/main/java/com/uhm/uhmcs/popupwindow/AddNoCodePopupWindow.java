@@ -185,7 +185,10 @@ public class AddNoCodePopupWindow {
                             if (code==1){
                                 Gson gson = new Gson();
                                 GrouponGoodsBean grouponGoodsBean = gson.fromJson(response, GrouponGoodsBean.class);
-                                addNoCodeOnClickListener.onClick(grouponGoodsBean.getData().get(0));
+                                // 先通过 getData() 拿到包装类，再通过 getGoodsList() 拿到真正的列表，最后再 get(0)
+                                if (grouponGoodsBean.getData() != null && grouponGoodsBean.getData().getGoodsList() != null && !grouponGoodsBean.getData().getGoodsList().isEmpty()) {
+                                    addNoCodeOnClickListener.onClick(grouponGoodsBean.getData().getGoodsList().get(0));
+                                }
                                 popupWindow.dismiss();
                             }else {
                                 new DeleteShopPopupWindow(context,jsonObject.getString("msg"),true).show();

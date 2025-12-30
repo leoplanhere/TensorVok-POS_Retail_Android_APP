@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <litepal>
     <dbname value="pos_db" />
-
-    <version value="2" />
-
+    <version value="35" />
     <list>
         <mapping class="com.uhm.uhmcs.bean.GrouponGoodsBean$GrouponGoodsModel" />
     </list>

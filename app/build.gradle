@@ -79,12 +79,17 @@ dependencies {
     implementation libs.activity
     implementation libs.constraintlayout
 
+
+    implementation 'org.litepal.guolindev:core:3.2.3' // 核心：引入 LitePal 数据库库
+
+
+
     // 3. 网络与图片 (你原本的内容)
     implementation libs.okhttp
     implementation libs.okhttp3.logging.interceptor
     implementation libs.glide
     implementation libs.gson
-
+    implementation 'com.github.promeg:tinypinyin:2.0.3'
 
     // --- 1. 修复当前的 FileUtils 报错 ---
     implementation 'commons-io:commons-io:2.11.0'

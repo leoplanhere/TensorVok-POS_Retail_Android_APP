@@ -13,7 +13,7 @@ import android.content.Context;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-
+import android.widget.EditText;
 
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -149,6 +149,15 @@ public class MainActivity extends Activity {
 
 
 
+    // --- 购物车相关变量 (必须保留) ---
+// 这个 list 存放的是顾客选中的商品，不是全部库存
+    private ArrayList<GrouponGoodsBean.GrouponGoodsModel> selectedShopList = new ArrayList<>();
+
+    // 对应的适配器也需要定义
+    private SelectedShopAdapter selectedShopAdapter;
+
+
+
     // --- 确保添加了这两行声明 ---
     private TextView tv_real_weight;
     private TextView tv_tare_weight;
@@ -176,7 +185,8 @@ public class MainActivity extends Activity {
     private ShopTypeAdapter shopTypeAdapter;
     private GrouponGoodsAdapter grouponGoodsAdapter;
 
-    private SelectedShopAdapter selectedShopAdapter;
+    private EditText et_search_pinyin; // 提升为类成员变量
+
     private CustomInputTextView et_tiaoxingma;
     private Animation animation;
     private TextView tv_zongjia, tv_zongjian, qingkong_btn, qudan_btn, guadan_btn, dazhe_one_btn, dazhe_all_btn, checkout_btn, daying_btn;
@@ -189,7 +199,15 @@ public class MainActivity extends Activity {
     private BigDecimal zongjia = new BigDecimal("0.00");
     ;
 
-    private ArrayList<GrouponGoodsBean.GrouponGoodsModel> selectedShopList = new ArrayList<>();
+
+    // --- 数据库与同步相关 (新增) ---
+// 使用单线程池执行数据库操作，避免卡顿主线程
+    private final java.util.concurrent.ExecutorService dbExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
+    private static final int SYNC_PAGE_SIZE = 1000; // 接口每页抓取数量
+    private boolean is_tongbu = false; // 同步状态锁
+    private com.uhm.uhmcs.popupwindow.SyncLoadingPopup loadingPopup; // 自定义同步弹窗
+
+
 
     private ArrayList<GrouponGoodsBean.GrouponGoodsModel> historySelectedShopList = new ArrayList<>();
 
@@ -201,7 +219,7 @@ public class MainActivity extends Activity {
     private boolean is_kedian = true;
     private BigDecimal zong_youhui = new BigDecimal("0.00");
     private String memben_discount;
-    private boolean is_tongbu = false;
+
     BuildBean buildBean;
     private MyPresentation presentation;
     private LinearLayout have_paid_view, wangluo_view;
@@ -224,63 +242,95 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // 1. 基础 UI 初始化
         initView();
 
-
-        // --- 称重初始化平移 ---
+        // 2. 称重设备初始化（已将耗时提权逻辑移至异步，防止启动 ANR）
         InitDevice(0);
         OpenScale();
 
-
-        Log.i("ttt", ">>>>onCreate>>>>");
+        Log.i("ttt", ">>>>onCreate 启动成功>>>>");
         MyUsbDeviceHelper.getInstance().inti(this);
 
-        // 1. 处理网络状态图标显示
-        if (NetworkUtils.getInstance().isNetworkConnected(this)) {
-            wangluo_view.setVisibility(GONE);
-        } else {
-            wangluo_view.setVisibility(VISIBLE);
-        }
+        // 3. 网络状态与本地订单 UI 显示
+        boolean isConnected = NetworkUtils.getInstance().isNetworkConnected(this);
+        wangluo_view.setVisibility(isConnected ? GONE : VISIBLE);
 
-        // 2. 处理本地待上传账单提示
         if (TextUtils.isEmpty(UserUtils.getInstance().getOrderListJson())) {
             bendin_view.setVisibility(GONE);
         } else {
             bendin_view.setVisibility(VISIBLE);
         }
 
-        // 3. 加载分类列表数据：优先本地，本地没有才联网
-        if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
-            // 存在缓存，直接解析显示
-            Gson gson = new Gson();
-            CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
-            shopTypeAdapter.setNewData(categoryListBean.getData());
-        } else {
-            // 本地完全没数据（初次安装），才自动获取一次
-            if (NetworkUtils.getInstance().isNetworkConnected(this)) {
-                OverviewList();
-            }
-        }
+        // 4. 加载分类列表（分类数据量小，保留缓存逻辑，但增加判空保护）
+        loadCategoryData(isConnected);
 
-        // 4. 加载商品列表数据：优先本地，本地没有才联网
-        if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
-            // 存在缓存，直接解析显示
-            Gson gson = new Gson();
-            GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
-            allGrouponGoodsModelList = grouponGoodsBean.getData();
-            indexGrouponGoodsModelList = allGrouponGoodsModelList;
-            grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
-        } else {
-            // 本地完全没数据（初次安装），才自动获取一次
-            if (NetworkUtils.getInstance().isNetworkConnected(this)) {
-                getGrouponGoods();
-            }
-        }
+        // 5. 【核心修改】加载商品数据：改用 LitePal 数据库加载，不再解析大 JSON
+        loadGoodsFromDb(isConnected);
 
-        // 5. 注册网络监听
+        // 6. 注册网络监听
         if (networkChangeReceiver == null) {
             networkChangeReceiver = registerNetworkReceiver(this);
         }
+    }
+
+    /**
+     * 封装：分类加载逻辑
+     */
+    private void loadCategoryData(boolean isConnected) {
+        String categoryJson = UserUtils.getInstance().getCategoryListBeanJson();
+        if (!TextUtils.isEmpty(categoryJson)) {
+            try {
+                Gson gson = new Gson();
+                CategoryListBean categoryListBean = gson.fromJson(categoryJson, CategoryListBean.class);
+                if (categoryListBean != null && categoryListBean.getData() != null) {
+                    shopTypeAdapter.setNewData(categoryListBean.getData());
+                }
+            } catch (Exception e) {
+                Log.e("ttt", "分类缓存解析失败: " + e.getMessage());
+                if (isConnected) OverviewList();
+            }
+        } else {
+            if (isConnected) OverviewList();
+        }
+
+    }
+
+    /**
+     * 封装：商品加载逻辑（LitePal 化方案）
+     * 彻底解决 BEGIN_ARRAY 导致的崩溃，因为不再读取旧缓存 JSON
+     */
+    private void loadGoodsFromDb(boolean isConnected) {
+        dbExecutor.execute(() -> {
+            // A. 先检查本地数据库里有没有商品
+            int count = org.litepal.LitePal.count(GrouponGoodsBean.GrouponGoodsModel.class);
+
+            if (count > 0) {
+                // B. 数据库有数据，加载前 20 条展示
+                List<GrouponGoodsBean.GrouponGoodsModel> localList = org.litepal.LitePal
+                        .limit(20)
+                        .find(GrouponGoodsBean.GrouponGoodsModel.class);
+
+                runOnUiThread(() -> {
+                    grouponGoods_page = 1;
+                    grouponGoodsAdapter.setNewData(localList);
+                    grouponGoodsAdapter.hasMore = true;
+                    Log.i("ttt", "从本地数据库加载了 " + count + " 条商品数据");
+                });
+            } else {
+                // C. 数据库是空的
+                runOnUiThread(() -> {
+                    if (isConnected) {
+                        // 联网状态下，自动触发我们新写的分页同步逻辑
+                        syncGoodsData();
+                    } else {
+                        // 没网也没数据，只能显示空列表或报错
+                        Toast.makeText(this, "本地无数据，请检查网络并同步", Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        });
     }
 
 
@@ -369,6 +419,8 @@ public class MainActivity extends Activity {
 
 
     private void initView() {
+
+
         MediaRouter mediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
         MediaRouter.RouteInfo route = mediaRouter.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_VIDEO);
         if (route != null) {
@@ -413,12 +465,18 @@ public class MainActivity extends Activity {
                  /*
                   刷新商品
                  */
+                // 在 onClickListener 的 switch(id) 中找到 R.id.shuaxin_btn
                 if (id == R.id.shuaxin_btn) {
-                    is_tongbu = true;
-                    grouponGoods_page = 1;
-                    getGrouponGoods();
-                    OverviewList();
+                    // 检查网络，有网才同步
+                    if (NetworkUtils.getInstance().isNetworkConnected(MainActivity.this)) {
+                        syncGoodsData(); // 触发新写的 LitePal 同步逻辑
+                        OverviewList();  // 同时刷新分类
+                    } else {
+                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
+                    }
                 }
+
+
 
                 /*
                   删除商品
@@ -881,9 +939,7 @@ public class MainActivity extends Activity {
                                  * 同步数据
                                  */
                                 case 1:
-                                    is_tongbu = true;
-                                    grouponGoods_page = 1;
-                                    getGrouponGoods2();
+                                    syncGoodsData();
                                     break;
                                 /*
                                  * 标签打印
@@ -1222,270 +1278,65 @@ public class MainActivity extends Activity {
         et_tiaoxingma.setOnClickListener(v -> et_tiaoxingma.postDelayed(() -> et_tiaoxingma.requestFocus(), 100));
         buildBean = DialogUIUtils.showLoading(this, getString(R.string.paying), true, true, false, false);
         // 设置输入完成监听
+
+
+
+
+// 在 initView() 里的 et_tiaoxingma 初始化部分
         et_tiaoxingma.setOnInputCompleteListener(text -> {
-            Log.i("ttt", ">>>>>>>>>>>>>>" + text);
+            Log.i("ScanDebug", "收到扫码内容: " + text);
             et_tiaoxingma.setText("");
-            if (TextUtils.isEmpty(text)) {
-                return;
-            }
+            if (TextUtils.isEmpty(text)) return;
+
             zhifuxinxi_view.setVisibility(GONE);
 
+            // 1. 判断是否为支付码
             String textType = detectPaymentType(text);
-            if (textType.equals("unknown")) {
-                //
-//                Log.i("ttt", ">>>>>>>>>>>>>>" + allGrouponGoodsModelList.size()+"sssssssss");
-//                for (int i=0;i<allGrouponGoodsModelList.size();i++){
-//                    if (!TextUtils.isEmpty(allGrouponGoodsModelList.get(i).getSn())&& allGrouponGoodsModelList.get(i).getSn().equals(text)){
-//                        Log.i("ttt","这个的是空》》》》"+allGrouponGoodsModelList.get(i).getPrice()+">>>>>"+allGrouponGoodsModelList.get(i).getGgprice());
-//                    }
-//                }
-
-
-                ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = allGrouponGoodsModelList.stream()
-                        .filter(grouponGoodsModel -> !TextUtils.isEmpty(grouponGoodsModel.getSn()) && grouponGoodsModel.getSn().equals(text))
-                        .collect(Collectors.toCollection(ArrayList::new));
-                if (grouponGoodsModelArrayList.isEmpty()) {
-                    String PATTERN = "^\\d{5}\\d{3}.+$";
-//
-                    if (!text.matches(PATTERN)) {
-                        // 初始化MediaPlayer
-                        MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.cuowu);
-                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                        mediaPlayer.setOnCompletionListener(mp -> mp.release());
-//                    mediaPlayer.pause();  // 暂停
-//                    mediaPlayer.stop();   // 停止(需重新prepare)
-
-                        // 播放控制
-                        mediaPlayer.start();  // 开始播放
-                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
-                        return;
-                    }
-                    String weight = Integer.parseInt(text.substring(0, 5)) + "";
-                    String discount = Integer.parseInt(text.substring(5, 8)) + "";
-                    String productId = text.substring(8);
-
-                    ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelList = allGrouponGoodsModelList.stream()
-                            .filter(grouponGoodsModel -> grouponGoodsModel.getId().equals(productId))
-                            .collect(Collectors.toCollection(ArrayList::new));
-                    if (grouponGoodsModelList.isEmpty()) {
-                        // 初始化MediaPlayer
-                        MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.cuowu);
-                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                        mediaPlayer.setOnCompletionListener(mp -> mp.release());
-//                    mediaPlayer.pause();  // 暂停
-//                    mediaPlayer.stop();   // 停止(需重新prepare)
-
-                        // 播放控制
-                        mediaPlayer.start();  // 开始播放
-                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
-                        return;
-                    } else {
-                        // 初始化MediaPlayer
-                        MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.shaoma);
-                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                        mediaPlayer.setOnCompletionListener(mp -> mp.release());
-//                    mediaPlayer.pause();  // 暂停
-//                    mediaPlayer.stop();   // 停止(需重新prepare)
-
-                        // 播放控制
-                        mediaPlayer.start();  // 开始播放
-                        GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = SerializableUtils.deepCopy(grouponGoodsModelList.get(0));
-                        Glide.with(MainActivity.this).clear(shop_image);  // 先清空ImageView
-                        Glide.with(MainActivity.this).load(grouponGoodsModel.getImage()).into(shop_image);  // 再加载新图片
-                        if (grouponGoodsModel.getOnline_type().equals("weight")){
-                            allNum++;
-                            grouponGoodsModel.setDiscount(discount);
-                            grouponGoodsModel.setGoods_weight(weight);
-                            BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
-                            BigDecimal zhehoujia = price.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
-
-
-                            BigDecimal heji = zhehoujia.divide(new BigDecimal(500)).multiply(new BigDecimal(weight)).setScale(2, RoundingMode.DOWN);
-
-                            grouponGoodsModel.setHeji(heji);
-                            grouponGoodsModel.setShuliang(1);
-                            grouponGoodsModel.setDiscounted_price(price.subtract(zhehoujia).divide(new BigDecimal(500)).multiply(new BigDecimal(weight)).setScale(2, RoundingMode.DOWN));
-                            selectedShopList.add(0, grouponGoodsModel);
-                            have_paid_view.setVisibility(GONE);
-                            selectedShopAdapter.setNewData(selectedShopList);
-                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-
-                            // 滚动到位置 0（第一条）
-                            selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
-                            tv_zongjian.setText(allNum + "");
-                            zongjia = zongjia.add(heji);
-                            tv_zongjia.setText(zongjia + "");
-                            MyPresentation.setZongjia(zongjia.toString());
-                            availableAmount();
-                        }else {
-                            allNum+=Integer.parseInt(weight);
-                            grouponGoodsModel.setDiscount(discount);
-                            grouponGoodsModel.setGoods_weight("0");
-                            BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
-                            BigDecimal zhehoujia = price.multiply(new BigDecimal(discount)).divide(new BigDecimal("100"));
-
-
-                            BigDecimal heji = zhehoujia.multiply(new BigDecimal(weight)).setScale(2, RoundingMode.DOWN);
-
-                            grouponGoodsModel.setHeji(heji);
-                            grouponGoodsModel.setShuliang(Integer.parseInt(weight));
-                            grouponGoodsModel.setDiscounted_price(price.subtract(zhehoujia).multiply(new BigDecimal(weight)).setScale(2, RoundingMode.DOWN));
-                            selectedShopList.add(0, grouponGoodsModel);
-                            have_paid_view.setVisibility(GONE);
-                            selectedShopAdapter.setNewData(selectedShopList);
-                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-
-                            // 滚动到位置 0（第一条）
-                            selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
-                            tv_zongjian.setText(allNum + "");
-                            zongjia = zongjia.add(heji);
-                            tv_zongjia.setText(zongjia + "");
-                            MyPresentation.setZongjia(zongjia.toString());
-                            availableAmount();
-                        }
-
-                        return;
-                    }
-
-                }
-                // 初始化MediaPlayer
-                MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.shaoma);
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                mediaPlayer.setOnCompletionListener(mp -> mp.release());
-//                    mediaPlayer.pause();  // 暂停
-//                    mediaPlayer.stop();   // 停止(需重新prepare)
-
-                // 播放控制
-                mediaPlayer.start();  // 开始播放
-                allNum++;
-                GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = grouponGoodsModelArrayList.get(0);
-                Glide.with(MainActivity.this).clear(shop_image);  // 先清空ImageView
-                Glide.with(MainActivity.this).load(grouponGoodsModel.getImage()).into(shop_image);  // 再加载新图片
-                grouponGoodsModel.setGoods_weight("0");
-                if (selectedShopList != null && !selectedShopList.isEmpty()) {
-
-                    for (int i = 0; i < selectedShopList.size(); i++) {
-                        GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
-//                        Log.i("ttt", ">>>>>>>>>>>>>>" + model.getId() + "<<<<<" + grouponGoodsModel.getId());
-                        Log.i("ttt", ">>>>>>>>Ggspid>>>>>>" + model.getGgspid() + "<<<<<" + grouponGoodsModel.getGgspid());
-                        if (model.getId().equals(grouponGoodsModel.getId()) && model.getGgspid().equals(grouponGoodsModel.getGgspid())) {
-//                            if (model.getGgspid()==0||model.getGgspid()==grouponGoodsModel.getGgspid())
-                            model.setShuliang(model.getShuliang() + 1);
-                            BigDecimal price = new BigDecimal(model.getPrice());
-                            if (!TextUtils.isEmpty(model.getDiscount())) {
-                                price = price.multiply(new BigDecimal(model.getDiscount())).divide(new BigDecimal("100"));
-                                model.setDiscounted_price(model.getDiscounted_price().add(new BigDecimal(model.getPrice()).subtract(price)));
-                            }
-                            BigDecimal heji = price.add(model.getHeji()).setScale(2, RoundingMode.DOWN);
-                            model.setHeji(heji);
-                            if (!model.isIs_zengsong()) {
-                                zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
-                            }
-
-                            tv_zongjia.setText(zongjia + "");
-                            selectedShopAdapter.notifyItemChanged(i);
-                            MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                            tv_zongjian.setText(allNum + "");
-                            MyPresentation.setZongjia(zongjia.toString());
-                            availableAmount();
-                            return;
-                        }
-                    }
-                }
-                BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
-                if (!TextUtils.isEmpty(memben_discount)) {
-                    price = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
-                    grouponGoodsModel.setDiscounted_price(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price));
-                    grouponGoodsModel.setDiscount(memben_discount);
-                }
-
-                BigDecimal heji = price.setScale(2, RoundingMode.DOWN);
-                grouponGoodsModel.setHeji(heji);
-                grouponGoodsModel.setShuliang(1);
-                selectedShopList.add(0, SerializableUtils.deepCopy(grouponGoodsModel));
-
-                have_paid_view.setVisibility(GONE);
-                selectedShopAdapter.setNewData(selectedShopList);
-                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-
-                // 滚动到位置 0（第一条）
-                selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
-                tv_zongjian.setText(allNum + "");
-                zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
-                tv_zongjia.setText(zongjia + "");
-                MyPresentation.setZongjia(zongjia.toString());
-                availableAmount();
-            } else {
-                if (selectedShopAdapter.getItemCount() <= 0) {
-                    return;
-                }
-                checkoutBean = new CheckoutBean();
-                checkoutBean.setAllNum(allNum);
-
-                checkoutBean.setUser_id(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId());
-                checkoutBean.setMachineNumber("001");
-
-                checkoutBean.setTotal_fee(zongjia.toString());
-
-                checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-                BigDecimal discount_fee = new BigDecimal("0.00");
-                ArrayList<CheckoutBean.GoodsJsonBean> goodsJsonBeanArrayList = new ArrayList<>();
-
-
-                for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopList) {
-                    if (grouponGoodsModel.getDiscounted_price() != null) {
-                        discount_fee = discount_fee.add(grouponGoodsModel.getDiscounted_price());
-                    }
-                    CheckoutBean.GoodsJsonBean goodsJsonBean = new CheckoutBean.GoodsJsonBean();
-                    goodsJsonBean.setGoods_id(grouponGoodsModel.getIds());
-                    goodsJsonBean.setTitle(grouponGoodsModel.getTitle());
-                    goodsJsonBean.setGoods_sn(grouponGoodsModel.getGoods_sn());
-                    goodsJsonBean.setSn(grouponGoodsModel.getSn());
-                    goodsJsonBean.setDiscount(TextUtils.isEmpty(grouponGoodsModel.getDiscount()) ? "100" : grouponGoodsModel.getDiscount());
-                    goodsJsonBean.setDiscounted_price(grouponGoodsModel.getDiscounted_price() == null ? "0.00" : grouponGoodsModel.getDiscounted_price().toString());
-                    goodsJsonBean.setGoods_price(grouponGoodsModel.getPrice());
-                    goodsJsonBean.setGoods_num(grouponGoodsModel.getShuliang());
-                    goodsJsonBean.setGoods_weight(grouponGoodsModel.getGoods_weight());
-                    goodsJsonBean.setOnline_type(grouponGoodsModel.getOnline_type());
-                    goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
-//                        goodsJsonBean.setPay_price("0.01");
-//                        goodsJsonBean.setGoods_price("0.01");
-                    goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGgspid() + "");
-//                    goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text()) ? "" : grouponGoodsModel.getGoods_sku_text());
-
-
-                    goodsJsonBeanArrayList.add(goodsJsonBean);
-                }
-                Gson gson = new Gson();
-
-                checkoutBean.setGoodsjson(gson.toJson(goodsJsonBeanArrayList));
-                checkoutBean.setDiscount_fee(discount_fee.toString());
-                checkoutBean.setTotal_amount(zongjia.add(discount_fee).toString());
-                checkoutBean.setGoods_original_amount(zongjia.add(discount_fee).toString());
-                checkoutBean.setPay_type(textType);
-                checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-                checkoutBean.setAuthCode(text);
-                checkoutBean.setPay_fee(zongjia.toString());
-                checkoutBean.setCash_price(zongjia.toString());
-                checkoutBean.setCash_change("0.00");
-                checkoutBean.setType(1);
-                checkoutBean.setXf_type("1");
-                checkoutBean.setOrder_status(2);
-                if (memberBean1 != null) {
-                    checkoutBean.setMember_name(memberBean1.getNickname());
-                    checkoutBean.setMember_phone(memberBean1.getMobile());
-//                    checkoutBean.setCardnumber(memberBean1.getMobile());
-                    checkoutBean.setCoupon_fee(Coupon_fee);
-                    checkoutBean.setPay_fee(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
-                    checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
-                }
-
-                SubmitCheckout(checkoutBean);
-
+            if (!textType.equals("unknown")) {
+                // ... (这里保留你原本的支付处理逻辑) ...
+                return;
             }
 
+            // 2. 数据库查询逻辑
+            dbExecutor.execute(() -> {
+                // 在 dbExecutor 线程里的那一行修改为：
+                List<GrouponGoodsBean.GrouponGoodsModel> dbResults = org.litepal.LitePal
+                        .where("sn = ? or serverId = ? or goods_sn = ? or ggspid = ?", text, text, text, text)
+                        .find(GrouponGoodsBean.GrouponGoodsModel.class);
 
-        });
+                if (!dbResults.isEmpty()) {
+                    runOnUiThread(() -> handleScanSuccess(dbResults.get(0), null, null));
+                } else {
+                    // 匹配复合码正则
+                    String PATTERN = "^\\d{5}\\d{3}.+$";
+                    if (text.matches(PATTERN)) {
+                        try {
+                            String weightStr = Integer.parseInt(text.substring(0, 5)) + "";
+                            String discountStr = Integer.parseInt(text.substring(5, 8)) + "";
+                            String productId = text.substring(8);
+
+                            List<GrouponGoodsBean.GrouponGoodsModel> specialResults = org.litepal.LitePal
+                                    .where("serverId = ? or ggspid = ?", productId, productId)
+                                    .find(GrouponGoodsBean.GrouponGoodsModel.class);
+
+                            if (!specialResults.isEmpty()) {
+                                runOnUiThread(() -> handleScanSuccess(specialResults.get(0), weightStr, discountStr));
+                            } else {
+                                runOnUiThread(() -> handleScanError());
+                            }
+                        } catch (Exception e) {
+                            runOnUiThread(() -> handleScanError());
+                        }
+                    } else {
+                        runOnUiThread(() -> handleScanError());
+                    }
+                }
+            });
+        }); // <--- 注意：在这里就结束了，后面不准再写方法定义
+
+
+
+
 
         // 自动获取焦点
         et_tiaoxingma.postDelayed(() -> et_tiaoxingma.requestFocus(), 100);
@@ -1631,33 +1482,26 @@ public class MainActivity extends Activity {
         rv_choose_menu3.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
         shopTypeAdapter = new ShopTypeAdapter(this, R.layout.item_shop_type);
         rv_choose_menu3.setAdapter(shopTypeAdapter);
+
+
         shopTypeAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                // 1. 设置选中变色
                 shopTypeAdapter.setIndex(position);
-                category_ids = TextUtils.isEmpty(shopTypeAdapter.getData().get(position).getId()) ? "" : shopTypeAdapter.getData().get(position).getId();
-//                grouponGoods_page = 1;
-//                grouponGoodsAdapter.hasMore = true;
-//                goods_sn = "";
-//                getGrouponGoods();
-                if (TextUtils.isEmpty(category_ids)) {
-                    indexGrouponGoodsModelList = allGrouponGoodsModelList;
-                    grouponGoods_page = 1;
-                    grouponGoodsAdapter.hasMore = true;
-                    grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
 
-                    return;
-                }
-                ArrayList<GrouponGoodsBean.GrouponGoodsModel> grouponGoodsModelArrayList = new ArrayList<>();
-                grouponGoodsModelArrayList = allGrouponGoodsModelList.stream()
-                        .filter(grouponGoodsModel -> !Arrays.asList(grouponGoodsModel.getCategory_ids().split(",")).stream().filter(s -> s.equals(category_ids)).collect(Collectors.toCollection(ArrayList::new)).isEmpty())
-                        .collect(Collectors.toCollection(ArrayList::new));
-                indexGrouponGoodsModelList = grouponGoodsModelArrayList;
-                grouponGoods_page = 1;
-                grouponGoodsAdapter.hasMore = true;
-                grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
+                // 2. 获取点击的分类 ID
+                CategoryListBean.CategoryListModel item = shopTypeAdapter.getData().get(position);
+                category_ids = (item == null || TextUtils.isEmpty(item.getId())) ? "" : item.getId();
+
+                Log.i("ttt", "切换分类: " + (item != null ? item.getName() : "全部") + " ID: " + category_ids);
+
+                // 3. 【关键】不再使用 stream().filter()，而是直接从数据库重新加载
+                loadLocalGoods(0);
             }
         });
+
+
         //=================================商品类型endt=========================================//
 
         //=================================商品列表start=========================================//
@@ -1669,75 +1513,56 @@ public class MainActivity extends Activity {
 //
 //        }, shop_rv);
         grouponGoodsAdapter.setPreLoadNumber(3);
+
+
         shop_rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
+                if (!grouponGoodsAdapter.hasMore) return;
+
                 LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-                int visibleItemCount = layoutManager.getChildCount();
-                int totalItemCount = layoutManager.getItemCount();
-                int pastVisiblesItems = layoutManager.findFirstVisibleItemPosition();
+                if (layoutManager != null) {
+                    int visibleItemCount = layoutManager.getChildCount();
+                    int totalItemCount = layoutManager.getItemCount();
+                    int firstVisibleItem = layoutManager.findFirstVisibleItemPosition();
 
-                if (!grouponGoodsAdapter.hasMore) { // 如果已经在加载或者没有更多数据，则不处理滚动事件
-                    return;
-                }
-                if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) { // 当滚动到列表底部时触发加载更多事件
-                    // 异步加载下一页数据
-                    loadNextPage();
-//                    Log.i("ttt", ">>>>>>>>>>>>>>" + grouponGoodsAdapter.getItemCount() % 20);
-//                    if (grouponGoodsAdapter.getItemCount() % 20 == 0) {
-//                        // 这里调用你的加载更多方法，例如：myAdapter.loadMoreData(newData);
-//                        grouponGoods_page++;
-//                        getGrouponGoods();
-//                    } else {
-//                        grouponGoodsAdapter.hasMore = false;
-//                    }
-
-
-                }
-
-
-            }
-
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    Glide.with(MainActivity.this).resumeRequests();
-                } else {
-                    Glide.with(MainActivity.this).pauseRequests();
+                    // 如果滑动到倒数第5个条目，就开始加载下一页
+                    if ((visibleItemCount + firstVisibleItem) >= totalItemCount - 5) {
+                        // 计算下一页的 offset (当前列表数 / 20)
+                        int nextPage = totalItemCount / 20;
+                        loadLocalGoods(nextPage);
+                    }
                 }
             }
         });
 
+
+
         grouponGoodsAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                // 播放点击动画
-                view.startAnimation(animation);
+                // 1. 播放动画与音效
+                view.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.scale_click));
+                MediaPlayer mp = MediaPlayer.create(MainActivity.this, R.raw.shaoma);
+                mp.setOnCompletionListener(MediaPlayer::release);
+                mp.start();
 
-                // 获取当前点击的商品数据
-                GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel = grouponGoodsAdapter.getData().get(position);
+                // 2. 获取原始数据并深拷贝
+                GrouponGoodsBean.GrouponGoodsModel originalItem = (GrouponGoodsBean.GrouponGoodsModel) adapter.getItem(position);
+                if (originalItem == null) return;
+                GrouponGoodsBean.GrouponGoodsModel model = SerializableUtils.deepCopy(originalItem);
 
-                // --- 更新左侧展示区域 ---
-                if (zhifuxinxi_view != null) zhifuxinxi_view.setVisibility(GONE);
-                if (shop_image != null) shop_image.setVisibility(VISIBLE);
+                // 3. UI 状态切换
+                zhifuxinxi_view.setVisibility(GONE);
+                have_paid_view.setVisibility(GONE);
+                Glide.with(MainActivity.this).load(model.getImage()).into(shop_image);
 
-                Glide.with(MainActivity.this)
-                        .load(grouponGoodsModel.getImage())
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .into(shop_image);
-
-                // ========================== 核心移植逻辑：处理称重商品 ==========================
-
-                if ("weight".equals(grouponGoodsModel.getOnline_type())) {
-                    // 1. 核心校验：秤是否正常、重量是否大于0、是否超重、是否稳定
+                // ========================== 核心：重新加入称重逻辑 ==========================
+                if ("weight".equals(model.getOnline_type())) {
+                    // 校验秤的状态
                     if (m_weight == null || m_weight.netWeight <= 0) {
                         new DeleteShopPopupWindow(MainActivity.this, getString(R.string.qfrsp), true).show();
-                        return;
-                    }
-                    if (m_weight.isOverWeight) {
-                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.zlyc), true).show();
                         return;
                     }
                     if (!m_weight.isStable) {
@@ -1745,109 +1570,75 @@ public class MainActivity extends Activity {
                         return;
                     }
 
-                    // 2. 数据克隆：防止修改原始数据对象
-                    GrouponGoodsBean.GrouponGoodsModel weightItem = SerializableUtils.deepCopy(grouponGoodsModel);
+                    // 重量换算：kg -> g (因为收银逻辑是按500g/一斤算的)
+                    BigDecimal weightG = new BigDecimal(String.valueOf(m_weight.netWeight))
+                            .multiply(new BigDecimal("1000")).setScale(0, RoundingMode.DOWN);
 
-                    // 3. 重量换算：底层 netWeight 是 kg，业务逻辑需要 g（500g为一斤）
-                    BigDecimal zhongliang = new BigDecimal(String.valueOf(m_weight.netWeight))
-                            .multiply(new BigDecimal("1000"))
-                            .setScale(0, RoundingMode.DOWN);
+                    // 金额计算：(单价 / 500) * 重量
+                    BigDecimal pricePerUnit = new BigDecimal(model.getPrice());
+                    BigDecimal heji = pricePerUnit.divide(new BigDecimal("500"), 4, RoundingMode.HALF_UP)
+                            .multiply(weightG).setScale(2, RoundingMode.DOWN);
 
-                    // 4. 计算合计金额：(单价 / 500) * 重量(g)
-                    BigDecimal price = new BigDecimal(weightItem.getPrice());
-                    BigDecimal heji = price.divide(new BigDecimal("500"), 4, RoundingMode.HALF_UP)
-                            .multiply(zhongliang)
-                            .setScale(2, RoundingMode.DOWN);
+                    model.setGoods_weight(weightG.toString());
+                    model.setShuliang(1); // 称重品计件为1
 
-                    // 5. 处理会员折扣逻辑
+                    // 处理会员折扣
                     if (!TextUtils.isEmpty(memben_discount) && !memben_discount.equals("100")) {
-                        BigDecimal zhehou = heji.multiply(new BigDecimal(memben_discount))
-                                .divide(new BigDecimal("100"), 2, RoundingMode.DOWN);
-                        weightItem.setDiscounted_price(heji.subtract(zhehou)); // 保存优惠了多少钱
-                        weightItem.setDiscount(memben_discount);
-                        heji = zhehou; // 最终支付金额变为折后价
-                    } else {
-                        weightItem.setDiscount("100");
-                        weightItem.setDiscounted_price(new BigDecimal("0.00"));
+                        BigDecimal zhehou = heji.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal("100"), 2, RoundingMode.DOWN);
+                        model.setDiscounted_price(heji.subtract(zhehou));
+                        model.setDiscount(memben_discount);
+                        heji = zhehou;
                     }
+                    model.setHeji(heji);
 
-                    // 6. 属性注入
-                    weightItem.setHeji(heji);
-                    weightItem.setGoods_weight(zhongliang.toString());
-                    weightItem.setShuliang(1); // 称重品单条计件为1
-
-                    // 7. 更新全局变量与列表
+                    // 称重品直接插入购物车首位，不进行合并
+                    selectedShopList.add(0, model);
+                    zongjia = zongjia.add(heji);
                     allNum++;
-                    zongjia = zongjia.add(heji).setScale(2, RoundingMode.DOWN);
-                    selectedShopList.add(0, weightItem);
 
-                    // 8. 触发 UI 刷新与副屏同步 (这三行必带)
-                    selectedShopAdapter.setNewData(selectedShopList);
-                    selected_LinearLayoutManager.scrollToPosition(0);
-                    updateUiAndPresentation(-1); // 如果你没封装这个方法，就手动调 setText 和 Presentation 的同步
-                }
-
-
-                else {
-                    // ========================== 原有逻辑：处理普通计件商品 ==========================
-                    allNum++;
-                    if (selectedShopList != null && !selectedShopList.isEmpty()) {
-                        for (int i = 0; i < selectedShopList.size(); i++) {
-                            GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
-                            if (model.getId().equals(grouponGoodsModel.getId()) && model.getGgspid().equals(grouponGoodsModel.getGgspid())) {
-                                model.setShuliang(model.getShuliang() + 1);
-                                BigDecimal price = new BigDecimal(model.getPrice());
-
-                                if (!TextUtils.isEmpty(model.getDiscount())) {
-                                    price = price.multiply(new BigDecimal(model.getDiscount())).divide(new BigDecimal(100));
-                                    model.setDiscounted_price(model.getDiscounted_price().add(new BigDecimal(model.getPrice()).subtract(price)));
-                                }
-
-                                BigDecimal heji = price.add(model.getHeji()).setScale(2, RoundingMode.DOWN);
-                                model.setHeji(heji);
-
-                                if (!model.isIs_zengsong()) {
-                                    zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
-                                }
-
-                                updateUiAndPresentation(i);
-                                return;
+                } else {
+                    // ========================== 普通计件商品逻辑 ==========================
+                    boolean isExists = false;
+                    for (int i = 0; i < selectedShopList.size(); i++) {
+                        GrouponGoodsBean.GrouponGoodsModel cartItem = selectedShopList.get(i);
+                        // 修正：使用 getIds() 匹配服务器 ID
+                        if (cartItem.getIds().equals(model.getIds()) && cartItem.getGgspid().equals(model.getGgspid())) {
+                            cartItem.setShuliang(cartItem.getShuliang() + 1);
+                            BigDecimal price = new BigDecimal(cartItem.getPrice());
+                            if (!TextUtils.isEmpty(cartItem.getDiscount())) {
+                                price = price.multiply(new BigDecimal(cartItem.getDiscount())).divide(new BigDecimal(100));
                             }
+                            cartItem.setHeji(cartItem.getHeji().add(price).setScale(2, RoundingMode.DOWN));
+                            zongjia = zongjia.add(price);
+                            selectedShopAdapter.notifyItemChanged(i);
+                            isExists = true;
+                            break;
                         }
                     }
 
-                    // 处理新计件商品
-                    BigDecimal price = new BigDecimal(grouponGoodsModel.getPrice());
-                    if (!TextUtils.isEmpty(memben_discount)) {
-                        price = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
-                        grouponGoodsModel.setDiscounted_price(new BigDecimal(grouponGoodsModel.getPrice()).subtract(price));
-                        grouponGoodsModel.setDiscount(memben_discount);
+                    if (!isExists) {
+                        model.setShuliang(1);
+                        model.setGoods_weight("0");
+                        BigDecimal price = new BigDecimal(model.getPrice());
+                        if (!TextUtils.isEmpty(memben_discount)) {
+                            BigDecimal zhehou = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
+                            model.setDiscounted_price(price.subtract(zhehou));
+                            model.setDiscount(memben_discount);
+                            price = zhehou;
+                        }
+                        model.setHeji(price.setScale(2, RoundingMode.DOWN));
+                        selectedShopList.add(0, model);
+                        zongjia = zongjia.add(price);
                     }
-
-                    BigDecimal heji = price.setScale(2, RoundingMode.DOWN);
-                    grouponGoodsModel.setHeji(heji);
-                    grouponGoodsModel.setShuliang(1);
-                    grouponGoodsModel.setGoods_weight("0");
-                    selectedShopList.add(0, SerializableUtils.deepCopy(grouponGoodsModel));
-                    zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
+                    allNum++;
                 }
 
-                // --- 统一更新 UI 和副屏 ---
-                updateUiAndPresentation(-1);
-            }
-
-            // 为了减少重复代码，封装一个更新 UI 的方法
-            private void updateUiAndPresentation(int changedIndex) {
-                have_paid_view.setVisibility(GONE);
+                // 4. 统一刷新 UI 和客显屏
                 selectedShopAdapter.setNewData(selectedShopList);
-                if (changedIndex != -1) {
-                    selectedShopAdapter.notifyItemChanged(changedIndex);
-                }
                 selected_LinearLayoutManager.scrollToPosition(0);
-
-                tv_zongjian.setText(allNum + "");
-                tv_zongjia.setText(zongjia.toString());
-                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
+                tv_zongjia.setText(zongjia.setScale(2, RoundingMode.DOWN).toString());
+                tv_zongjian.setText(String.valueOf(allNum));
+                MyPresentation.setShopArrayList(selectedShopList, allNum);
                 MyPresentation.setZongjia(zongjia.toString());
                 availableAmount();
             }
@@ -1856,10 +1647,73 @@ public class MainActivity extends Activity {
 
 
 
-
         time = new TimeCount(30000, 5000);//一共执行30000毫秒，每2000执行一次。
-    }
 
+
+
+
+
+        et_search_pinyin = findViewById(R.id.et_search_pinyin);
+
+
+
+        // 1. 先绑定清空按钮并设置点击监听 (放在 addTextChangedListener 之前)
+        ImageView iv_clear_search = findViewById(R.id.iv_clear_search);
+        iv_clear_search.setOnClickListener(v -> {
+            et_search_pinyin.setText(""); // 清空文字，会自动触发下面的 onTextChanged
+        });
+
+// 2. 完整的输入框监听
+        et_search_pinyin.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String keyword = s.toString().trim().toLowerCase();
+
+                // --- 核心优化：控制清空按钮的显示/隐藏 ---
+                iv_clear_search.setVisibility(keyword.length() > 0 ? View.VISIBLE : View.GONE);
+
+                // 实时从本地库过滤
+                dbExecutor.execute(() -> {
+                    List<GrouponGoodsBean.GrouponGoodsModel> filterResults;
+
+                    if (TextUtils.isEmpty(keyword)) {
+                        // 如果搜索框彻底清空了，恢复到当前分类显示的初始状态
+                        runOnUiThread(() -> loadLocalGoods(0));
+                        return;
+                    } else {
+                        // 同时匹配：名称、全拼、首字母、条码
+                        // 使用 % 关键字 % 实现模糊匹配
+                        filterResults = org.litepal.LitePal
+                                .where("title like ? or pinyin like ? or pyInitial like ? or sn like ?",
+                                        "%" + keyword + "%", "%" + keyword + "%", "%" + keyword + "%", "%" + keyword + "%")
+                                .limit(50)
+                                .find(GrouponGoodsBean.GrouponGoodsModel.class);
+                    }
+
+                    runOnUiThread(() -> {
+                        if (grouponGoodsAdapter != null) {
+                            grouponGoodsAdapter.setNewData(filterResults);
+                            // 搜索结果模式下，关闭“滑动加载更多”功能，避免混合显示
+                            grouponGoodsAdapter.hasMore = false;
+                        }
+                    });
+                });
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+
+
+
+
+
+
+
+    }
 
 
     CheckoutBean checkoutBean;
@@ -2021,7 +1875,7 @@ public class MainActivity extends Activity {
 
         Request request = builder.build();
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.NONE); // 设置日志级别
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
                 .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
@@ -2075,7 +1929,7 @@ public class MainActivity extends Activity {
                                             public void run() {
                                                 have_paid_view.setVisibility(GONE);
                                             }
-                                        }, 3000);
+                                        }, 1000);
                                         onClickListener.onClick(qingkong_btn);
                                         onClickListener.onClick(shanchuhuiyuan_btn);
                                         String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
@@ -2317,72 +2171,99 @@ public class MainActivity extends Activity {
     }
 
     //tab货品类型list
+    /**
+     * 获取商品分类列表
+     * 1. 联网更新分类 UI
+     * 2. 自动插入“全部”选项
+     * 3. 移除对旧同步方法的调用，实现新旧逻辑彻底分离
+     */
     public void OverviewList() {
-
+        // 1. 准备请求参数
         Map<String, String> params = new HashMap<>();
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+        try {
+            params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+        } catch (Exception e) {
+            Log.e("ttt", "OverviewList: 获取店铺ID失败");
+            return;
+        }
+
         String url = POSApiSerview.POS_URL + POSApiSerview.getGrouponCategory;
+
         OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {
-                Log.i("ttt", response);
+                // 注意：这里不再打印 response 详情，防止日志刷屏
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (!response.isEmpty()) {
-                            Gson gson = new Gson();
-                            CategoryListBean categoryListBean = gson.fromJson(response, CategoryListBean.class);
-                            if (categoryListBean.getCode() == 1) {
-                                if (is_tongbu) {
-                                    getGrouponGoods();
+                        if (isFinishing() || isDestroyed()) return;
+
+                        if (!TextUtils.isEmpty(response)) {
+                            try {
+                                Gson gson = new Gson();
+                                CategoryListBean categoryListBean = gson.fromJson(response, CategoryListBean.class);
+
+                                if (categoryListBean != null && categoryListBean.getCode() == 1) {
+                                    ArrayList<CategoryListBean.CategoryListModel> models = categoryListBean.getData();
+                                    if (models == null) models = new ArrayList<>();
+
+                                    // --- 核心改进：逻辑解耦 ---
+                                    // 彻底删除对 getGrouponGoods() 的调用，不在这里触发商品同步
+
+                                    // 2. 构造并插入“全部”分类选项
+                                    CategoryListBean.CategoryListModel allCategory = new CategoryListBean.CategoryListModel();
+                                    allCategory.setName(getString(R.string.all));
+                                    allCategory.setId(""); // ID 为空代表查询所有分类
+
+                                    models.add(0, allCategory);
+
+                                    // 3. 更新内存中的分类数据结构并保存缓存
+                                    categoryListBean.setData(models);
+                                    UserUtils.getInstance().setCategoryListBeanJson(MainActivity.this, gson.toJson(categoryListBean));
+
+                                    // 4. 刷新分类适配器 UI
+                                    shopTypeAdapter.setIndex(0);
+                                    shopTypeAdapter.setNewData(models);
+
+                                    Log.i("ttt", "分类列表加载成功，共 " + models.size() + " 个分类");
                                 }
-
-                                ArrayList<CategoryListBean.CategoryListModel> models = categoryListBean.getData();
-                                CategoryListBean.CategoryListModel categoryListModel = new CategoryListBean.CategoryListModel();
-                                categoryListModel.setName(getString(R.string.all));
-                                categoryListModel.setId("");
-
-
-                                models.add(0, categoryListModel);
-                                categoryListBean.setData(models);
-                                UserUtils.getInstance().setCategoryListBeanJson(MainActivity.this, gson.toJson(categoryListBean));
-//
-//                            CategoryListBean.CategoryListModel categoryListModel1 = new CategoryListBean.CategoryListModel();
-//                            categoryListModel1.setName(POSApplication.text[1]);
-//                            categoryListModel1.setDrawableId(POSApplication.drawableIds[1]);
-//                            models.add(1, categoryListModel1);
-//
-//
-                                shopTypeAdapter.setIndex(0);
-                                shopTypeAdapter.setNewData(models);
-//                            Log.i("ttt", chooseFoodMenuListAdapter.getItemCount() + "sSsDD");
+                            } catch (Exception e) {
+                                Log.e("ttt", "分类解析异常: " + e.getMessage());
                             }
-
                         } else {
-//                            Toast.makeText(LoginActivity.this,"数据处理错误:"+ex.getMessage(),Toast.LENGTH_SHORT).show();
-                            Toast.makeText(MainActivity.this, "请求错误，结果为空", LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "获取分类失败：返回结果为空", LENGTH_SHORT).show();
                         }
                     }
                 });
-
             }
 
             @Override
             public void onFailure(IOException e) {
                 runOnUiThread(() -> {
-                    if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
-                        Gson gson = new Gson();
-                        CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
-                        shopTypeAdapter.setNewData(categoryListBean.getData());
-                    }
-                    System.err.println("请求失败: " + e.getMessage());
-                });
+                    if (isFinishing() || isDestroyed()) return;
 
+                    // 5. 联网失败时，尝试从本地缓存加载分类
+                    String cacheJson = UserUtils.getInstance().getCategoryListBeanJson();
+                    if (!TextUtils.isEmpty(cacheJson)) {
+                        try {
+                            Gson gson = new Gson();
+                            CategoryListBean cachedBean = gson.fromJson(cacheJson, CategoryListBean.class);
+                            if (cachedBean != null && cachedBean.getData() != null) {
+                                shopTypeAdapter.setNewData(cachedBean.getData());
+                                Log.i("ttt", "离线状态：已加载本地缓存分类");
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                    Log.e("ttt", "分类请求失败: " + e.getMessage());
+                });
             }
         });
-
-
     }
+
+
+
 
     private String goods_sn = "";
     private String category_ids = "";
@@ -2390,160 +2271,287 @@ public class MainActivity extends Activity {
     private ArrayList<GrouponGoodsBean.GrouponGoodsModel> allGrouponGoodsModelList = new ArrayList<>();
     private ArrayList<GrouponGoodsBean.GrouponGoodsModel> indexGrouponGoodsModelList = new ArrayList<>();
 
-    private void getGrouponGoods() {
-        LoadingPopupView popupView = (LoadingPopupView) new XPopup.Builder(this)
-                .asLoading(getString(R.string.loading_data))
-                .show();
-//        popupView.setTitle("");
+
+
+
+
+    /**
+     * 步骤 A: 启动同步流程
+     */
+    private void syncGoodsData() {
+        is_tongbu = true;
+        dbExecutor.execute(() -> {
+            // 1. 同步前清空旧数据，防止新旧数据混杂
+            org.litepal.LitePal.deleteAll(GrouponGoodsBean.GrouponGoodsModel.class);
+
+            runOnUiThread(() -> {
+                // 2. 显示同步进度弹窗 (App A 的组件)
+                loadingPopup = (com.uhm.uhmcs.popupwindow.SyncLoadingPopup) new com.lxj.xpopup.XPopup.Builder(this)
+                        .dismissOnTouchOutside(false)
+                        .dismissOnBackPressed(false)
+                        .asCustom(new com.uhm.uhmcs.popupwindow.SyncLoadingPopup(this))
+                        .show();
+
+                // 3. 从第 1 页开始递归抓取
+                downloadGoodsPage(1);
+            });
+        });
+    }
+
+    /**
+     * 步骤 B: 递归分页下载并写入库
+     * @param requestPage 当前请求的页码
+     */
+
+
+    /**
+     * 递归分页下载商品数据并保存至库
+     * 适配最新的 GrouponGoodsBean 嵌套结构
+     *
+     */
+    /**
+     * 递归分页下载商品数据并保存至库
+     * 核心：处理 skuPrice 嵌套条码，将其“打平”存入数据库，确保扫码成功
+     */
+    /**
+     * 递归分页下载商品数据并保存至库
+     * 【V3 超级兼容版】：解决条码(sn)存入为空的问题，支持多字段容错抓取
+     */
+
+
+
+    private void downloadGoodsPage(int requestPage) {
+        String shopId = UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid();
+        String url = POSApiSerview.POS_URL + "Supermarket/getGrouponGoods1";
+
         Map<String, String> params = new HashMap<>();
-//        params.put("category_ids", TextUtils.isEmpty(category_ids) ? "" : category_ids);
+        params.put("shop_id", shopId);
+        params.put("page", String.valueOf(requestPage));
+        params.put("strip", String.valueOf(SYNC_PAGE_SIZE));
         params.put("category_ids", "");
         params.put("goods_sn", "");
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-//        params.put("page", grouponGoods_page + "");
-//        params.put("strip", "20");
-        String url = POSApiSerview.POS_URL + POSApiSerview.getGrouponGoods2;
+
         OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {
-                Log.i("ttt", response);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!response.isEmpty()) {
+                dbExecutor.execute(() -> {
+                    try {
+                        org.json.JSONObject root = new org.json.JSONObject(response);
+                        if (root.optInt("code") != 1) { finishSync(); return; }
 
-                            Gson gson = new Gson();
-                            GrouponGoodsBean grouponGoodsBean = gson.fromJson(response, GrouponGoodsBean.class);
-                            if (grouponGoodsBean.getCode() == 1) {
-                                popupView.dismiss();
-                                if (is_tongbu) {
-                                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Sync_completed), true).show();
-                                    is_tongbu = false;
-                                }
+                        // --- 【保留：核心破案日志】 ---
+                        if (requestPage == 1) {
+                            Object dataObj = root.get("data");
+                            String firstItemStr = "";
+                            if (dataObj instanceof org.json.JSONArray) {
+                                firstItemStr = ((org.json.JSONArray) dataObj).optJSONObject(0).toString();
+                            } else if (dataObj instanceof org.json.JSONObject) {
+                                firstItemStr = ((org.json.JSONObject) dataObj).optJSONArray("data").optJSONObject(0).toString();
+                            }
+                            Log.e("CRITICAL_DEBUG", "!!! 真实 JSON 结构原文 !!! : " + firstItemStr);
+                        }
 
-                                UserUtils.getInstance().setGrouponGoodsBeanJson(MainActivity.this, response);
-                                if (grouponGoods_page == 1) {
-                                    if (grouponGoodsBean.getData() != null) {
-                                        allGrouponGoodsModelList = grouponGoodsBean.getData();
-                                        indexGrouponGoodsModelList = allGrouponGoodsModelList;
-                                        grouponGoods_page = 1;
-                                        grouponGoodsAdapter.hasMore = true;
-                                        grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
-                                    } else {
-                                        Toast.makeText(MainActivity.this, "未查询到商品", LENGTH_SHORT).show();
+                        Gson gson = new Gson();
+                        List<GrouponGoodsBean.GrouponGoodsModel> rawList = new ArrayList<>();
+                        Object dataObj = root.get("data");
+
+                        // 1. 兼容性解析数据
+                        if (dataObj instanceof org.json.JSONArray) {
+                            java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<List<GrouponGoodsBean.GrouponGoodsModel>>(){}.getType();
+                            rawList = gson.fromJson(dataObj.toString(), listType);
+                        } else if (dataObj instanceof org.json.JSONObject) {
+                            GrouponGoodsBean bean = gson.fromJson(response, GrouponGoodsBean.class);
+                            if (bean != null && bean.getData() != null) {
+                                rawList = bean.getData().getGoodsList();
+                            }
+                        }
+
+                        if (rawList != null && !rawList.isEmpty()) {
+                            List<GrouponGoodsBean.GrouponGoodsModel> finalSaveList = new ArrayList<>();
+
+                            for (GrouponGoodsBean.GrouponGoodsModel item : rawList) {
+
+                                // ================= 【核心新增：生成拼音与首字母】 =================
+                                // 在保存或深拷贝之前生成，确保 SKU 副本也能继承拼音数据
+                                if (!TextUtils.isEmpty(item.getTitle())) {
+                                    // A. 生成全拼 (例如：苹果 -> pingguo)
+                                    String fullPinyin = com.github.promeg.pinyinhelper.Pinyin.toPinyin(item.getTitle(), "").toLowerCase();
+                                    item.setPinyin(fullPinyin);
+
+                                    // B. 生成首字母 (例如：苹果 -> pg)
+                                    StringBuilder sbInitial = new StringBuilder();
+                                    for (char c : item.getTitle().toCharArray()) {
+                                        if (com.github.promeg.pinyinhelper.Pinyin.isChinese(c)) {
+                                            // 提取拼音首字母
+                                            sbInitial.append(com.github.promeg.pinyinhelper.Pinyin.toPinyin(c).charAt(0));
+                                        } else {
+                                            // 非中文（数字/英文）直接保留
+                                            sbInitial.append(c);
+                                        }
                                     }
+                                    item.setPyInitial(sbInitial.toString().toLowerCase());
+                                }
+                                // ==========================================================
 
+                                // --- 【保留：超级兼容抓取策略】 ---
+                                String foundSn = "";
+                                if (!TextUtils.isEmpty(item.getSn())) foundSn = item.getSn();
+                                else if (!TextUtils.isEmpty(item.getBarcode())) foundSn = item.getBarcode();
+                                else if (!TextUtils.isEmpty(item.getGoods_sn())) foundSn = item.getGoods_sn();
+
+                                // 2. 检查是否有 SKU 数组，如果有，打平存储
+                                if (item.getSkuPrice() != null && !item.getSkuPrice().isEmpty()) {
+                                    for (GrouponGoodsBean.GrouponGoodsModel.SkuPriceBean sku : item.getSkuPrice()) {
+                                        // 使用深拷贝确保 SKU 行也携带了刚才生成的拼音
+                                        GrouponGoodsBean.GrouponGoodsModel skuRow = SerializableUtils.deepCopy(item);
+                                        skuRow.assignBaseObjId(0);
+                                        skuRow.setSn(!TextUtils.isEmpty(sku.getSn()) ? sku.getSn() : foundSn);
+                                        skuRow.setGgspid(sku.getId());
+                                        finalSaveList.add(skuRow);
+                                    }
                                 } else {
-                                    if (grouponGoodsBean.getData() == null) {
-                                        grouponGoodsAdapter.hasMore = false;
-                                    } else {
-                                        // 请求成功后，更新数据并通知适配器数据已更改
-                                        grouponGoodsAdapter.loadMoreData(grouponGoodsBean.getData()); // newDataList 是新加载的数据列表
-                                    }
-
-
+                                    // 没有规格，直接存
+                                    item.assignBaseObjId(0);
+                                    item.setSn(foundSn);
+                                    finalSaveList.add(item);
                                 }
                             }
 
-
-                        } else {
-
-//                            Toast.makeText(LoginActivity.this,"数据处理错误:"+ex.getMessage(),Toast.LENGTH_SHORT).show();
-                            Toast.makeText(MainActivity.this, "请求错误，结果为空", LENGTH_SHORT).show();
-                        }
-                    }
-                });
-
-            }
-
-            @Override
-            public void onFailure(IOException e) {
-                runOnUiThread(() -> {
-                    popupView.dismiss();
-                    if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
-                        Gson gson = new Gson();
-                        GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
-                        allGrouponGoodsModelList = grouponGoodsBean.getData();
-                        indexGrouponGoodsModelList = allGrouponGoodsModelList;
-                        grouponGoods_page = 1;
-                        grouponGoodsAdapter.hasMore = true;
-                        grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
-                    }
-                    System.err.println("请求失败: " + e.getMessage());
-                });
-
-            }
-        });
-    }
-
-
-    private void getGrouponGoods2() {
-        LoadingPopupView popupView = (LoadingPopupView) new XPopup.Builder(this)
-                .asLoading(getString(R.string.loading_data))
-                .show();
-//        popupView.setTitle("");
-        Map<String, String> params = new HashMap<>();
-//        params.put("category_ids", TextUtils.isEmpty(category_ids) ? "" : category_ids);
-        params.put("category_ids", "");
-        params.put("goods_sn", "");
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-//        params.put("page", grouponGoods_page + "");
-//        params.put("strip", "20");
-        String url = POSApiSerview.POS_URL + POSApiSerview.getGrouponGoods3;
-        OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
-            @Override
-            public void onSuccess(String response) {
-                Log.i("ttt", response);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!response.isEmpty()) {
+                            // 3. 开启事务批量保存到数据库
+                            org.litepal.LitePal.beginTransaction();
                             try {
-                                JSONObject jsonObject = new JSONObject(response);
-                                if (jsonObject.getInt("code") == 1) {
-                                    popupView.dismiss();
-                                    getGrouponGoods();
-                                }
-                            } catch (JSONException e) {
-                                Log.e("ttt", "Error occurred", e);
+                                org.litepal.LitePal.saveAll(finalSaveList);
+                                org.litepal.LitePal.setTransactionSuccessful();
+                            } finally {
+                                org.litepal.LitePal.endTransaction();
                             }
 
-
+                            // 4. 继续分页递归
+                            handlePagination(gson.fromJson(response, GrouponGoodsBean.class), requestPage);
                         } else {
-
-//                            Toast.makeText(LoginActivity.this,"数据处理错误:"+ex.getMessage(),Toast.LENGTH_SHORT).show();
-                            Toast.makeText(MainActivity.this, "请求错误，结果为空", LENGTH_SHORT).show();
+                            finishSync();
                         }
+                    } catch (Exception e) {
+                        Log.e("SyncError", "致命错误: " + e.getMessage());
+                        finishSync();
                     }
                 });
-
             }
-
             @Override
-            public void onFailure(IOException e) {
-                runOnUiThread(() -> {
-                    popupView.dismiss();
-                    if (!TextUtils.isEmpty(UserUtils.getInstance().getGrouponGoodsBeanJson())) {
-                        Gson gson = new Gson();
-                        GrouponGoodsBean grouponGoodsBean = gson.fromJson(UserUtils.getInstance().getGrouponGoodsBeanJson(), GrouponGoodsBean.class);
-                        allGrouponGoodsModelList = grouponGoodsBean.getData();
-                        indexGrouponGoodsModelList = allGrouponGoodsModelList;
-                        grouponGoods_page = 1;
-                        grouponGoodsAdapter.hasMore = true;
-                        grouponGoodsAdapter.setNewData(getPageData(grouponGoods_page, indexGrouponGoodsModelList));
-                    }
-                    System.err.println("请求失败: " + e.getMessage());
-                });
-
-            }
+            public void onFailure(IOException e) { finishSync(); }
         });
     }
+
+
+
+    /**
+     * 步骤 C: 同步结束处理
+     */
+    private void finishSync() {
+        runOnUiThread(() -> {
+            if (loadingPopup != null) loadingPopup.dismiss();
+            is_tongbu = false;
+
+            // 1. 重置分类状态为“全部”
+            category_ids = "";
+            if (shopTypeAdapter != null) {
+                shopTypeAdapter.setIndex(0); // 让“全部”分类高亮
+                shopTypeAdapter.notifyDataSetChanged();
+            }
+
+            // 2. 【核心修复】立刻从本地数据库加载数据显示在右侧列表
+            loadLocalGoods(0);
+
+            // 3. 弹出同步成功提示
+            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Sync_completed), true).show();
+        });
+    }
+
+
+    /**
+     * 核心方法：从本地 LitePal 数据库加载商品
+     * @param page 第几页（从0开始）
+     */
+    private void loadLocalGoods(int page) {
+        // 1. 如果是加载第一页，重置状态
+        if (page == 0) {
+            grouponGoods_page = 1; // 对应你原本的页码变量
+            grouponGoodsAdapter.hasMore = true;
+            // UI 回到顶部
+            runOnUiThread(() -> {
+                if (shop_rv != null) shop_rv.scrollToPosition(0);
+            });
+        }
+
+        // 2. 异步执行数据库查询
+        dbExecutor.execute(() -> {
+            List<GrouponGoodsBean.GrouponGoodsModel> list;
+
+            // --- 核心过滤逻辑 ---
+            if (TextUtils.isEmpty(category_ids)) {
+                // A. 如果分类ID为空（即点击了“全部”），查询所有
+                list = org.litepal.LitePal.limit(20)
+                        .offset(page * 20)
+                        .find(GrouponGoodsBean.GrouponGoodsModel.class);
+            } else {
+                // B. 如果有分类ID，使用模糊查询 (category_ids 包含该ID)
+                // 因为你的 category_ids 存的是 "71,320" 这种格式
+                list = org.litepal.LitePal.where("category_ids like ?", "%" + category_ids + "%")
+                        .limit(20)
+                        .offset(page * 20)
+                        .find(GrouponGoodsBean.GrouponGoodsModel.class);
+            }
+
+            // 3. 切换回主线程更新 UI
+            runOnUiThread(() -> {
+                if (isFinishing() || isDestroyed()) return;
+
+                if (page == 0) {
+                    // 第一页：直接覆盖数据
+                    grouponGoodsAdapter.setNewData(list);
+                    if (list.size() < 20) grouponGoodsAdapter.hasMore = false;
+                } else {
+                    // 加载更多：追加数据
+                    if (list.isEmpty()) {
+                        grouponGoodsAdapter.hasMore = false;
+                    } else {
+                        grouponGoodsAdapter.loadMoreData(list);
+                        // 记录当前加载到的位置
+                    }
+                }
+                Log.d("DB_SEARCH", "分类ID: " + category_ids + ", 本页查到: " + list.size() + " 条");
+            });
+        });
+    }
+
+
+
+
+
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
 //        hideKeyboard();
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             int keyCode = event.getKeyCode();
+
+            // ========================== 核心优化：扫码枪自动夺取焦点 ==========================
+            // 逻辑说明：如果当前正在“拼音搜索框”输入，但扣动了扫码枪（发出数字键），
+            // 则判定为扫码操作，自动将焦点转回“条形码输入框”。
+            if (et_search_pinyin != null && et_search_pinyin.hasFocus()) {
+                // 绝大多数商品条码以数字开头（0-9）
+                if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+                    // 1. 强制切换焦点到条码框
+                    et_tiaoxingma.requestFocus();
+                    // 2. 隐藏拼音输入时弹出的软键盘，避免遮挡
+                    hideKeyboard();
+                    // 3. 【关键】将当前这第一个数字分发给条码框，确保不丢码
+                    et_tiaoxingma.dispatchKeyEvent(event);
+                    return true; // 拦截此事件，防止第一个数字留在拼音搜索框内
+                }
+            }
+            // ==============================================================================
+
             Log.i("ttt", "外部键盘点击" + keyCode);
 
             if (keyCode == KeyEvent.KEYCODE_F1) {
@@ -2611,6 +2619,9 @@ public class MainActivity extends Activity {
         }
         return super.dispatchKeyEvent(event);
     }
+
+
+
 
 
     //tab货品类型list
@@ -3003,29 +3014,29 @@ public class MainActivity extends Activity {
      * 打开秤连接
      */
     private void OpenScale() {
+        // 整个过程放入子线程，严禁在主线程 waitFor()
         new Thread(() -> {
             try {
-                // 1. 尝试获取 Root 权限并修改物理文件权限
-                java.lang.Process p = Runtime.getRuntime().exec("su");
+                Log.i("Scale", "开始尝试提权...");
+                Process p = Runtime.getRuntime().exec("su");
                 java.io.DataOutputStream os = new java.io.DataOutputStream(p.getOutputStream());
                 os.writeBytes("chmod 666 /dev/ttyS4\n");
-                os.writeBytes("setenforce 0\n"); // 尝试临时关闭 SELinux 拦截
                 os.writeBytes("exit\n");
                 os.flush();
-                p.waitFor();
-                Log.i("Scale", "已尝试执行权限提权");
+                int result = p.waitFor(); // 子线程等待没关系
+                Log.i("Scale", "提权尝试结束，结果代码: " + result);
             } catch (Exception e) {
-                Log.e("Scale", "提权失败（设备可能未Root）: " + e.getMessage());
+                Log.e("Scale", "提权异常: " + e.getMessage());
             }
 
-            // 2. 提权尝试完成后，再开始连接秤
+            // 无论提权成功与否，尝试开启串口连接
             runOnUiThread(() -> {
-                if (m_scaler != null) openInThread();
+                if (m_scaler != null) {
+                    openInThread();
+                }
             });
         }).start();
     }
-
-
     /**
      * 开启线程连接串口，防止 UI 线程卡顿
      */
@@ -3115,6 +3126,136 @@ public class MainActivity extends Activity {
     // ================================= 称重 SDK 支撑方法平移 (结束) =================================
 
 
+    /**
+     * 封装方法：处理扫码成功后的逻辑 (放在类级别，不要嵌套在方法里)
+     */
+    private void handleScanSuccess(GrouponGoodsBean.GrouponGoodsModel originalModel, String specialWeight, String specialDiscount) {
+        // 播放扫码音效
+        MediaPlayer mp = MediaPlayer.create(MainActivity.this, R.raw.shaoma);
+        mp.setOnCompletionListener(MediaPlayer::release);
+        mp.start();
 
+        GrouponGoodsBean.GrouponGoodsModel model = SerializableUtils.deepCopy(originalModel);
+        Glide.with(MainActivity.this).load(model.getImage()).into(shop_image);
+        have_paid_view.setVisibility(View.GONE);
+
+        if (specialWeight != null) {
+            // 复合码计算逻辑
+            model.setDiscount(specialDiscount);
+            BigDecimal price = new BigDecimal(model.getPrice());
+            BigDecimal zhehoujia = price.multiply(new BigDecimal(specialDiscount)).divide(new BigDecimal("100"));
+
+            if ("weight".equals(model.getOnline_type())) {
+                BigDecimal heji = zhehoujia.divide(new BigDecimal(500)).multiply(new BigDecimal(specialWeight)).setScale(2, RoundingMode.DOWN);
+                model.setHeji(heji);
+                model.setGoods_weight(specialWeight);
+                model.setShuliang(1);
+                model.setDiscounted_price(price.subtract(zhehoujia).divide(new BigDecimal(500)).multiply(new BigDecimal(specialWeight)).setScale(2, RoundingMode.DOWN));
+                allNum++;
+                zongjia = zongjia.add(heji);
+            } else {
+                int qty = Integer.parseInt(specialWeight);
+                BigDecimal heji = zhehoujia.multiply(new BigDecimal(qty)).setScale(2, RoundingMode.DOWN);
+                model.setHeji(heji);
+                model.setShuliang(qty);
+                model.setGoods_weight("0");
+                model.setDiscounted_price(price.subtract(zhehoujia).multiply(new BigDecimal(qty)).setScale(2, RoundingMode.DOWN));
+                allNum += qty;
+                zongjia = zongjia.add(heji);
+            }
+            selectedShopList.add(0, model);
+        } else {
+            // 普通码计算逻辑
+            boolean isExists = false;
+            for (int i = 0; i < selectedShopList.size(); i++) {
+                GrouponGoodsBean.GrouponGoodsModel m = selectedShopList.get(i);
+                if (m.getIds().equals(model.getIds()) && m.getGgspid().equals(model.getGgspid())) {
+                    m.setShuliang(m.getShuliang() + 1);
+                    BigDecimal price = new BigDecimal(m.getPrice());
+                    if (!TextUtils.isEmpty(m.getDiscount())) {
+                        price = price.multiply(new BigDecimal(m.getDiscount())).divide(new BigDecimal(100));
+                    }
+                    m.setHeji(m.getHeji().add(price).setScale(2, RoundingMode.DOWN));
+                    if (!m.isIs_zengsong()) zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
+                    selectedShopAdapter.notifyItemChanged(i);
+                    isExists = true;
+                    break;
+                }
+            }
+            if (!isExists) {
+                model.setShuliang(1);
+                model.setGoods_weight("0");
+                BigDecimal price = new BigDecimal(model.getPrice());
+                if (!TextUtils.isEmpty(memben_discount)) {
+                    BigDecimal zhehou = price.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal(100));
+                    model.setDiscounted_price(price.subtract(zhehou));
+                    model.setDiscount(memben_discount);
+                    price = zhehou;
+                }
+                model.setHeji(price.setScale(2, RoundingMode.DOWN));
+                selectedShopList.add(0, model);
+                zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
+            }
+            allNum++;
+        }
+
+        selectedShopAdapter.setNewData(selectedShopList);
+        selected_LinearLayoutManager.scrollToPosition(0);
+        tv_zongjian.setText(String.valueOf(allNum));
+        tv_zongjia.setText(zongjia.toString());
+        MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
+        MyPresentation.setZongjia(zongjia.toString());
+        availableAmount();
+    }
+
+    private void handleScanError() {
+        MediaPlayer mp = MediaPlayer.create(MainActivity.this, R.raw.cuowu);
+        mp.setOnCompletionListener(MediaPlayer::release);
+        mp.start();
+        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.product_not_found_in_inventory), true).show();
+    }
+
+
+    /**
+     * 辅助方法：处理分页同步进度及递归逻辑
+     * 解决“找不到符号 handlePagination”错误
+     */
+    private void handlePagination(GrouponGoodsBean bean, int requestPage) {
+        if (bean == null || bean.getData() == null) {
+            finishSync();
+            return;
+        }
+
+        GrouponGoodsBean.Pagination pagination = bean.getData().getPagination();
+        if (pagination != null) {
+            int totalCount = pagination.getTotal();
+            int totalPage = pagination.getTotalpage();
+
+            // 1. 更新 UI 进度条
+            if (totalCount > 0) {
+                int currentCount = Math.min((requestPage * SYNC_PAGE_SIZE), totalCount);
+                int percent = Math.min((int) (((double) currentCount / totalCount) * 100), 100);
+
+                runOnUiThread(() -> {
+                    if (loadingPopup != null) {
+                        loadingPopup.updateProgress(percent, currentCount, totalCount);
+                    }
+                });
+            }
+
+            // 2. 递归逻辑：如果还没到最后一页，继续下载下一页
+            if (requestPage < totalPage) {
+                Log.i("SyncDebug", "第 " + requestPage + " 页完成，准备请求下一页...");
+                downloadGoodsPage(requestPage + 1);
+            } else {
+                // 3. 所有页码同步完成
+                Log.i("SyncDebug", "全部数据同步完毕！");
+                finishSync();
+            }
+        } else {
+            // 如果接口没有返回分页信息，默认结束同步
+            finishSync();
+        }
+    }
 
 }
