@@ -6,7 +6,10 @@ package com.uhm.uhmcs.http;
  */
 public interface POSApiSerview {
 //    String POS_URL1 = "https://sdscsh.uhimao.com/";
-    String POS_URL1 = "https://uhimaosc.wiipoo.com/";
+    //String POS_URL1 = "https://uhimaosc.wiipoo.com/";
+
+    String POS_URL1 = "https://retail.posvox.com/";
+
 
     String POS_URL = POS_URL1+"api/";
 //    String POS_URL = "https://shbs.uhimao.com/api/";
