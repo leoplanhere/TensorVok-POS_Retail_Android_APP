@@ -3,16 +3,15 @@ package com.uhm.uhmcs.popupwindow;
 import static android.widget.Toast.LENGTH_SHORT;
 
 import android.app.Activity;
-import android.app.DatePickerDialog;
-import android.content.Intent;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
+import android.view.WindowManager;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,404 +23,275 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.dou361.dialogui.DialogUIUtils;
 import com.dou361.dialogui.bean.BuildBean;
-import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.activity.LoginActivity;
-import com.uhm.uhmcs.activity.MainActivity;
 import com.uhm.uhmcs.adapter.HistoryOrderAdapter;
-import com.uhm.uhmcs.adapter.ShopAdapter;
-import com.uhm.uhmcs.bean.GrouponGoodsBean;
 import com.uhm.uhmcs.bean.LastOrderBean;
-import com.uhm.uhmcs.bean.PrintDataBean;
 import com.uhm.uhmcs.http.OkHttpUtil;
 import com.uhm.uhmcs.http.POSApiSerview;
-import com.uhm.uhmcs.utils.MyLabeksPrinterHelper;
 import com.uhm.uhmcs.utils.MyPrinterHelper;
 import com.uhm.uhmcs.utils.UserUtils;
 import com.uhm.uhmcs.view.CustomInputTextView;
 
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.logging.HttpLoggingInterceptor;
 
 public class HistoryOrderPopupWindow {
     private PopupWindow popupWindow;
     private Activity context;
     private HistoryOrderAdapter historyOrderAdapter;
     private RecyclerView order_rv;
-    private String starttime,endtime;
-    private TextView starttime_tv,endtime_tv;
-    private int page=1;
-    private int totalpage=1;
+    private String starttime, endtime;
+    private TextView starttime_tv, endtime_tv;
+    private int page = 1;
+    private int totalpage = 1;
     private BuildBean buildBean;
 
     private CustomInputTextView order_sn_et;
 
+    // --- 核心优化：防重复请求与状态恢复变量 ---
+    private boolean isRequesting = false;
+    private List<LastOrderBean> lastFullList = new ArrayList<>();
+    private int lastFullPage = 1;
+    private int lastFullTotalPage = 1;
+    private boolean isSearchResult = false;
 
     public HistoryOrderPopupWindow(Activity context) {
-
         this.context = context;
-
         initPopup();
     }
 
     private void initPopup() {
         View popupView = LayoutInflater.from(context).inflate(R.layout.popupwindow_history_order, null);
-        buildBean= DialogUIUtils.showLoading(context,context.getString(R.string.Refunding),true,true,false,false);
-        popupWindow = new PopupWindow(
-                popupView,
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                true
-        );
-//        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, true);
         popupView.setBackgroundColor(context.getColor(R.color.black60));
-        popupWindow.setOutsideTouchable(true);
-        // 计算居中位置
-        popupView.post(() -> {
-            DisplayMetrics metrics = new DisplayMetrics();
-            context.getWindowManager().getDefaultDisplay().getMetrics(metrics);
-            int x = (metrics.widthPixels - popupView.getWidth()) / 2;
-            int y = (metrics.heightPixels - popupView.getHeight()) / 2;
-            popupWindow.update(x, y, -1, -1); // 更新位置
-        });
 
-        order_rv=popupView.findViewById(R.id.order_rv);
-        order_rv.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL,false));
-        historyOrderAdapter=new HistoryOrderAdapter();
+        popupWindow.setOutsideTouchable(false);
+        popupWindow.setFocusable(true);
+        popupWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
+
+        initViews(popupView);
+        setupListeners(popupView);
+
+        getOrderList();
+    }
+
+    private void initViews(View popupView) {
+        order_rv = popupView.findViewById(R.id.order_rv);
+        order_rv.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
+        historyOrderAdapter = new HistoryOrderAdapter();
         order_rv.setAdapter(historyOrderAdapter);
-        // 定义日期格式模板
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        // 获取当前时间（基于系统时区）
-        String formattedTime = sdf.format(System.currentTimeMillis());
-        starttime=formattedTime;
-        endtime=formattedTime;
-        starttime_tv=popupView.findViewById(R.id.starttime_tv);
-        endtime_tv=popupView.findViewById(R.id.endtime_tv);
+
+        View emptyView = LayoutInflater.from(context).inflate(R.layout.layout_empty_view, null);
+        emptyView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        historyOrderAdapter.setEmptyView(emptyView);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.CHINA);
+        String today = sdf.format(System.currentTimeMillis());
+        starttime = today;
+        endtime = today;
+
+        starttime_tv = popupView.findViewById(R.id.starttime_tv);
+        endtime_tv = popupView.findViewById(R.id.endtime_tv);
         starttime_tv.setText(starttime);
         endtime_tv.setText(endtime);
-        popupView.findViewById(R.id.fanhui_btn).setOnClickListener(v -> {
-            popupWindow.dismiss();});
-//        starttime_tv.setOnClickListener(v -> {
-//
-//            showStartDatePicker();
-//        });
-//        endtime_tv.setOnClickListener(v -> {
-//            showEndDatePicker();
-//        });
-        order_sn_et=popupView.findViewById(R.id.order_sn_et);
-        // 自动获取焦点
+
+        order_sn_et = popupView.findViewById(R.id.order_sn_et);
         order_sn_et.postDelayed(() -> order_sn_et.requestFocus(), 100);
+    }
+
+    private void setupListeners(View popupView) {
+        popupView.findViewById(R.id.fanhui_btn).setOnClickListener(v -> handleBackAction());
+
+        order_sn_et.setOnKeyListener((v, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                prepareSearch();
+                getOrderList();
+                return true;
+            }
+            return false;
+        });
+
         order_sn_et.setOnInputCompleteListener(text -> {
-            page=1;
+            prepareSearch();
             getOrderList();
         });
+
         popupView.findViewById(R.id.time_btn).setOnClickListener(v -> {
-            new TimePopupWindow(context, new PopupWindowOnClickListener.TimeOnClickListener() {
-                @Override
-                public void onClick(String startTime, String endTime) {
-                    starttime=startTime;
-                    endtime=endTime;
-                    starttime_tv.setText(startTime);
-                    endtime_tv.setText(endTime);
-                    page=1;
-                    getOrderList();
-                }
+            new TimePopupWindow(context, (sTime, eTime) -> {
+                starttime = sTime;
+                endtime = eTime;
+                starttime_tv.setText(starttime);
+                endtime_tv.setText(endtime);
+                isSearchResult = false;
+                resetAndReload();
             }).show();
         });
+
         order_rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-                int visibleItemCount = layoutManager.getChildCount();
-                int totalItemCount = layoutManager.getItemCount();
-                int pastVisiblesItems = layoutManager.findFirstVisibleItemPosition();
-
-
-                if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) { // 当滚动到列表底部时触发加载更多事件
-                    page++;
-                    if (page>totalpage){
-                        return;
+                if (dy > 0 && !isRequesting && page < totalpage) {
+                    LinearLayoutManager lm = (LinearLayoutManager) recyclerView.getLayoutManager();
+                    if (lm != null && lm.findLastVisibleItemPosition() >= historyOrderAdapter.getItemCount() - 3) {
+                        page++;
+                        getOrderList();
                     }
-                    getOrderList();
-
-                }
-
-
-            }
-        });
-        historyOrderAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
-            @Override
-            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-                int id=view.getId();
-                if (id==R.id.gouwuxinxi_tv){
-                    new OrderShopPopupWindow(context,historyOrderAdapter.getData().get(position).getOrder_item()).show();
-                }
-                if (id==R.id.zhifuxinxi_btn){
-//                    new RefundPassWordPopupWindow(context, new PopupWindowOnClickListener.DiscountOnClickListener() {
-//                        @Override
-//                        public void onClick(String discount) {
-//                            if (!discount.equals("1234")){
-//                                return;
-//                            }
-//                            new DeleteShopPopupWindow(context, context.getString(R.string.Confirm_refund), new PopupWindowOnClickListener.DeleteShopOnClickListener() {
-//                                @Override
-//                                public void onClick(String text) {
-//                                    buildBean.show();
-//                                    cash_refund(historyOrderAdapter.getData().get(position), position);
-//                                }
-//                            }).show();
-//                        }
-//                    }).show();
-                    new PaymentPopupWindow(context,historyOrderAdapter.getData().get(position).getXf_type(),historyOrderAdapter.getData().get(position).getNumber(),historyOrderAdapter.getData().get(position).getPaymentlog()).show();
-                }
-                if (id==R.id.daying_tv){
-                    MyPrinterHelper.getInstance().asyncPrintLastOrder(context,true,historyOrderAdapter.getData().get(position),null);
                 }
             }
         });
 
-        getOrderList();
+        historyOrderAdapter.setOnItemChildClickListener((adapter, view, position) -> {
+            LastOrderBean item = historyOrderAdapter.getData().get(position);
+            int id = view.getId();
+            if (id == R.id.gouwuxinxi_tv) {
+                new OrderShopPopupWindow(context, item.getOrder_item()).show();
+            } else if (id == R.id.zhifuxinxi_btn) {
+                // ★ 核心同步逻辑：传入退款成功的回调
+                new PaymentPopupWindow(context, item.getXf_type(), item.getNumber(), item.getPaymentlog(), new PaymentPopupWindow.OnRefundSuccessListener() {
+                    @Override
+                    public void onRefundSuccess() {
+                        // 1. 更新当前列表中的状态
+                        item.setRefund_type(2);
+                        historyOrderAdapter.notifyItemChanged(position);
 
-    }
-    public void cash_refund(LastOrderBean lastOrderBean, int position) {
-        Map<String, String> params = new HashMap<>();
-//        if (item.getPay_type().equals("cash")){
-//            xianjin="现金";
-//        }else if (item.getPay_type().equals("alipay")){
-//            xianjin="支付宝";
-//        }else if (item.getPay_type().equals("wechat")){
-//            xianjin="微信";
-//        }
-        String url = "";
-        if (lastOrderBean.getPay_type().equals("cash")){
-            params.put("order_sn", lastOrderBean.getOrder_sn());
-            params.put("refund_fee", lastOrderBean.getPay_fee());
-            url = POSApiSerview.POS_URL + POSApiSerview.cash_refund;
-        }else if (lastOrderBean.getPay_type().equals("alipay")){
-            params.put("refund_amount", lastOrderBean.getPay_fee());
-            params.put("trade_no", lastOrderBean.getTransaction_id());
-            url = POSApiSerview.POS_URL + POSApiSerview.order_refund;
-        }else if (lastOrderBean.getPay_type().equals("wechat")){
-            params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-            params.put("transaction_id", lastOrderBean.getTransaction_id());
-            params.put("refund_fee",new BigDecimal(lastOrderBean.getPay_fee()).multiply(new BigDecimal("100"))+"");
-            params.put("total_fee",new BigDecimal(lastOrderBean.getPay_fee()).multiply(new BigDecimal("100"))+"");
-            url = POSApiSerview.POS_URL + POSApiSerview.wx_refund;
-        }
-        FormBody.Builder formBuilder = new FormBody.Builder();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            Log.i("ttt","??>>>"+entry.getKey()+">>>>"+entry.getValue());
-            formBuilder.add(entry.getKey(), entry.getValue());
-        }
-        RequestBody formBody = formBuilder.build();
-        Request.Builder builder = new Request.Builder()
-                .url(url);
-
-        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
-
-
-        builder.post(formBody);
-
-        Request request = builder.build();
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
-                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
-                .build();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    try {
-                        String success=response.body().string();
-                        JSONObject jsonObject=new JSONObject(success);
-                        context.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    DialogUIUtils.dismiss(buildBean);
-                                    String msg=jsonObject.getString("msg");
-                                    if (msg.contains("成功")||msg.contains("Success")){
-                                        new DeleteShopPopupWindow(context,context.getString(R.string.Refund_successful),true).show();
-                                        historyOrderAdapter.getData().get(position).setRefund_type(2);
-                                        historyOrderAdapter.notifyItemChanged(position);
-                                        return;
-                                    }
-                                    if (msg.contains("失效")){
-                                        new DeleteShopPopupWindow(context, true, msg, new PopupWindowOnClickListener.DeleteShopOnClickListener() {
-                                            @Override
-                                            public void onClick(String text) {
-                                                Intent intent=new Intent(context, LoginActivity.class);
-                                                context.startActivity(intent);
-                                            }
-                                        }).show();
-                                        return;
-                                    }
-                                    new DeleteShopPopupWindow(context,context.getString(R.string.Refund_failed),true).show();
-
-
-                                } catch (JSONException e) {
-                                    Log.e("ttt", "Error occurred", e);
+                        // 2. ★ 同步更新备份列表（防止返回后状态回滚）
+                        if (isSearchResult && lastFullList != null) {
+                            for (LastOrderBean fullItem : lastFullList) {
+                                if (fullItem.getOrder_sn().equals(item.getOrder_sn())) {
+                                    fullItem.setRefund_type(2);
+                                    break;
                                 }
                             }
-                        });
-
-                    } catch (JSONException e) {
-                        Log.e("ttt", "Error occurred", e);
+                        }
                     }
-                } else {
-
-                }
+                }).show();
+            } else if (id == R.id.daying_tv) {
+                MyPrinterHelper.getInstance().asyncPrintLastOrder(context, true, item, null);
             }
         });
     }
 
-    public void operateDetails(LastOrderBean lastOrderBean) {
+    private void prepareSearch() {
+        if (!isSearchResult) {
+            lastFullList = new ArrayList<>(historyOrderAdapter.getData());
+            lastFullPage = page;
+            lastFullTotalPage = totalpage;
+        }
+        isSearchResult = true;
+        page = 1;
+        totalpage = 1;
+        historyOrderAdapter.setNewData(null);
+    }
+
+    private void handleBackAction() {
+        if (isSearchResult) {
+            isSearchResult = false;
+            order_sn_et.setText("");
+            historyOrderAdapter.setNewData(lastFullList);
+            page = lastFullPage;
+            totalpage = lastFullTotalPage;
+            Toast.makeText(context, "已恢复完整列表", Toast.LENGTH_SHORT).show();
+        } else {
+            popupWindow.dismiss();
+        }
+    }
+
+    private void resetAndReload() {
+        page = 1;
+        totalpage = 1;
+        historyOrderAdapter.setNewData(null);
+        getOrderList();
+    }
+
+    private void getOrderList() {
+        if (isRequesting) return;
+        isRequesting = true;
+
+        String tip = (page == 1) ? "正在获取订单..." : "加载第 " + page + " / " + totalpage + " 页";
+        buildBean = DialogUIUtils.showLoading(context, tip, true, true, false, false);
+        buildBean.show();
+
         Map<String, String> params = new HashMap<>();
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
-        String url = POSApiSerview.POS_URL + POSApiSerview.operateDetails;
-        OkHttpUtil.postFormAsync(url, params,context, new OkHttpUtil.OkHttpCallback() {
+        String sn = order_sn_et.getText().toString().trim();
+
+        if (!TextUtils.isEmpty(sn)) {
+            params.put("order_sn", sn);
+        } else {
+            params.put("starttime", starttime);
+            params.put("endtime", endtime);
+        }
+
+        params.put("page", String.valueOf(page));
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+        params.put("strip", "10");
+
+        String url = POSApiSerview.POS_URL + POSApiSerview.orderList;
+        OkHttpUtil.postFormAsync(url, params, context, new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {
-                Log.i("ttt", ">>>>>>>>>>>>>");
-                context.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            int code = jsonObject.getInt("code");
-                            if (code == 1) {
-                                ArrayList<PrintDataBean> printDataBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<PrintDataBean>>() {
-                                }.getType());
-                                MyPrinterHelper.getInstance().asyncPrintLastOrder(context, lastOrderBean, printDataBeanArrayList.get(0));
-                            }else {
-                                MyPrinterHelper.getInstance().asyncPrintLastOrder(context,lastOrderBean,null);
-                            }
-                        } catch (JSONException e) {
-                            Log.e("ttt", "Error occurred", e);
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    if (jsonObject.optInt("code") == 1 && !jsonObject.isNull("data")) {
+                        JSONObject dataObj = new JSONObject(jsonObject.getString("data"));
+                        ArrayList<LastOrderBean> list = new Gson().fromJson(
+                                dataObj.getString("data"),
+                                new TypeToken<ArrayList<LastOrderBean>>() {}.getType()
+                        );
+
+                        if (dataObj.has("pagination")) {
+                            totalpage = new JSONObject(dataObj.getString("pagination")).optInt("totalpage");
                         }
+
+                        context.runOnUiThread(() -> {
+                            if (page > 1) {
+                                historyOrderAdapter.addData(list);
+                            } else {
+                                historyOrderAdapter.setNewData(list);
+                            }
+                            finalizeRequest(false);
+                        });
+                    } else {
+                        context.runOnUiThread(() -> {
+                            if (page == 1) historyOrderAdapter.setNewData(null);
+                            finalizeRequest(true);
+                        });
                     }
-                });
+                } catch (Exception e) {
+                    context.runOnUiThread(() -> finalizeRequest(false));
+                }
             }
 
             @Override
             public void onFailure(IOException e) {
-
+                context.runOnUiThread(() -> {
+                    finalizeRequest(false);
+                    Toast.makeText(context, "网络异常，请重试", LENGTH_SHORT).show();
+                });
             }
         });
     }
 
-
-    // 定义日期变量
-    private Calendar startDate = Calendar.getInstance();
-    private Calendar endDate = Calendar.getInstance();
-
-
-    private String formatDate(Calendar calendar) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        return sdf.format(calendar.getTime());
+    private void finalizeRequest(boolean showToast) {
+        isRequesting = false;
+        if (buildBean != null) DialogUIUtils.dismiss(buildBean);
+        if (showToast && !TextUtils.isEmpty(order_sn_et.getText().toString())) {
+            Toast.makeText(context, "未找到该单号", LENGTH_SHORT).show();
+        }
+        order_sn_et.setText("");
     }
 
     public void show() {
-        View rootView = ((Activity) context).getWindow().getDecorView();
+        View rootView = context.getWindow().getDecorView();
         popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
     }
-    private void getOrderList() {
-        Map<String, String> params = new HashMap<>();
-        if (!TextUtils.isEmpty(order_sn_et.getText().toString())){
-            params.put("order_sn", order_sn_et.getText().toString());
-            params.put("starttime","");
-            params.put("endtime", "");
-        }else {
-            params.put("starttime",starttime);
-            params.put("endtime", endtime);
-
-        }
-        params.put("page", page+"");
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-        params.put("strip", "10");
-//        params.put("page", grouponGoods_page + "");
-//        params.put("strip", "20");
-        String url = POSApiSerview.POS_URL + POSApiSerview.orderList;
-        OkHttpUtil.postFormAsync(url, params,context, new OkHttpUtil.OkHttpCallback() {
-            @Override
-            public void onSuccess(String response) {
-                Log.i("ttt", response);
-                context.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            int code = jsonObject.getInt("code");
-                            if (code == 1 && !TextUtils.isEmpty(jsonObject.getString("data"))) {
-                                JSONObject jsonObject1=new JSONObject(jsonObject.getString("data"));
-                                ArrayList<LastOrderBean> lastOrderBeanArrayList = new Gson().fromJson(jsonObject1.getString("data"), new TypeToken<ArrayList<LastOrderBean>>() {
-                                }.getType());
-                                totalpage=new JSONObject(jsonObject1.getString("pagination")).getInt("totalpage");
-//                                operateDetails(lastOrderBeanArrayList.get(0));
-                                if (page>1){
-                                    historyOrderAdapter.addData(lastOrderBeanArrayList);
-                                }else {
-                                    historyOrderAdapter.setNewData(lastOrderBeanArrayList);
-                                }
-
-                            }else {
-                                if (!TextUtils.isEmpty(order_sn_et.getText().toString())){
-                                    new DeleteShopPopupWindow(context,context.getString(R.string.No_matching_bill_found),true).show();
-                                }else {
-                                    historyOrderAdapter.setNewData(new ArrayList<>());
-                                }
-
-                            }
-
-                            order_sn_et.setText("");
-                        } catch (JSONException e) {
-                            Log.e("ttt", "Error occurred", e);
-                        }
-
-                    }
-                });
-
-            }
-
-            @Override
-            public void onFailure(IOException e) {
-                System.err.println("请求失败: " + e.getMessage());
-            }
-        });
-    }
-
 }

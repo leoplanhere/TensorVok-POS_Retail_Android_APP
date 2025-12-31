@@ -17,7 +17,7 @@
             android:layout_width="180dp"
             android:layout_height="70dp"
             android:text="@string/back"
-            android:textSize="25dp"
+            android:textSize="20dp"
             android:textColor="@color/black"
             android:gravity="center"
             android:background="@drawable/black_line"/>
@@ -26,7 +26,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
-            android:textSize="30dp"
+            android:textSize="20dp"
             android:textStyle="bold"
             android:text="@string/order_list"
             android:layout_marginLeft="20dp"/>
@@ -44,12 +44,12 @@
             android:textColor="@color/black"
             android:gravity="center_vertical"
             android:paddingLeft="30dp"
-            android:textSize="25dp"/>
+            android:textSize="20dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
-            android:textSize="25dp"
+            android:textSize="20dp"
             android:text="@string/order_date"
             android:layout_marginRight="20dp"/>
         <LinearLayout
@@ -67,7 +67,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text=""
-                android:textSize="25dp"
+                android:textSize="20dp"
                 android:textColor="@color/black"
                 android:hint="@string/start_date"
                 android:textColorHint="@color/mr_gray_888"
@@ -85,7 +85,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text=""
-                android:textSize="25dp"
+                android:textSize="20dp"
                 android:textColor="@color/black"
                 android:hint="@string/end_date"
                 android:textColorHint="@color/mr_gray_888"
@@ -112,56 +112,56 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="18dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/cashier"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.5"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="18dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/rrder_no"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="18dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/order_time1"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="18dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/purchased_goods"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="18dp"
+                android:textColor="@color/text_gray"
                 android:text="会员号"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="18dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/discount"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="18dp"
+                android:textColor="@color/text_gray"
                 android:text="优惠卷"
                 android:gravity="center"/>
             <TextView
@@ -170,31 +170,31 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textColor="@color/text_gray"
                 android:text="@string/payment_amount"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="18dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/total1"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="18dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/payment_info"
                 android:gravity="center"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="18dp"
+                android:textColor="@color/text_gray"
                 android:text="@string/print_receipt1"
                 android:gravity="center"/>
 
