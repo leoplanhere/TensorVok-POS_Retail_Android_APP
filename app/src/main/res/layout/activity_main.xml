@@ -353,7 +353,8 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_marginBottom="13dp"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
@@ -366,17 +367,17 @@
                     android:paddingTop="8dp"
                     android:paddingBottom="8dp"
                     android:layout_width="wrap_content"
-                    android:paddingRight="13dp"
+                    android:paddingRight="15dp"
                     android:layout_height="wrap_content"
                     android:src="@drawable/gengduo" />
 
                 <LinearLayout
                     android:id="@+id/shuaxin_btn"
                     android:layout_width="116dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="45dp"
                     android:orientation="horizontal"
                     android:gravity="center"
-                    android:background="@drawable/blue_bg5">
+                    android:background="@drawable/red_bg">
                     <ImageView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -447,7 +448,7 @@
 
                 <LinearLayout
                     android:layout_marginStart="13dp"
-                    android:layout_marginEnd="13dp"
+                    android:layout_marginEnd="5dp"
                     android:layout_width="200dp"
                     android:layout_height="match_parent"
                     android:background="@drawable/rounded_border2"
@@ -487,7 +488,7 @@
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:layout_alignParentRight="true"
-                    android:layout_marginStart="13dp"
+                    android:layout_marginStart="5dp"
                     android:layout_width="253dp"
                     android:layout_height="match_parent"
                     android:background="@drawable/rounded_border2"
