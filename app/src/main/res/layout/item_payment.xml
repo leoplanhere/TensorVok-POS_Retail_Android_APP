@@ -22,8 +22,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textColor="@color/text_gray"
                 android:text=""
                 android:gravity="center"/>
             <TextView
@@ -31,8 +31,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textColor="@color/text_gray"
                 android:text=""
                 android:gravity="center"/>
             <TextView
@@ -40,8 +40,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:textSize="25dp"
-                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textColor="@color/text_gray"
                 android:text=""
                 android:gravity="center"/>
             <LinearLayout
@@ -58,7 +58,7 @@
                     android:layout_height="50dp"
                     android:background="@drawable/rounded_border"
                     android:layout_weight="1"
-                    android:textSize="25dp"
+                    android:textSize="20dp"
                     android:textColor="@color/black"
                     android:text="@string/refund"
                     android:gravity="center"/>

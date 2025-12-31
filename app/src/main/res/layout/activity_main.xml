@@ -67,13 +67,29 @@
                     android:orientation="vertical"
                     android:gravity="center">
 
-                    <com.makeramen.roundedimageview.RoundedImageView
-                        android:visibility="visible"
-                        android:id="@+id/shop_image"
-                        android:layout_margin="15dp"
+                    <FrameLayout
                         android:layout_width="match_parent"
                         android:layout_height="330dp"
-                        app:riv_corner_radius="10dp"/>
+                        android:layout_margin="15dp">
+
+                        <TextView
+                            android:id="@+id/tv_image_placeholder"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="等待扫描商品..."
+                            android:textColor="#CCCCCC"
+                            android:textSize="22dp"
+                            android:background="#F9F9FB" />
+
+                        <com.makeramen.roundedimageview.RoundedImageView
+                            android:visibility="gone"
+                            android:id="@+id/shop_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            app:riv_corner_radius="10dp"
+                            android:scaleType="centerCrop"/>
+                    </FrameLayout>
 
                     <LinearLayout
                         android:visibility="gone"
@@ -392,9 +408,6 @@
                         android:layout_height="wrap_content" />
                 </LinearLayout>
 
-
-
-
                 <View
                     android:layout_width="0dp"
                     android:layout_height="1dp"
@@ -412,7 +425,7 @@
 
                 <LinearLayout
                     android:id="@+id/wangluo_view"
-                    android:visibility="gone"
+                    android:visibility="visible"
                     android:gravity="center_vertical"
                     android:layout_marginLeft="150dp"
                     android:layout_width="wrap_content"
@@ -432,6 +445,8 @@
                         android:textSize="24dp"/>
                 </LinearLayout>
 
+
+
                 <TextView
                     android:id="@+id/bendin_view"
                     android:visibility="gone"
@@ -442,9 +457,6 @@
                     android:text="@string/Local_bill_upload_required"
                     android:textColor="@color/color_login_079752"
                     android:textSize="24dp"/>
-
-
-
 
                 <LinearLayout
                     android:layout_marginStart="13dp"
@@ -478,11 +490,6 @@
                         android:src="@drawable/shanchu_iv"
                         android:visibility="gone" /> </LinearLayout>
 
-
-
-
-
-
                 <LinearLayout
                     android:layout_marginEnd="12dp"
                     android:focusable="true"
@@ -513,8 +520,6 @@
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
-
-
 
         <LinearLayout
             android:layout_width="0dp"
@@ -552,29 +557,29 @@
                         android:layout_gravity="center_vertical"
                         android:layout_marginLeft="5dp"
                         android:text="优道佳家福会员超市" />
-                   <LinearLayout
-                       android:layout_width="match_parent"
-                       android:layout_height="wrap_content"
-                       android:orientation="horizontal">
-                       <TextView
-                           android:id="@+id/tv_main_shop_name"
-                           android:layout_width="wrap_content"
-                           android:layout_height="wrap_content"
-                           android:textSize="12dp"
-                           android:textColor="@color/black"
-                           android:layout_gravity="center_vertical"
-                           android:layout_marginLeft="5dp"
-                           android:text="优海猫" />
-                       <TextView
-                           android:id="@+id/tv_nickname"
-                           android:layout_width="wrap_content"
-                           android:layout_height="wrap_content"
-                           android:textSize="12dp"
-                           android:textColor="@color/black"
-                           android:layout_gravity="center_vertical"
-                           android:layout_marginLeft="7dp"
-                           android:text="12321414" />
-                   </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:id="@+id/tv_main_shop_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12dp"
+                            android:textColor="@color/black"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginLeft="5dp"
+                            android:text="优海猫" />
+                        <TextView
+                            android:id="@+id/tv_nickname"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12dp"
+                            android:textColor="@color/black"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginLeft="7dp"
+                            android:text="12321414" />
+                    </LinearLayout>
                 </LinearLayout>
                 <LinearLayout
                     android:paddingStart="22dp"
@@ -813,11 +818,6 @@
                 </LinearLayout>
             </LinearLayout>
 
-
-
-
-
-
             <LinearLayout
                 android:layout_marginTop="5dp"
                 android:layout_marginStart="10dp"
@@ -1017,10 +1017,34 @@
                         android:textColor="#FF71717A"
                         android:text="@string/action"/>
                 </LinearLayout>
+
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1">
+
+                    <LinearLayout
+                        android:id="@+id/ll_cart_empty_placeholder"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:visibility="visible">
+                        <ImageView
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:src="@drawable/gengduo"
+                            android:alpha="0.2"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="购物车是空的\n请扫码或选择商品"
+                            android:gravity="center"
+                            android:textColor="#CCCCCC"
+                            android:textSize="18dp" />
+                    </LinearLayout>
+
                     <androidx.recyclerview.widget.RecyclerView
                         android:layout_marginTop="10dp"
                         android:layout_marginBottom="10dp"
@@ -1032,7 +1056,8 @@
                         android:scrollbarFadeDuration="0"
                         android:scrollbarThumbVertical="@drawable/scrollbar_vertical_thumb"
                         android:scrollbars="vertical"
-                        android:visibility="visible" />
+                        android:visibility="gone" />
+
                     <LinearLayout
                         android:visibility="gone"
                         android:id="@+id/have_paid_view"
@@ -1046,7 +1071,6 @@
                             android:layout_height="200dp" />
                     </LinearLayout>
                 </RelativeLayout>
-
 
             </LinearLayout>
             <LinearLayout
@@ -1072,8 +1096,8 @@
 
         </LinearLayout>
 
-
     </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:visibility="visible"
         android:background="@color/white"
@@ -1084,6 +1108,5 @@
         android:scrollbarFadeDuration="0"
         android:scrollbarSize="6dp"
         android:scrollbars="horizontal"/>
-
 
 </LinearLayout>

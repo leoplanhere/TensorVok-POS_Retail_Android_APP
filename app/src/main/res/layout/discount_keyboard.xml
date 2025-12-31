@@ -21,6 +21,7 @@
             <TextView
                 android:id="@+id/btn_7"
                 android:layout_marginRight="@dimen/dp_10"
+                android:textStyle="bold"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -28,7 +29,7 @@
                 android:text="7"
                 android:gravity="center"
                 android:background="@drawable/num_btn_bg1"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="#FF3B82F6" />
 
             <TextView
@@ -36,23 +37,25 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:textStyle="bold"
                 android:tag="8"
                 android:text="8"
                 android:gravity="center"
                 android:background="@drawable/num_btn_bg1"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="#FF3B82F6" />
 
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
+                android:textStyle="bold"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:tag="9"
                 android:text="9"
                 android:gravity="center"
                 android:background="@drawable/num_btn_bg1"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="#FF3B82F6" />
         </LinearLayout>
 
@@ -66,36 +69,39 @@
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:textStyle="bold"
                 android:layout_weight="1"
                 android:tag="4"
                 android:text="4"
                 android:gravity="center"
                 android:background="@drawable/num_btn_bg1"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="#FF3B82F6" />
 
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:textStyle="bold"
                 android:layout_weight="1"
                 android:tag="5"
                 android:text="5"
                 android:gravity="center"
                 android:background="@drawable/num_btn_bg1"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="#FF3B82F6" />
 
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:textStyle="bold"
                 android:layout_weight="1"
                 android:tag="6"
                 android:text="6"
                 android:gravity="center"
                 android:background="@drawable/num_btn_bg1"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="#FF3B82F6" />
         </LinearLayout>
 
@@ -109,36 +115,39 @@
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:textStyle="bold"
                 android:layout_weight="1"
                 android:tag="1"
                 android:text="1"
                 android:gravity="center"
                 android:background="@drawable/num_btn_bg1"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="#FF3B82F6" />
 
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:textStyle="bold"
                 android:layout_weight="1"
                 android:tag="2"
                 android:text="2"
                 android:gravity="center"
                 android:background="@drawable/num_btn_bg1"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="#FF3B82F6" />
 
             <TextView
                 android:layout_marginRight="10dp"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:textStyle="bold"
                 android:layout_weight="1"
                 android:tag="3"
                 android:text="3"
                 android:gravity="center"
                 android:background="@drawable/num_btn_bg1"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="#FF3B82F6" />
 
         </LinearLayout>
@@ -153,36 +162,39 @@
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:textStyle="bold"
                 android:layout_weight="1"
                 android:tag="0"
                 android:text="0"
                 android:gravity="center"
                 android:background="@drawable/num_btn_bg1"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="#FF3B82F6" />
 
             <TextView
                 android:layout_marginRight="@dimen/dp_10"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:textStyle="bold"
                 android:layout_weight="1"
                 android:tag="."
                 android:text="."
                 android:gravity="center"
                 android:background="@drawable/num_btn_bg1"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="#FF3B82F6" />
 
             <TextView
                 android:layout_marginRight="10dp"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:textStyle="bold"
                 android:layout_weight="1"
                 android:tag="-"
                 android:text="-"
                 android:gravity="center"
                 android:background="@drawable/num_btn_bg1"
-                android:textSize="20dp"
+                android:textSize="25dp"
                 android:textColor="#FF3B82F6" />
 
         </LinearLayout>
@@ -201,26 +213,29 @@
             android:text="@string/delete"
             android:gravity="center"
             android:background="@drawable/num_btn_bg1"
-            android:textSize="20dp"
+            android:textSize="25dp"
+            android:textStyle="bold"
             android:textColor="#FF3B82F6" />
         <TextView
             android:layout_marginTop="10dp"
             android:layout_width="match_parent"
+            android:textStyle="bold"
             android:layout_height="80dp"
             android:tag="c"
             android:text="@string/clear"
             android:gravity="center"
             android:background="@drawable/num_btn_bg3"
-            android:textSize="20dp"
+            android:textSize="25dp"
             android:textColor="#FFD9001B" />
         <TextView
             android:layout_marginTop="10dp"
             android:layout_width="match_parent"
             android:layout_height="170dp"
             android:layout_weight="1"
+            android:textStyle="bold"
             android:textColor="@color/white"
             android:gravity="center"
-            android:textSize="20dp"
+            android:textSize="25dp"
             android:tag="submit"
             android:text="@string/confirm"
             android:background="@drawable/num_btn_bg2"/>

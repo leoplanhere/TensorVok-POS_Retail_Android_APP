@@ -163,7 +163,9 @@ public class MainActivity extends Activity {
     private TextView tv_tare_weight;
     private TextView btn_qupi;
 
-
+    // 新增占位视图变量
+    private TextView tv_image_placeholder;
+    private LinearLayout ll_cart_empty_placeholder;
 
     @SuppressLint("HandlerLeak")
     Handler handler = new Handler() {
@@ -339,6 +341,8 @@ public class MainActivity extends Activity {
 
 
     private NetworkChangeReceiver networkChangeReceiver;
+    // 声明一个延迟任务，防止网络切换瞬间闪烁红字
+    private Runnable networkErrorRunnable;
 
     // 网络变化广播接收器
     private class NetworkChangeReceiver extends BroadcastReceiver {
@@ -350,19 +354,38 @@ public class MainActivity extends Activity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
+            // 使用你的现有的 handler 来处理延迟
             if (NetworkUtils.getInstance().isNetworkConnected(MainActivity.this)) {
+                // 1. 如果当前连通了，立即取消掉那个“准备报错”的任务
+                if (networkErrorRunnable != null) {
+                    handler.removeCallbacks(networkErrorRunnable);
+                }
+                // 2. 隐藏红字
                 wangluo_view.setVisibility(GONE);
+
                 if (TextUtils.isEmpty(UserUtils.getInstance().getOrderListJson())) {
                     bendin_view.setVisibility(GONE);
                 } else {
                     bendin_view.setVisibility(VISIBLE);
                 }
             } else {
-                bendin_view.setVisibility(GONE);
-                wangluo_view.setVisibility(VISIBLE);
+                // 3. 如果检测到断网，不要立刻显示，先排队一个 2 秒后的任务
+                if (networkErrorRunnable == null) {
+                    networkErrorRunnable = () -> {
+                        bendin_view.setVisibility(GONE);
+                        wangluo_view.setVisibility(VISIBLE);
+                    };
+                }
+                // 先移除之前的，确保不重复排队
+                handler.removeCallbacks(networkErrorRunnable);
+                // 2000毫秒（2秒）后执行报错显示
+                handler.postDelayed(networkErrorRunnable, 2000);
             }
         }
     }
+
+
+
 
     // 注册网络状态监听
     private NetworkChangeReceiver registerNetworkReceiver(Activity context) {
@@ -419,6 +442,10 @@ public class MainActivity extends Activity {
 
 
     private void initView() {
+
+        // 绑定新添加的占位视图
+        tv_image_placeholder = findViewById(R.id.tv_image_placeholder);
+        ll_cart_empty_placeholder = findViewById(R.id.ll_cart_empty_placeholder);
 
 
         // 1. 【核心修复】必须把这一行提到最前面，防止空指针崩溃
@@ -495,6 +522,7 @@ public class MainActivity extends Activity {
                         @SuppressLint("SetTextI18n")
                         @Override
                         public void onClick(String string) {
+                            // ... 原有的删除逻辑 ...
                             if (!selectedShopList.get(selectedShopIndex).isIs_zengsong()) {
                                 zongjia = zongjia.subtract(selectedShopList.get(selectedShopIndex).getHeji()).setScale(2, RoundingMode.DOWN);
                                 tv_zongjia.setText(zongjia + "");
@@ -507,16 +535,16 @@ public class MainActivity extends Activity {
                             MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
                             tv_zongjian.setText(allNum + "");
                             selectedShopIndex = null;
+                            selected_LinearLayoutManager.scrollToPosition(0);
 
-                            // 滚动到位置 0（第一条）
-                            selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
-                            if (selectedShopAdapter.getItemCount() > 0) {
-                                availableAmount();
-                            }
-
+                            // ★★★ 核心修复：在这里调用！当用户点击“确定删除”后，立即刷新占位符状态 ★★★
+                            updatePlaceholderVisibility();
                         }
                     });
                     deleteShopPopupWindow.show();
+
+                    // 【删除这里】不要在 show() 后面调用
+                    // updatePlaceholderVisibility();
                 }
                 /*
                   清空商品
@@ -533,6 +561,8 @@ public class MainActivity extends Activity {
                     allNum = 0;
                     MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
                     MyPresentation.setZongjia(zongjia.toString());
+
+                    updatePlaceholderVisibility();
                 }
                 /*
                   挂单
@@ -553,7 +583,17 @@ public class MainActivity extends Activity {
                     registrationShopBean.setRegistrationShopList(registrationShopList);
                     registrationShopBeanArrayList.add(registrationShopBean);
 
-                    qudan_btn.setText(getString(R.string.qudan_num, registrationShopBeanArrayList.size() + ""));
+                    // 获取当前的挂单数量
+                    int count = registrationShopBeanArrayList.size();
+// 使用 HTML 标签来自定义数字的颜色和大小
+// <font color='#FF0000'> 设置颜色，<big> 或 <small> 或指定样式设置大小
+                    String styledText = "取单(<font color='#FF0000'><big>" + count + "</big></font>)";
+
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                        qudan_btn.setText(android.text.Html.fromHtml(styledText, android.text.Html.FROM_HTML_MODE_LEGACY));
+                    } else {
+                        qudan_btn.setText(android.text.Html.fromHtml(styledText));
+                    }
 
                     selectedShopList.clear();
                     selectedShopAdapter.setNewData(selectedShopList);
@@ -563,6 +603,8 @@ public class MainActivity extends Activity {
                     allNum = 0;
                     MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
                     MyPresentation.setZongjia(zongjia.toString());
+
+                    updatePlaceholderVisibility();
 
                 }
 
@@ -590,10 +632,16 @@ public class MainActivity extends Activity {
                                     MyPresentation.setZongjia(zongjia.toString());
                                     availableAmount();
 
+                                    // ★★★ 核心修复：在这里调用，数据恢复后立刻隐藏占位符 ★★★
+                                    updatePlaceholderVisibility();
+
                                 } else if (type == 2) {//删除
                                     if (!registrationShopBeanArrayList.isEmpty()) {
                                         getRegistrationShopPopupWindow.setDataDelect();
                                     }
+
+                                    // 如果删完了，也刷新一下（防止误操作导致的逻辑不符）
+                                    updatePlaceholderVisibility();
 
                                 }
                                 registrationShopBeanArrayList.remove(index);
@@ -607,6 +655,8 @@ public class MainActivity extends Activity {
                         });
                         getRegistrationShopPopupWindow.show();
                     }
+
+
 
                 }
 
@@ -1184,6 +1234,8 @@ public class MainActivity extends Activity {
                             availableAmount();
                         }
                     }).show();
+                    updatePlaceholderVisibility();
+
                 }
 
 
@@ -1425,6 +1477,9 @@ public class MainActivity extends Activity {
                                 }
                                 selectedShopIndex = null;
 
+                                // ★★★ 核心修复：在这里也要调用！ ★★★
+                                updatePlaceholderVisibility();
+
                             }
                         });
                         deleteShopPopupWindow.show();
@@ -1644,7 +1699,15 @@ public class MainActivity extends Activity {
                 MyPresentation.setShopArrayList(selectedShopList, allNum);
                 MyPresentation.setZongjia(zongjia.toString());
                 availableAmount();
+
+
+                updatePlaceholderVisibility();
+
+
             }
+
+
+
         });
 
 
@@ -3207,6 +3270,8 @@ public class MainActivity extends Activity {
         MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
         MyPresentation.setZongjia(zongjia.toString());
         availableAmount();
+        updatePlaceholderVisibility();
+
     }
 
     private void handleScanError() {
@@ -3289,5 +3354,27 @@ public class MainActivity extends Activity {
             });
         });
     }
+
+    /**
+     * 核心方法：根据购物车数据自动显示/隐藏占位符
+     */
+    private void updatePlaceholderVisibility() {
+        boolean isEmpty = selectedShopList.isEmpty();
+
+        // 1. 处理右侧购物车占位符
+        if (ll_cart_empty_placeholder != null && selected_shop_rv != null) {
+            ll_cart_empty_placeholder.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+            selected_shop_rv.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        }
+
+        // 2. 处理左侧图片占位符
+        if (tv_image_placeholder != null && shop_image != null) {
+            // 如果购物车为空，或者当前没有选中任何商品图片，则显示占位文字
+            tv_image_placeholder.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+            shop_image.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        }
+    }
+
+
 
 }
