@@ -57,7 +57,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="15dp">
+                    android:layout_marginBottom="10dp">
 
                     <TextView
                         android:id="@+id/xianjin_btn"
@@ -222,6 +222,7 @@
 
             <LinearLayout
                 android:padding="@dimen/dp_10"
+                android:layout_marginTop="20dp"
                 android:background="@drawable/blue_bg9"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -317,7 +318,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="30dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
@@ -345,13 +346,14 @@
                             android:background="#FFD4D8E2"/>
                         <com.uhm.uhmcs.view.CustomInputTextView
                             android:id="@+id/shoukuan_tv"
+                            android:fontFamily="@font/font2"
                             android:hint="@string/enter_payment_amount"
                             android:paddingLeft="20dp"
                             android:gravity="center_vertical"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:textColor="@color/black"
-                            android:textSize="20dp"
+                            android:textSize="24dp"
                             android:text=""
                             android:textColorHint="@color/mr_gray_80"/>
                     </LinearLayout>
@@ -373,13 +375,14 @@
                             android:background="#FFD4D8E2"/>
                         <TextView
                             android:id="@+id/zhaolin_tv"
+                            android:fontFamily="@font/font2"
                             android:hint=""
                             android:paddingLeft="20dp"
                             android:gravity="center_vertical"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:textColor="@color/black"
-                            android:textSize="20dp"
+                            android:textSize="24dp"
                             android:text="0"
                             android:textColorHint="@color/mr_gray_80"/>
                     </LinearLayout>
