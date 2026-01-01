@@ -15,6 +15,11 @@ public class UserUtils {
     private LoginBase loginBase;
     private ShopDataBean shopDataBean;
     private String grouponGoodsBeanJson, categoryListBeanJson, loginPhone, loginPassword, orderListJson, language, serialPortName, licenseNo;
+
+    // --- 新增：NETS POS 相关字段 ---
+    private String ecrIp;
+    private int ecrPort;
+
     public int VENDOR_ID, PRODUCT_ID, LABEKS_VENDOR_ID, LABEKS_PRODUCT_ID;
     private boolean isDazhe, isDianji;
 
@@ -41,6 +46,29 @@ public class UserUtils {
         isDianji = pref.getBoolean("isDianji", true);
         serialPortName = pref.getString("serialPortName", "/dev/ttyS4");
         licenseNo = pref.getString(LICENSE_NO_KEY, "");
+
+        // --- 初始化时读取 POS 参数 ---
+        ecrIp = pref.getString("ecrIp", "192.168.110.112"); // 默认 IP
+        ecrPort = pref.getInt("ecrPort", 3000);              // 默认 端口
+    }
+
+    // --- 新增：NETS POS 设置方法 ---
+    public String getEcrIp() {
+        return TextUtils.isEmpty(ecrIp) ? "192.168.110.112" : ecrIp;
+    }
+
+    public void setEcrIp(Context context, String ip) {
+        this.ecrIp = ip;
+        saveString(context, "ecrIp", ip);
+    }
+
+    public int getEcrPort() {
+        return ecrPort == 0 ? 3000 : ecrPort;
+    }
+
+    public void setEcrPort(Context context, int port) {
+        this.ecrPort = port;
+        saveInt(context, "ecrPort", port);
     }
 
     // --- 新增/修复的 AI 激活码方法 ---
@@ -83,7 +111,7 @@ public class UserUtils {
     public String getSerialPortName() { return TextUtils.isEmpty(serialPortName) ? "/dev/ttyS4" : serialPortName; }
     public void setSerialPortName(Context context, String name) { this.serialPortName = name; saveString(context, "serialPortName", name); }
 
-    // --- 内部通用保存方法，减少重复代码 ---
+    // --- 内部通用保存方法 ---
     private void saveString(Context c, String key, String v) { c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, 0).edit().putString(key, v).apply(); }
     private void saveBoolean(Context c, String key, boolean v) { c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, 0).edit().putBoolean(key, v).apply(); }
     private void saveInt(Context c, String key, int v) { c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, 0).edit().putInt(key, v).apply(); }

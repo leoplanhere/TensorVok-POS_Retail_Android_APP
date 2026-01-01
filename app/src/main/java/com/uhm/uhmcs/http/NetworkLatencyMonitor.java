@@ -28,7 +28,7 @@ public class NetworkLatencyMonitor {
         public void run() {
             new Thread(() -> {
                 int ping = measurePingLatency();
-                int http = measureHttpLatency("https://www.baidu.com");
+                int http = measureHttpLatency("https://posvox.com");
                 handler.post(() -> {
                     if (callback != null) {
                         callback.onLatencyUpdate(ping, http);

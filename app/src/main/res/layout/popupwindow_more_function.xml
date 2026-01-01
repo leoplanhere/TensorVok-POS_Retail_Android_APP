@@ -185,6 +185,30 @@
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
+
+            <LinearLayout
+                android:layout_marginRight="10dp"
+                android:id="@+id/pos_setting_btn"
+                android:background="@drawable/num_btn_bg1"
+                android:layout_width="200dp"
+                android:layout_height="170dp"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:paddingTop="35dp">
+
+                <TextView
+                    android:drawableTop="@drawable/gengduo"
+                    android:drawablePadding="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FF1359FE"
+                    android:textSize="22dp"
+                    android:text="POS 设置"
+                    android:gravity="center" />
+            </LinearLayout>
+
+
+
             <LinearLayout
                 android:layout_marginRight="10dp"
                 android:id="@+id/zhangdandayingji_btn"

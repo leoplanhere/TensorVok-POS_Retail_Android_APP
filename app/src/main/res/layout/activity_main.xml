@@ -603,7 +603,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Ping延迟:"
+                            android:text="Network:"
                             android:textColor="@color/black"
                             android:textSize="12dp"/>
 
@@ -632,7 +632,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="HTTP延迟:"
+                            android:text="Server:"
                             android:textColor="@color/black"
                             android:textSize="12dp"/>
 
@@ -651,6 +651,40 @@
                             android:textColor="@color/black"
                             android:textSize="12dp"/>
                     </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_marginStart="30dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="NETS:"
+                            android:textColor="@color/black"
+                            android:textSize="12dp"/>
+
+                        <View
+                            android:id="@+id/v_pos_status_light"
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:layout_marginStart="5dp"
+                            android:background="@drawable/shape_circle_gray" /> <TextView
+                        android:id="@+id/tv_pos_status_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="未连接"
+                        android:layout_marginStart="5dp"
+                        android:textColor="@color/black"
+                        android:textSize="12dp"/>
+                    </LinearLayout>
+
+
+
+
+
                 </LinearLayout>
                 <ImageView
                     android:layout_width="wrap_content"

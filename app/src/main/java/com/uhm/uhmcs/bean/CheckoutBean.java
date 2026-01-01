@@ -38,6 +38,19 @@ public class CheckoutBean {
 
     public String xf_type;
 
+
+    // ⭐ 新增字段
+    public String nets_json;
+
+    public String getNets_json() {
+        return nets_json;
+    }
+
+    public void setNets_json(String nets_json) {
+        this.nets_json = nets_json;
+    }
+
+
     public String getXf_type() {
         return xf_type;
     }

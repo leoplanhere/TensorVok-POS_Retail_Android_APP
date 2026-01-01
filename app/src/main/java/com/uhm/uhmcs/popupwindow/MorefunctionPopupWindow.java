@@ -113,6 +113,17 @@ public class MorefunctionPopupWindow {
             morefunctionOnClickListener.onClick(9);
             popupWindow.dismiss();
         });
+
+        // --- 新增：POS 设置按钮绑定 ---
+        View posSettingBtn = popupView.findViewById(R.id.pos_setting_btn);
+        if (posSettingBtn != null) {
+            posSettingBtn.setOnClickListener(v -> {
+                v.startAnimation(animation);
+                morefunctionOnClickListener.onClick(14); // 定义 14 为 POS 设置
+                popupWindow.dismiss();
+            });
+        }
+
         TextView textView=popupView.findViewById(R.id.dazhekaiguan_tv);
         textView.setText(!UserUtils.getInstance().isDazhe()?context.getString(R.string.discount_toggle,context.getString(R.string.off)):context.getString(R.string.discount_toggle,context.getString(R.string.on)));
 

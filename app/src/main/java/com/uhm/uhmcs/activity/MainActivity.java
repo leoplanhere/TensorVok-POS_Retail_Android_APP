@@ -45,6 +45,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.uhm.uhmcs.utils.EcrProtocol;
+import com.uhm.uhmcs.utils.EcrSocketManager;
+
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -124,6 +127,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import java.util.Map;
+import com.uhm.uhmcs.popupwindow.PosSettingPopupWindow;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -146,6 +152,12 @@ public class MainActivity extends Activity {
     // --- 新增下面这两行，解决你现在的报错 ---
     private TextView tv_main_shop_name;
     private TextView tv_nickname;
+
+
+    // --- 新增：NETS POS 状态指示变量 ---
+    private View v_pos_status_light;
+    private TextView tv_pos_status_text;
+    private EcrSocketManager ecrSocketManager = new EcrSocketManager(); // 实例化管理器
 
 
 
@@ -240,6 +252,9 @@ public class MainActivity extends Activity {
 
 
 
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -275,6 +290,11 @@ public class MainActivity extends Activity {
         if (networkChangeReceiver == null) {
             networkChangeReceiver = registerNetworkReceiver(this);
         }
+
+        // 启动时自动检查一次 POS 连接
+        checkPosConnection();
+
+
     }
 
     /**
@@ -1137,12 +1157,7 @@ public class MainActivity extends Activity {
                                         }
                                     }).show();
                                     break;
-//                                /**
-//                                 * 支付设置
-//                                 */
-//                                case 12:
-//                                    new PaymentListPopupWindow(MainActivity.this).show();
-//                                    break;
+
                                 /**
                                  * 商品点击设置
                                  */
@@ -1172,10 +1187,7 @@ public class MainActivity extends Activity {
                                                             if (position == 1) {
                                                                 UserUtils.getInstance().setLanguage(MainActivity.this,"en");
                                                             }
-                                                            // 切换语言（示例为英文）
-//                                                            AppCompatDelegate.setApplicationLocales(
-//                                                                    LocaleListCompat.forLanguageTags(UserUtils.getInstance().getLanguage())
-//                                                            );
+
                                                             Locale locale=new Locale(UserUtils.getInstance().getLanguage());
                                                             Resources res = getResources();
                                                             Configuration config = res.getConfiguration();
@@ -1192,6 +1204,20 @@ public class MainActivity extends Activity {
                                                     })
                                             .show();
                                     break;
+
+
+                                /*
+                                 * 新增：POS 通信设置 (case 14)
+                                 */
+                                case 14:
+                                    new com.lxj.xpopup.XPopup.Builder(MainActivity.this)
+                                            .asCustom(new com.uhm.uhmcs.popupwindow.PosSettingPopupWindow(MainActivity.this,
+                                                    () -> checkPosConnection())) // 简化为 Lambda 表达式，更清爽
+                                            .show();
+                                    break;
+
+
+
 
                                 default:
                                     throw new IllegalStateException("Unexpected value: " + btnType);
@@ -1255,6 +1281,15 @@ public class MainActivity extends Activity {
 
         pingText = findViewById(R.id.pingValue);
         httpText = findViewById(R.id.httpValue);
+
+        // 绑定 POS 状态 UI
+        v_pos_status_light = findViewById(R.id.v_pos_status_light);
+        tv_pos_status_text = findViewById(R.id.tv_pos_status_text);
+
+        // 默认设为POS灰色状态
+        if (v_pos_status_light != null) {
+            v_pos_status_light.setBackgroundResource(R.drawable.shape_circle_gray);
+        }
 
         monitor = new NetworkLatencyMonitor();
         monitor.startMonitoring((pingMs, httpMs) -> {
@@ -1779,6 +1814,37 @@ public class MainActivity extends Activity {
 
 
     }
+
+
+
+
+
+    private void checkPosConnection() {
+        String ip = UserUtils.getInstance().getEcrIp();
+        int port = UserUtils.getInstance().getEcrPort();
+
+        dbExecutor.execute(() -> {
+            // 发送 55 指令检查状态
+            Map<String, String> result = ecrSocketManager.executeCommand(ip, port, EcrSocketManager.statusCommand());
+            String respCode = result.get("ResponseCode");
+
+            runOnUiThread(() -> {
+                if ("00".equals(respCode)) {
+                    // 只有返回 00 才是真正的就绪状态
+                    v_pos_status_light.setBackgroundResource(R.drawable.shape_circle_green);
+                    tv_pos_status_text.setText("NETS 就绪");
+                    tv_pos_status_text.setTextColor(0xFF00AB1D);
+                } else {
+                    // 通信失败或状态非 00（如未 Logon）
+                    v_pos_status_light.setBackgroundResource(R.drawable.shape_circle_red);
+                    tv_pos_status_text.setText("POS 未就绪(" + (respCode != null ? respCode : "ERR") + ")");
+                    tv_pos_status_text.setTextColor(0xFFEF4444);
+                }
+            });
+        });
+    }
+
+
 
 
     CheckoutBean checkoutBean;

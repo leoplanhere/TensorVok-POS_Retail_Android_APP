@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="700dp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/white_bg"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ECR Socket 通信调试 (新加坡 NETS)"
+            android:textColor="@color/black"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="终端 IP 与 端口 (Port):"
+        android:textColor="#333333"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/et_pos_ip"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            android:background="@drawable/rounded_border2"
+            android:hint="例如: 192.168.110.112"
+            android:paddingLeft="15dp"
+            android:textColor="@color/black"
+            android:textColorHint="#999999"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/et_pos_port"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_border2"
+            android:hint="端口"
+            android:inputType="number"
+            android:paddingLeft="15dp"
+            android:textColor="@color/black"
+            android:textColorHint="#999999"
+            android:text="3000"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:text="常用命令快捷选择 (点击填充):"
+        android:textColor="#333333"
+        android:textStyle="bold" />
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingBottom="5dp">
+
+            <Button android:id="@+id/btn_q_status" style="?android:attr/buttonStyleSmall" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:text="1.查状态(55)" />
+            <Button android:id="@+id/btn_q_logon" style="?android:attr/buttonStyleSmall" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:text="2.登录(80)" />
+            <Button android:id="@+id/btn_q_purchase" style="?android:attr/buttonStyleSmall" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:text="3.消费(30/01)" />
+            <Button android:id="@+id/btn_q_qr" style="?android:attr/buttonStyleSmall" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:text="4.NETS QR(04)" />
+            <Button android:id="@+id/btn_q_sale" style="?android:attr/buttonStyleSmall" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:text="5.信用卡(I0)" />
+            <Button android:id="@+id/btn_q_cc_refund" style="?android:attr/buttonStyleSmall" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:text="6.CC退款(I4)" />
+            <Button android:id="@+id/btn_q_void" style="?android:attr/buttonStyleSmall" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:text="7.撤销(13)" />
+            <Button android:id="@+id/btn_q_settle" style="?android:attr/buttonStyleSmall" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:text="8.NETS结算(81)" />
+            <Button android:id="@+id/btn_q_cc_settle" style="?android:attr/buttonStyleSmall" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="9.CC结算(I5)" />
+        </LinearLayout>
+
+
+
+    </HorizontalScrollView>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="输入 ECR 数据体 (命令类型或 Hex):"
+        android:textColor="#333333" />
+
+    <EditText
+        android:id="@+id/et_ecr_data_input"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/rounded_border2"
+        android:gravity="top"
+        android:hint="输入命令类型 (LOGON/SALE/STATUS) 或 Hex"
+        android:padding="10dp"
+        android:textColor="@color/black"
+        android:textColorHint="#999999"
+        android:textSize="14sp" />
+
+    <Button
+        android:id="@+id/btn_send_command"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/blue_bg1"
+        android:text="发送 ECR 指令"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:text="终端响应结果 (解析后):"
+        android:textColor="@color/black"
+        android:textStyle="bold" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:layout_marginTop="5dp"
+        android:background="#F4F6F9"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/tv_response_log"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:text="等待指令..."
+            android:textColor="@color/black"
+            android:textSize="13sp" />
+    </ScrollView>
+
+    <Button
+        android:id="@+id/btn_pos_save"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="15dp"
+        android:background="@drawable/home_blue_bg"
+        android:text="完成并保存配置"
+        android:textColor="#FF3B82F6" />
+
+</LinearLayout>
