@@ -52,12 +52,12 @@
                 android:layout_marginRight="10dp"
                 android:id="@+id/tongbushuju_btn"
                 android:background="@drawable/num_btn_bg1"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
-
                 <TextView
                     android:drawableTop="@drawable/shuaxin_iv_blue"
                     android:drawablePadding="10dp"
@@ -73,12 +73,12 @@
                 android:layout_marginRight="10dp"
                 android:id="@+id/bianqiandaying_btn"
                 android:background="@drawable/num_btn_bg1"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
-
                 <TextView
                     android:drawableTop="@drawable/biaoqiandayin_iv"
                     android:drawablePadding="@dimen/dp_10"
@@ -95,11 +95,11 @@
                 android:layout_marginRight="10dp"
                 android:id="@+id/shangpinruku_btn"
                 android:background="@drawable/num_btn_bg1"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:orientation="vertical"
                 android:gravity="center">
-
                 <TextView
                     android:drawableTop="@drawable/shuaxin_iv_blue"
                     android:drawablePadding="@dimen/dp_10"
@@ -115,12 +115,12 @@
                 android:layout_marginRight="10dp"
                 android:id="@+id/lishizhangdan_btn"
                 android:background="@drawable/num_btn_bg1"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
-
                 <TextView
                     android:drawableTop="@drawable/lishizhangdan_iv"
                     android:drawablePadding="14dp"
@@ -136,12 +136,12 @@
                 android:layout_marginRight="10dp"
                 android:id="@+id/jiaojieban_btn"
                 android:background="@drawable/num_btn_bg1"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
-
                 <TextView
                     android:drawableTop="@drawable/jiaojiebao_iv"
                     android:drawablePadding="10dp"
@@ -157,12 +157,12 @@
                 android:layout_marginRight="10dp"
                 android:id="@+id/yuyangshezhi_btn"
                 android:background="@drawable/num_btn_bg1"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
-
                 <TextView
                     android:drawableTop="@drawable/yuyan_iv"
                     android:drawablePadding="12dp"
@@ -185,17 +185,16 @@
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-
             <LinearLayout
                 android:layout_marginRight="10dp"
                 android:id="@+id/pos_setting_btn"
                 android:background="@drawable/num_btn_bg1"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
-
                 <TextView
                     android:drawableTop="@drawable/gengduo"
                     android:drawablePadding="12dp"
@@ -207,18 +206,16 @@
                     android:gravity="center" />
             </LinearLayout>
 
-
-
             <LinearLayout
                 android:layout_marginRight="10dp"
                 android:id="@+id/zhangdandayingji_btn"
                 android:background="@drawable/num_btn_bg1"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
-
                 <TextView
                     android:drawableTop="@drawable/zhangdan_iv"
                     android:drawablePadding="12dp"
@@ -234,12 +231,12 @@
                 android:layout_marginRight="10dp"
                 android:id="@+id/bianqiandayingji_btn"
                 android:background="@drawable/num_btn_bg1"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
-
                 <TextView
                     android:drawableTop="@drawable/biaoqian_iv"
                     android:drawablePadding="12dp"
@@ -255,7 +252,8 @@
                 android:layout_marginRight="10dp"
                 android:id="@+id/dazhekaiguan_btn"
                 android:background="@drawable/num_btn_bg1"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
@@ -280,12 +278,12 @@
                 android:layout_marginRight="10dp"
                 android:id="@+id/xiaopiaoyangshi_btn"
                 android:background="@drawable/num_btn_bg1"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
-
                 <TextView
                     android:drawableTop="@drawable/zhangdan_iv"
                     android:drawablePadding="12dp"
@@ -297,12 +295,12 @@
                     android:gravity="center" />
             </LinearLayout>
 
-
             <LinearLayout
                 android:layout_marginRight="10dp"
                 android:id="@+id/tuichudenglv_btn"
                 android:background="@drawable/num_btn_bg3"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
@@ -317,11 +315,13 @@
                     android:text="@string/log_out"
                     android:gravity="center"/>
             </LinearLayout>
+
             <TextView
                 android:visibility="gone"
                 android:id="@+id/shangpindianji_btn"
                 android:layout_marginRight="10dp"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:background="@drawable/blue_bg4"
                 android:textColor="@color/white"
@@ -333,7 +333,8 @@
                 android:visibility="gone"
                 android:id="@+id/zhifushengzhi_btn"
                 android:layout_marginRight="10dp"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:background="@drawable/blue_bg4"
                 android:textColor="@color/white"
@@ -345,7 +346,8 @@
                 android:visibility="gone"
                 android:id="@+id/huiyuanchongzhi_btn"
                 android:layout_marginRight="10dp"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:background="@drawable/blue_bg4"
                 android:textColor="@color/white"
@@ -357,7 +359,8 @@
                 android:visibility="gone"
                 android:id="@+id/qianxiangshezhi_btn"
                 android:layout_marginRight="10dp"
-                android:layout_width="200dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="170dp"
                 android:background="@drawable/blue_bg4"
                 android:textColor="@color/white"
@@ -366,10 +369,6 @@
                 android:text="钱箱设置"
                 android:gravity="center"/>
 
-
-
-
         </LinearLayout>
     </LinearLayout>
-
 </LinearLayout>

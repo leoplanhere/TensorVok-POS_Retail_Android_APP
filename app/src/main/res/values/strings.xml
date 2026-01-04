@@ -80,8 +80,8 @@
     <string name="label_printing">标签打印</string>
     <string name="order_history">历史账单</string>
     <string name="log_out">退出登录</string>
-    <string name="receipt_printer_setup">账单打印机设置</string>
-    <string name="label_printer_setup">标签打印机设置</string>
+    <string name="receipt_printer_setup">账单打印机</string>
+    <string name="label_printer_setup">标签打印机</string>
     <string name="discount_toggle">打折开关\n(当前:%s)</string>
     <string name="payment_type">支付类型</string>
     <string name="transaction_id">流水号</string>
