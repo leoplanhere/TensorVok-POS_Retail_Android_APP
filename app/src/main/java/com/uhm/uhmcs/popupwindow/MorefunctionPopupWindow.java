@@ -124,6 +124,30 @@ public class MorefunctionPopupWindow {
             });
         }
 
+        // =========================================================================
+        // 【新增】 14. 小票样式设置
+        // =========================================================================
+        View btnReceiptDiy = popupView.findViewById(R.id.xiaopiaoyangshi_btn);
+        if (btnReceiptDiy != null) {
+            btnReceiptDiy.setOnClickListener(v -> {
+                v.startAnimation(animation);
+                morefunctionOnClickListener.onClick(15); // 对应 MainActivity 的 case 14
+                popupWindow.dismiss();
+            });
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
         TextView textView=popupView.findViewById(R.id.dazhekaiguan_tv);
         textView.setText(!UserUtils.getInstance().isDazhe()?context.getString(R.string.discount_toggle,context.getString(R.string.off)):context.getString(R.string.discount_toggle,context.getString(R.string.on)));
 
@@ -163,6 +187,9 @@ public class MorefunctionPopupWindow {
 
             popupWindow.dismiss();
         });
+
+
+
 
     }
 

@@ -803,7 +803,6 @@ public class MainActivity extends Activity {
                         return;
                     }
                     CheckoutBean checkoutBean = new CheckoutBean();
-
                     checkoutBean.setAllNum(allNum);
                     checkoutBean.setUser_id(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId());
                     checkoutBean.setMachineNumber("001");
@@ -1214,6 +1213,15 @@ public class MainActivity extends Activity {
                                             .asCustom(new com.uhm.uhmcs.popupwindow.PosSettingPopupWindow(MainActivity.this,
                                                     () -> checkPosConnection())) // 简化为 Lambda 表达式，更清爽
                                             .show();
+                                    break;
+
+
+
+                                // ==========================================
+                                // 【新增】 小票样式 DIY 设置入口
+                                // ==========================================
+                                case 15:
+                                    new com.uhm.uhmcs.popupwindow.ReceiptDiyPopupWindow(MainActivity.this).show();
                                     break;
 
 
@@ -3453,6 +3461,56 @@ public class MainActivity extends Activity {
             tv_image_placeholder.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
             shop_image.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
         }
+    }
+
+
+    /**
+     * 【修正版 V2】辅助方法：将历史订单 Bean 转换为 结账 Bean
+     * 1. 修复数量为 0 的问题 (手动累加)
+     * 2. 修复收银员显示当前用户的问题 (映射历史收银员)
+     */
+    private CheckoutBean convertLastOrderToCheckout(LastOrderBean lastOrder) {
+        CheckoutBean bean = new CheckoutBean();
+        try {
+            bean.setTotal_amount(lastOrder.getTotal_amount());
+            bean.setMember_name(lastOrder.getMember_name());
+            bean.setMember_phone(lastOrder.getMember_phone());
+
+            // --- 修复收银员问题 ---
+            // 将历史订单里的收银员名字 (cash_user_sn) 存入 machineNumber 字段暂存
+            // 稍后在打印工具类里优先读取这个字段
+            if (!TextUtils.isEmpty(lastOrder.getCash_user_sn())) {
+                bean.setMachineNumber(lastOrder.getCash_user_sn());
+            }
+
+            // --- 修复数量为 0 的问题 ---
+            if (lastOrder.getOrder_item() != null) {
+                Gson gson = new Gson();
+                String jsonStr = gson.toJson(lastOrder.getOrder_item());
+                bean.setGoodsjson(jsonStr);
+
+                // 手动计算总数量
+                int totalNum = 0;
+                for (LastOrderBean.GoodsJsonBean item : lastOrder.getOrder_item()) {
+                    // 如果是普通商品，累加数量；如果是称重商品(通常qty=1)，也累加
+                    totalNum += item.getGoods_num();
+                }
+                bean.setAllNum(totalNum); // 设置总数量
+            } else {
+                bean.setGoodsjson("[]");
+                bean.setAllNum(0);
+            }
+
+            bean.setDiscount_fee(lastOrder.getDiscount_fee());
+            bean.setCoupon_fee(lastOrder.getCoupon_fee());
+            bean.setPay_type(lastOrder.getPay_type());
+            // 如果有找零信息也带上
+            bean.setCash_change(lastOrder.getCash_change());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bean;
     }
 
 
