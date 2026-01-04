@@ -9,7 +9,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-
+import android.graphics.Bitmap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1193,6 +1193,17 @@ public class MainActivity extends Activity {
                                             .show();
                                     break;
 
+
+                                // ==========================================
+                                // 【新增】 小票样式 DIY 设置入口
+                                // ==========================================
+                                case 14:
+                                    new com.uhm.uhmcs.popupwindow.ReceiptDiyPopupWindow(MainActivity.this).show();
+                                    break;
+
+
+
+
                                 default:
                                     throw new IllegalStateException("Unexpected value: " + btnType);
                             }
@@ -1250,6 +1261,28 @@ public class MainActivity extends Activity {
 
         TextView tv_main_shop_name = findViewById(R.id.tv_main_shop_name);
         TextView tv_nickname = findViewById(R.id.tv_nickname);
+
+        // 【修正 1】尝试获取店铺名称
+        try {
+            // 注意：请检查你的 ShopDataBean 里的 getter 方法名，可能是 getShop_name()、getName() 或 getTitle()
+            // 这里假设是 getShop_name() 或 getName()，IDE 会自动提示正确的
+            String shopName = UserUtils.getInstance().getShopDataBean().getData().get(0).getName();
+
+            // 如果上面报错找不到方法，请试下 .getName() 或 .getTitle()
+            if (!TextUtils.isEmpty(shopName)) {
+                tv_main_shop_name.setText(shopName);
+            } else {
+                tv_main_shop_name.setText("店铺名称未获取"); // 如果获取为空，显示默认名
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            tv_main_shop_name.setText("店铺名称未获取"); // 发生异常显示默认名
+        }
+
+
+
+
+
         tv_main_shop_name.setText(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname());
         tv_nickname.setText(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getMobile());
 
@@ -1997,11 +2030,18 @@ public class MainActivity extends Activity {
                                         }, 1000);
                                         onClickListener.onClick(qingkong_btn);
                                         onClickListener.onClick(shanchuhuiyuan_btn);
+
                                         String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
                                         String zhifubao_pice = checkoutBean.getPay_type().equals("alipay") ? checkoutBean.getPay_fee() : "";
-                                        MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, null, "", weixin_pice, zhifubao_pice, order_sn);
+
+// ================== 【替换】使用 DIY 指令极速打印 ==================
+                                        byte[] printCmds = com.uhm.uhmcs.utils.ReceiptCommandUtils.getReceiptCommands(MainActivity.this, checkoutBean, order_sn);
+                                        MyPrinterHelper.getInstance().printCommand(MainActivity.this, printCmds);
+// ================================================================
+
                                         order_sn = "";
                                         out_trade_no = "";
+
                                         return;
                                     }
                                     if (jsonObject.getString("msg").contains("失效")) {
@@ -2684,6 +2724,69 @@ public class MainActivity extends Activity {
         return super.dispatchKeyEvent(event);
     }
 
+    /**
+     * 【修正版 V3】辅助方法：将历史订单 Bean 转换为 结账 Bean
+     * 1. 修复会员信息不显示 (读取 consignee 和 phone)
+     * 2. 修复商品数量为 0
+     * 3. 修复收银员显示错误 (读取 cash_user_sn)
+     */
+    private CheckoutBean convertLastOrderToCheckout(LastOrderBean lastOrder) {
+        CheckoutBean bean = new CheckoutBean();
+        try {
+            bean.setTotal_amount(lastOrder.getTotal_amount());
+
+            // --- 【核心修复】映射历史订单的会员信息 ---
+            // 历史订单接口返回的是 consignee(收货人/会员) 和 phone
+            if (!TextUtils.isEmpty(lastOrder.getConsignee())) {
+                bean.setMember_name(lastOrder.getConsignee());
+            } else {
+                bean.setMember_name(lastOrder.getMember_name());
+            }
+
+            if (!TextUtils.isEmpty(lastOrder.getPhone())) {
+                bean.setMember_phone(lastOrder.getPhone());
+            } else {
+                bean.setMember_phone(lastOrder.getMember_phone());
+            }
+
+            // --- 映射收银员 (存入 machineNumber 暂存，打印机工具类会优先读取这个) ---
+            if (!TextUtils.isEmpty(lastOrder.getCash_user_sn())) {
+                bean.setMachineNumber(lastOrder.getCash_user_sn());
+            }
+
+            // --- 处理商品列表 & 计算总数量 ---
+            if (lastOrder.getOrder_item() != null) {
+                Gson gson = new Gson();
+                // 将 ArrayList 转回 JSON 字符串，供打印机解析
+                String jsonStr = gson.toJson(lastOrder.getOrder_item());
+                bean.setGoodsjson(jsonStr);
+
+                // 手动累加总数量
+                int totalNum = 0;
+                for (LastOrderBean.GoodsJsonBean item : lastOrder.getOrder_item()) {
+                    totalNum += item.getGoods_num();
+                }
+                bean.setAllNum(totalNum);
+            } else {
+                bean.setGoodsjson("[]");
+                bean.setAllNum(0);
+            }
+
+            // 映射其他金额信息
+            bean.setDiscount_fee(lastOrder.getDiscount_fee());
+            bean.setCoupon_fee(lastOrder.getCoupon_fee());
+            bean.setPay_type(lastOrder.getPay_type());
+            bean.setCash_change(lastOrder.getCash_change());
+            bean.setGoods_original_amount(lastOrder.getGoods_original_amount()); // 原价
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bean;
+    }
+
+
+
 
 
 
@@ -2708,18 +2811,28 @@ public class MainActivity extends Activity {
                                 if (code == 1 && !TextUtils.isEmpty(jsonObject.getString("data"))) {
                                     ArrayList<LastOrderBean> lastOrderBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<LastOrderBean>>() {
                                     }.getType());
-                                    MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, lastOrderBeanArrayList.get(0), null);
+
+                                    // ================== 【替换】使用 DIY 模板打印尾单 ==================
+                                    if (!lastOrderBeanArrayList.isEmpty()) {
+                                        LastOrderBean lastItem = lastOrderBeanArrayList.get(0);
+                                        // 1. 转换数据
+                                        CheckoutBean printBean = convertLastOrderToCheckout(lastItem);
+                                        // 2. 获取订单号
+                                        String printSn = lastItem.getOrder_sn();
+                                        // 3. 生成指令并打印
+                                        byte[] printCmds = com.uhm.uhmcs.utils.ReceiptCommandUtils.getReceiptCommands(MainActivity.this, printBean, printSn);
+                                        MyPrinterHelper.getInstance().printCommand(MainActivity.this, printCmds);
+                                    }
+                                    // ================================================================
                                 }
                             } catch (JSONException e) {
                                 Log.e("ttt", "Error occurred", e);
                             }
-
                         } else {
                             Toast.makeText(MainActivity.this, "请求错误，结果为空", LENGTH_SHORT).show();
                         }
                     }
                 });
-
             }
 
             @Override
@@ -2948,11 +3061,21 @@ public class MainActivity extends Activity {
                                         }, 3000);
                                         onClickListener.onClick(qingkong_btn);
                                         onClickListener.onClick(shanchuhuiyuan_btn);
+
+
                                         String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
                                         String zhifubao_pice = checkoutBean.getPay_type().equals("alipay") ? checkoutBean.getPay_fee() : "";
-                                        MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, null, "", weixin_pice, zhifubao_pice, order_sn);
+
+// --- 核心修改 ---
+                                        // ================== 【替换】使用 DIY 指令极速打印 ==================
+                                        byte[] printCmds = com.uhm.uhmcs.utils.ReceiptCommandUtils.getReceiptCommands(MainActivity.this, checkoutBean, order_sn);
+                                        MyPrinterHelper.getInstance().printCommand(MainActivity.this, printCmds);
+// ================================================================
+
                                         order_sn = "";
                                         out_trade_no = "";
+
+
                                     }
 
                                 } catch (JSONException e) {
@@ -2987,13 +3110,14 @@ public class MainActivity extends Activity {
                             int code = jsonObject.getInt("code");
                             String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
                             String zhifubao_pice = checkoutBean.getPay_type().equals("alipay") ? checkoutBean.getPay_fee() : "";
-                            if (code == 1) {
-                                ArrayList<PrintDataBean> printDataBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<PrintDataBean>>() {
-                                }.getType());
-                                MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, printDataBeanArrayList.get(0), "", weixin_pice, zhifubao_pice, order_sn);
-                            } else {
-                                MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, null, "", weixin_pice, zhifubao_pice, order_sn);
-                            }
+
+                            // ================== 【替换】使用 DIY 指令极速打印 ==================
+// 注意：补打接口可能没有 order_sn，如果有请传入，没有传空字符串
+                            byte[] printCmds = com.uhm.uhmcs.utils.ReceiptCommandUtils.getReceiptCommands(MainActivity.this, checkoutBean, order_sn);
+                            MyPrinterHelper.getInstance().printCommand(MainActivity.this, printCmds);
+// ================================================================
+
+
                         } catch (JSONException e) {
                             Log.e("ttt", "Error occurred", e);
                         }
@@ -3020,16 +3144,18 @@ public class MainActivity extends Activity {
                     @Override
                     public void run() {
                         try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            int code = jsonObject.getInt("code");
-                            if (code == 1) {
-                                ArrayList<PrintDataBean> printDataBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<PrintDataBean>>() {
-                                }.getType());
-                                MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, lastOrderBean, printDataBeanArrayList.get(0));
-                            } else {
-                                MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, lastOrderBean, null);
-                            }
-                        } catch (JSONException e) {
+                            // 这里其实不需要解析 response 的 data 来打印了，因为我们已经有 lastOrderBean 了
+                            // 且 DIY 模板是本地生成的，不需要服务端返回打印数据
+
+                            // ================== 【替换】使用 DIY 模板补打历史订单 ==================
+                            CheckoutBean printBean = convertLastOrderToCheckout(lastOrderBean);
+                            String printSn = lastOrderBean.getOrder_sn();
+
+                            byte[] printCmds = com.uhm.uhmcs.utils.ReceiptCommandUtils.getReceiptCommands(MainActivity.this, printBean, printSn);
+                            MyPrinterHelper.getInstance().printCommand(MainActivity.this, printCmds);
+                            // ====================================================================
+
+                        } catch (Exception e) {
                             Log.e("ttt", "Error occurred", e);
                         }
                     }

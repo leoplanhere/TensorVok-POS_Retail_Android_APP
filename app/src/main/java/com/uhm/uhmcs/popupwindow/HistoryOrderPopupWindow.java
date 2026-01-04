@@ -176,7 +176,7 @@ public class HistoryOrderPopupWindow {
                     }
                 }).show();
             } else if (id == R.id.daying_tv) {
-                MyPrinterHelper.getInstance().asyncPrintLastOrder(context, true, item, null);
+                MyPrinterHelper.getInstance().asyncPrintLastOrder(context, item, null);
             }
         });
     }

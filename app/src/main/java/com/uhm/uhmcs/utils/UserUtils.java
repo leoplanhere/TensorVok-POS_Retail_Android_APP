@@ -8,6 +8,7 @@ import com.uhm.uhmcs.bean.LoginBase;
 import com.uhm.uhmcs.bean.ShopDataBean;
 
 public class UserUtils {
+
     private static UserUtils instance;
     public static final String USER_INFO_PREFERENCES_NAME = "user_info";
     private static final String LICENSE_NO_KEY = "license_no";
@@ -43,7 +44,34 @@ public class UserUtils {
         licenseNo = pref.getString(LICENSE_NO_KEY, "");
     }
 
-    // --- 新增/修复的 AI 激活码方法 ---
+    // ================== 新增：标签打印 DIY 配置方法 ==================
+
+    public void setLabelWidth(Context context, int width) {
+        // 保存标签宽度(mm)，默认建议 40
+        saveInt(context, "label_width", width);
+    }
+    public int getLabelWidth(Context context) {
+        return getInt(context, "label_width", 40);
+    }
+
+    public void setLabelHeight(Context context, int height) {
+        // 保存标签高度(mm)，默认建议 30
+        saveInt(context, "label_height", height);
+    }
+    public int getLabelHeight(Context context) {
+        return getInt(context, "label_height", 30);
+    }
+
+    // 打印开关配置 (1:开启, 0:关闭)
+    public void setLabelConfig(Context context, String key, boolean isOpen) {
+        saveBoolean(context, "label_cfg_" + key, isOpen);
+    }
+    public boolean getLabelConfig(Context context, String key, boolean defValue) {
+        return getBoolean(context, "label_cfg_" + key, defValue);
+    }
+
+    // ================== 原有业务方法 ==================
+
     public String getLicenseNo() { return TextUtils.isEmpty(licenseNo) ? "" : licenseNo; }
 
     public void setLicenseNo(Context context, String value) {
@@ -51,7 +79,6 @@ public class UserUtils {
         saveString(context, LICENSE_NO_KEY, value);
     }
 
-    // --- 原有方法逻辑保持不变 ---
     public String getLanguage() { return language; }
     public void setLanguage(Context context, String language) { this.language = language; saveString(context, "language", language); }
     public String getOrderListJson() { return orderListJson; }
@@ -83,8 +110,77 @@ public class UserUtils {
     public String getSerialPortName() { return TextUtils.isEmpty(serialPortName) ? "/dev/ttyS4" : serialPortName; }
     public void setSerialPortName(Context context, String name) { this.serialPortName = name; saveString(context, "serialPortName", name); }
 
-    // --- 内部通用保存方法，减少重复代码 ---
-    private void saveString(Context c, String key, String v) { c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, 0).edit().putString(key, v).apply(); }
-    private void saveBoolean(Context c, String key, boolean v) { c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, 0).edit().putBoolean(key, v).apply(); }
-    private void saveInt(Context c, String key, int v) { c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, 0).edit().putInt(key, v).apply(); }
+    // ================== 核心基础存取方法 (合并整理后) ==================
+
+    /**
+     * 保存 String
+     */
+    private void saveString(Context c, String key, String v) {
+        if (c == null) return;
+        c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE).edit().putString(key, v).apply();
+    }
+
+    /**
+     * 保存 Boolean
+     */
+    private void saveBoolean(Context c, String key, boolean v) {
+        if (c == null) return;
+        c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE).edit().putBoolean(key, v).apply();
+    }
+
+    /**
+     * 获取 Boolean (你之前缺这个)
+     */
+    private boolean getBoolean(Context c, String key, boolean defValue) {
+        if (c == null) return defValue;
+        return c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE).getBoolean(key, defValue);
+    }
+
+    /**
+     * 保存 Int
+     */
+    private void saveInt(Context c, String key, int v) {
+        if (c == null) return;
+        c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE).edit().putInt(key, v).apply();
+    }
+
+    /**
+     * 获取 Int (你之前缺这个)
+     */
+    private int getInt(Context c, String key, int defValue) {
+        if (c == null) return defValue;
+        return c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE).getInt(key, defValue);
+    }
+
+
+    // 在 UserUtils.java 中添加这些通用方法
+
+    // 保存元素的 X 坐标
+    public void setElementX(Context context, String elementName, float x) {
+        saveFloat(context, "pos_x_" + elementName, x);
+    }
+    // 获取元素的 X 坐标 (默认 -1 表示未设置，需要初始化到中心)
+    public float getElementX(Context context, String elementName) {
+        return getFloat(context, "pos_x_" + elementName, -1f);
+    }
+
+    // 保存元素的 Y 坐标
+    public void setElementY(Context context, String elementName, float y) {
+        saveFloat(context, "pos_y_" + elementName, y);
+    }
+    public float getElementY(Context context, String elementName) {
+        return getFloat(context, "pos_y_" + elementName, -1f);
+    }
+
+    // 基础 Float 存取方法
+    private void saveFloat(Context c, String key, float v) {
+        if (c == null) return;
+        c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, 0).edit().putFloat(key, v).apply();
+    }
+    private float getFloat(Context c, String key, float defValue) {
+        if (c == null) return defValue;
+        return c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, 0).getFloat(key, defValue);
+    }
+
+
 }

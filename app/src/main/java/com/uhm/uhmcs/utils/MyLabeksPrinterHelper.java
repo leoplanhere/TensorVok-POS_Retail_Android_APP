@@ -226,6 +226,283 @@ public class MyLabeksPrinterHelper {
             }
         });
     }
+
+    /**
+     * DIY 动态标签打印逻辑 (基于TSPL)
+     */
+    /**
+     * DIY 动态标签打印逻辑 (基于TSPL) - 修复版
+     */
+    /**
+     * DIY 动态标签打印逻辑 (基于TSPL) - 针对40mm窄纸优化版
+     */
+    public void asyncPrintLabelDIY(Activity context, List<GrouponGoodsBean.GrouponGoodsModel> goodsList, int count) {
+        printExecutor.execute(() -> {
+            try {
+                // 1. 读取配置
+                int labelW = UserUtils.getInstance().getLabelWidth(context); // 40
+                int labelH = UserUtils.getInstance().getLabelHeight(context); // 30
+                boolean showShop = UserUtils.getInstance().getLabelConfig(context, "shop_name", true);
+                boolean showName = UserUtils.getInstance().getLabelConfig(context, "product_name", true);
+                boolean showPrice = UserUtils.getInstance().getLabelConfig(context, "price", true);
+                boolean showBarcode = UserUtils.getInstance().getLabelConfig(context, "barcode", true);
+
+                if (usbConnection == null || endpointOut == null) {
+                    sendPrintStatus(context, false);
+                    return;
+                }
+
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+                // 2. 初始化指令
+                // 关键修复：设置原点参考 REFERENCE 0,0
+                String sizeCmd = "SIZE " + labelW + " mm," + labelH + " mm\n";
+                buffer.write(sizeCmd.getBytes());
+                buffer.write("GAP 2 mm,0 mm\n".getBytes());
+                buffer.write("DIRECTION 1\n".getBytes());
+                buffer.write("REFERENCE 0,0\n".getBytes());
+                buffer.write("CLS\n".getBytes());
+
+                // 计算中心点 X 坐标 (203 DPI: 1mm ≈ 8 dots)
+                // 40mm 宽 = 320 dots
+                int centerX = (labelW * 8) / 2;
+
+                for (GrouponGoodsBean.GrouponGoodsModel goods : goodsList) {
+                    for (int i = 0; i < count; i++) {
+                        buffer.write("CLS\n".getBytes());
+
+                        // 动态 Y 坐标，初始稍微靠下一点，防止被撕纸刀挡住
+                        int currentY = 10;
+
+                        // A. 打印店名
+                        if (showShop) {
+                            String shopName = com.uhm.uhmcs.utils.UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
+                            if (TextUtils.isEmpty(shopName)) shopName = "优海猫测试用";
+
+                            // 字体参数: x,y,"字体",旋转,X放大,Y放大,对齐(2=居中),内容
+                            String cmd = "TEXT " + centerX + "," + currentY + ",\"TSS24.BF2\",0,1,1,2,\"" + shopName + "\"\n";
+                            buffer.write(cmd.getBytes("GBK"));
+                            currentY += 30; // 窄纸行间距小一点
+                        }
+
+                        // B. 打印商品名称
+                        if (showName) {
+                            String name = goods.getTitle();
+                            // 【修复】40mm纸很窄，TSS24字体一行只能打约12个英文字符或6个汉字
+                            // 如果不做截断，文字会自动换行或被切掉
+                            if (name.length() > 8) name = name.substring(0, 7) + "..";
+
+                            String cmd = "TEXT " + centerX + "," + currentY + ",\"TSS24.BF2\",0,1,1,2,\"" + name + "\"\n";
+                            buffer.write(cmd.getBytes("GBK"));
+                            currentY += 30;
+                        }
+
+                        // C. 打印价格
+                        if (showPrice) {
+                            String priceStr = "￥" + goods.getPrice();
+                            // 【优化】40mm纸，价格字体放大(2,2)可能太大，占满一行，容易偏
+                            // 改为宽放大2倍，高放大2倍 (TSS24本身高24，放大后48)
+                            String cmd = "TEXT " + centerX + "," + currentY + ",\"TSS24.BF2\",0,2,2,2,\"" + priceStr + "\"\n";
+                            buffer.write(cmd.getBytes("GBK"));
+                            currentY += 60;
+                        }
+
+                        // D. 打印条码 (最关键的修复)
+                        if (showBarcode) {
+                            String code = goods.getSn();
+                            if (TextUtils.isEmpty(code)) code = goods.getGoods_sn();
+                            if (TextUtils.isEmpty(code)) code = "123456";
+
+                            // 如果空间不够，固定到底部
+                            int barcodeY = Math.max(currentY, (labelH * 8) - 50);
+
+                            // 【核心修复】
+                            // 1. x坐标：不要用centerX-90，直接固定靠左 (x=10)，因为条码很长
+                            // 2. 窄条宽/宽条宽：改为 1,2 (之前是2,2，太宽了，40mm纸打不下)
+                            // BARCODE x,y,"类型",高度,是否显文字,旋转,窄条,宽条,内容
+                            String cmd = "BARCODE 10," + barcodeY + ",\"128\",40,1,0,1,2,\"" + code + "\"\n";
+                            buffer.write(cmd.getBytes());
+                        }
+
+                        buffer.write("PRINT 1,1\n".getBytes());
+                    }
+                }
+
+                int transfer = usbConnection.bulkTransfer(endpointOut, buffer.toByteArray(), buffer.size(), 5000);
+                if (transfer >= 0) {
+                    sendPrintStatus(context, true);
+                } else {
+                    sendPrintStatus(context, false);
+                }
+
+            } catch (Exception e) {
+                Log.e("PrintError", "DIY打印失败", e);
+                sendPrintStatus(context, false);
+            }
+        });
+    }
+
+
+    /**
+     * 【新功能】直接打印 Bitmap 图片 (所见即所得) - 修复黑底白字问题
+     * @param count 打印份数
+     */
+    public void printBitmapLabel(Activity context, Bitmap bitmap, int count) {
+        printExecutor.execute(() -> {
+            try {
+                if (usbConnection == null || endpointOut == null) {
+                    sendPrintStatus(context, false);
+                    return;
+                }
+
+                int width = bitmap.getWidth();
+                int height = bitmap.getHeight();
+
+                int rowBytes = (width + 7) / 8;
+                byte[] data = new byte[rowBytes * height];
+
+                // 填充全白
+                java.util.Arrays.fill(data, (byte) 0xFF);
+
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {
+                        int pixel = bitmap.getPixel(x, y);
+                        int r = (pixel >> 16) & 0xFF;
+                        int g = (pixel >> 8) & 0xFF;
+                        int b = pixel & 0xFF;
+                        int gray = (int) (0.299 * r + 0.587 * g + 0.114 * b);
+
+                        // ---------------------------------------------------------
+                        // 【关键修改】将阈值 128 改为 200 (与批量打印逻辑保持一致)
+                        // 作用：加粗字体和条码，防止线条因抗锯齿变细消失
+                        // ---------------------------------------------------------
+                        if (gray < 200) {
+                            data[y * rowBytes + x / 8] &= ~(128 >> (x % 8));
+                        }
+                    }
+                }
+
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+                // 2. 初始化指令 (40mm x 30mm)
+                buffer.write("SIZE 40 mm,30 mm\n".getBytes());
+                buffer.write("GAP 2 mm,0 mm\n".getBytes());
+                buffer.write("CLS\n".getBytes());
+                buffer.write("DIRECTION 1\n".getBytes());
+                buffer.write("REFERENCE 0,0\n".getBytes()); // 原点归零
+
+                // 3. 发送图片指令
+                // BITMAP X,Y,Width(Byte),Height,Mode,Data
+                // Mode 0: OVERWRITE
+                String cmd = "BITMAP 0,0," + rowBytes + "," + height + ",0,";
+                buffer.write(cmd.getBytes());
+                buffer.write(data); // 写入图片二进制数据
+                buffer.write("\n".getBytes()); // 结束符
+
+                // 4. 打印指令
+                buffer.write(("PRINT " + count + ",1\n").getBytes());
+
+                // 发送
+                int transfer = usbConnection.bulkTransfer(endpointOut, buffer.toByteArray(), buffer.size(), 5000);
+                if (transfer >= 0) {
+                    sendPrintStatus(context, true);
+                } else {
+                    sendPrintStatus(context, false);
+                }
+
+            } catch (Exception e) {
+                Log.e("PrintError", "图片打印失败", e);
+                sendPrintStatus(context, false);
+            }
+        });
+    }
+
+
+    /**
+     * 批量打印 Bitmap 列表 (用于商品列表打印)
+     * @param bitmaps 图片列表
+     * @param copies 每张图打印几份
+     */
+    public void asyncPrintBatchBitmaps(Activity context, List<Bitmap> bitmaps, int copies) {
+        printExecutor.execute(() -> {
+            try {
+                if (usbConnection == null || endpointOut == null) {
+                    sendPrintStatus(context, false);
+                    return;
+                }
+
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+                // 1. 初始化指令 (只需发一次尺寸，因为所有标签尺寸一样)
+                // 注意：这里我们假设所有图片尺寸一致，取第一张图的尺寸
+                if (bitmaps.isEmpty()) return;
+
+                int bmpW = bitmaps.get(0).getWidth();
+                int bmpH = bitmaps.get(0).getHeight();
+                // 这里的尺寸指令其实不太重要，因为 BITMAP 指令会覆盖，但为了走纸正确，还是发一下
+                // 注意：这里没办法反推 mm，所以我们取 UserUtils 里的配置
+                int labelW = com.uhm.uhmcs.utils.UserUtils.getInstance().getLabelWidth(context);
+                int labelH = com.uhm.uhmcs.utils.UserUtils.getInstance().getLabelHeight(context);
+
+                buffer.write(("SIZE " + labelW + " mm," + labelH + " mm\n").getBytes());
+                buffer.write("GAP 2 mm,0 mm\n".getBytes());
+                buffer.write("DIRECTION 1\n".getBytes());
+                buffer.write("REFERENCE 0,0\n".getBytes());
+                buffer.write("CLS\n".getBytes());
+
+                // 2. 遍历图片生成指令
+                for (Bitmap bitmap : bitmaps) {
+                    int width = bitmap.getWidth();
+                    int height = bitmap.getHeight();
+                    int rowBytes = (width + 7) / 8;
+                    byte[] data = new byte[rowBytes * height];
+                    java.util.Arrays.fill(data, (byte) 0xFF); // 初始化全白
+
+                    // 二值化处理循环
+                    for (int y = 0; y < height; y++) {
+                        for (int x = 0; x < width; x++) {
+                            int pixel = bitmap.getPixel(x, y);
+                            int r = (pixel >> 16) & 0xFF;
+                            int g = (pixel >> 8) & 0xFF;
+                            int b = pixel & 0xFF;
+                            int gray = (int) (0.299 * r + 0.587 * g + 0.114 * b);
+
+                            // 【核心修改】阈值从 128 改为 200
+                            // 之前：只有很黑的才打印 (gray < 128)
+                            // 现在：只要不是纯白，都打印成黑 (gray < 200)
+                            // 作用：这会让文字和条码线条变粗，大大提高可扫描性
+                            if (gray < 200) {
+                                data[y * rowBytes + x / 8] &= ~(128 >> (x % 8));
+                            }
+                        }
+                    }
+
+                    // 每张标签的指令
+                    buffer.write("CLS\n".getBytes());
+                    String cmd = "BITMAP 0,0," + rowBytes + "," + height + ",0,";
+                    buffer.write(cmd.getBytes());
+                    buffer.write(data);
+                    buffer.write("\n".getBytes());
+                    buffer.write(("PRINT " + copies + ",1\n").getBytes());
+                }
+
+                // 3. 发送所有数据
+                // 如果数据量太大(比如超过100张)，可能需要分包发送，这里暂时一次性发
+                int transfer = usbConnection.bulkTransfer(endpointOut, buffer.toByteArray(), buffer.size(), 10000); // 超时给长点
+                if (transfer >= 0) {
+                    sendPrintStatus(context, true);
+                } else {
+                    sendPrintStatus(context, false);
+                }
+
+            } catch (Exception e) {
+                Log.e("PrintError", "批量打印失败", e);
+                sendPrintStatus(context, false);
+            }
+        });
+    }
+
+
 }
 
 
