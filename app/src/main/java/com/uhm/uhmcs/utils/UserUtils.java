@@ -8,6 +8,7 @@ import com.uhm.uhmcs.bean.LoginBase;
 import com.uhm.uhmcs.bean.ShopDataBean;
 
 public class UserUtils {
+
     private static UserUtils instance;
     public static final String USER_INFO_PREFERENCES_NAME = "user_info";
     private static final String LICENSE_NO_KEY = "license_no";
@@ -16,7 +17,7 @@ public class UserUtils {
     private ShopDataBean shopDataBean;
     private String grouponGoodsBeanJson, categoryListBeanJson, loginPhone, loginPassword, orderListJson, language, serialPortName, licenseNo;
 
-    // --- 新增：NETS POS 相关字段 ---
+    // --- 来自第二份：NETS POS 相关字段 ---
     private String ecrIp;
     private int ecrPort;
 
@@ -47,12 +48,36 @@ public class UserUtils {
         serialPortName = pref.getString("serialPortName", "/dev/ttyS4");
         licenseNo = pref.getString(LICENSE_NO_KEY, "");
 
-        // --- 初始化时读取 POS 参数 ---
-        ecrIp = pref.getString("ecrIp", "192.168.110.112"); // 默认 IP
-        ecrPort = pref.getInt("ecrPort", 3000);              // 默认 端口
+        // --- 来自第二份：初始化 POS 参数 ---
+        ecrIp = pref.getString("ecrIp", "192.168.110.112");
+        ecrPort = pref.getInt("ecrPort", 3000);
     }
 
-    // --- 新增：NETS POS 设置方法 ---
+    // ================== 来自第一份：标签打印 DIY 配置方法 ==================
+
+    public void setLabelWidth(Context context, int width) {
+        saveInt(context, "label_width", width);
+    }
+    public int getLabelWidth(Context context) {
+        return getInt(context, "label_width", 40);
+    }
+
+    public void setLabelHeight(Context context, int height) {
+        saveInt(context, "label_height", height);
+    }
+    public int getLabelHeight(Context context) {
+        return getInt(context, "label_height", 30);
+    }
+
+    public void setLabelConfig(Context context, String key, boolean isOpen) {
+        saveBoolean(context, "label_cfg_" + key, isOpen);
+    }
+    public boolean getLabelConfig(Context context, String key, boolean defValue) {
+        return getBoolean(context, "label_cfg_" + key, defValue);
+    }
+
+    // ================== 来自第二份：NETS POS 设置方法 ==================
+
     public String getEcrIp() {
         return TextUtils.isEmpty(ecrIp) ? "192.168.110.112" : ecrIp;
     }
@@ -71,15 +96,14 @@ public class UserUtils {
         saveInt(context, "ecrPort", port);
     }
 
-    // --- 新增/修复的 AI 激活码方法 ---
-    public String getLicenseNo() { return TextUtils.isEmpty(licenseNo) ? "" : licenseNo; }
+    // ================== 公用业务方法 (双方一致) ==================
 
+    public String getLicenseNo() { return TextUtils.isEmpty(licenseNo) ? "" : licenseNo; }
     public void setLicenseNo(Context context, String value) {
         this.licenseNo = value;
         saveString(context, LICENSE_NO_KEY, value);
     }
 
-    // --- 原有方法逻辑保持不变 ---
     public String getLanguage() { return language; }
     public void setLanguage(Context context, String language) { this.language = language; saveString(context, "language", language); }
     public String getOrderListJson() { return orderListJson; }
@@ -111,8 +135,55 @@ public class UserUtils {
     public String getSerialPortName() { return TextUtils.isEmpty(serialPortName) ? "/dev/ttyS4" : serialPortName; }
     public void setSerialPortName(Context context, String name) { this.serialPortName = name; saveString(context, "serialPortName", name); }
 
-    // --- 内部通用保存方法 ---
-    private void saveString(Context c, String key, String v) { c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, 0).edit().putString(key, v).apply(); }
-    private void saveBoolean(Context c, String key, boolean v) { c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, 0).edit().putBoolean(key, v).apply(); }
-    private void saveInt(Context c, String key, int v) { c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, 0).edit().putInt(key, v).apply(); }
+    // ================== 来自第一份：坐标定位存取方法 ==================
+
+    public void setElementX(Context context, String elementName, float x) {
+        saveFloat(context, "pos_x_" + elementName, x);
+    }
+    public float getElementX(Context context, String elementName) {
+        return getFloat(context, "pos_x_" + elementName, -1f);
+    }
+    public void setElementY(Context context, String elementName, float y) {
+        saveFloat(context, "pos_y_" + elementName, y);
+    }
+    public float getElementY(Context context, String elementName) {
+        return getFloat(context, "pos_y_" + elementName, -1f);
+    }
+
+    // ================== 核心基础存取方法 (统一封装) ==================
+
+    private void saveString(Context c, String key, String v) {
+        if (c == null) return;
+        c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE).edit().putString(key, v).apply();
+    }
+
+    private void saveBoolean(Context c, String key, boolean v) {
+        if (c == null) return;
+        c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE).edit().putBoolean(key, v).apply();
+    }
+
+    private boolean getBoolean(Context c, String key, boolean defValue) {
+        if (c == null) return defValue;
+        return c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE).getBoolean(key, defValue);
+    }
+
+    private void saveInt(Context c, String key, int v) {
+        if (c == null) return;
+        c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE).edit().putInt(key, v).apply();
+    }
+
+    private int getInt(Context c, String key, int defValue) {
+        if (c == null) return defValue;
+        return c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE).getInt(key, defValue);
+    }
+
+    private void saveFloat(Context c, String key, float v) {
+        if (c == null) return;
+        c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE).edit().putFloat(key, v).apply();
+    }
+
+    private float getFloat(Context c, String key, float defValue) {
+        if (c == null) return defValue;
+        return c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE).getFloat(key, defValue);
+    }
 }
