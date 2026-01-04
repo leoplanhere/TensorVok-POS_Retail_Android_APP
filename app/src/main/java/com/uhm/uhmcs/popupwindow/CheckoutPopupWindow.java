@@ -727,7 +727,7 @@ public class CheckoutPopupWindow {
             if (!TextUtils.isEmpty(xinjin_pice)) {
                 MyPrinterHelper.getInstance().asyncOpenMoneyBox(context);
             }
-            MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, null, xinjin_pice, weixin_pice, zhifubao_pice, order_sn);
+            MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, null, xinjin_pice, weixin_pice, zhifubao_pice, null, order_sn);
             order_sn = "";
             out_trade_no = "";
             DialogUIUtils.dismiss(buildBean);
@@ -1329,9 +1329,9 @@ public class CheckoutPopupWindow {
                             if (code == 1) {
                                 ArrayList<PrintDataBean> printDataBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<PrintDataBean>>() {
                                 }.getType());
-                                MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, printDataBeanArrayList.get(0), xinjin_pice, weixin_pice, zhifubao_pice, order_sn);
+                                MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, printDataBeanArrayList.get(0), xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice, order_sn);
                             } else {
-                                MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, null, xinjin_pice, weixin_pice, zhifubao_pice, order_sn);
+                                MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, null, xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice, order_sn);
                             }
                         } catch (JSONException e) {
                             Log.e("ttt", "Error occurred", e);

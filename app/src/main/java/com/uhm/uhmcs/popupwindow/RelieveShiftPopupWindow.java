@@ -354,53 +354,5 @@ public class RelieveShiftPopupWindow {
             }
         });
     }
-//    private void shiftHandover() {
-//        Map<String, String> params = new HashMap<>();
-//        params.put("user_id", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId()+"");
-//        params.put("machine_number", "001");
-//        params.put("handover_sheet", handover_sheet+"");
-//        params.put("number", number+"");
-//        params.put("category_summary", category_summary+"");
-//        params.put("product_summary",product_summary +"");
-//        params.put("return_summary", return_summary+"");
-//        String url = POSApiSerview.POS_URL + POSApiSerview.shiftHandover;
-//        OkHttpUtil.postFormAsync(url, params,context, new OkHttpUtil.OkHttpCallback() {
-//            @Override
-//            public void onSuccess(String response) {
-//                Log.i("ttt", response);
-//                context.runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        try {
-//                            JSONObject jsonObject = new JSONObject(response);
-//                            int code = jsonObject.getInt("code");
-//                            if (code!=1){
-//                                return;
-//                            }
-//                            new DeleteShopPopupWindow(context, true, "交班成功", new PopupWindowOnClickListener.DeleteShopOnClickListener() {
-//                                @Override
-//                                public void onClick(String text) {
-//                                    Intent intent=new Intent(context, LoginActivity.class);
-//                                    context.startActivity(intent);
-//                                }
-//                            }).show();
-//                            ArrayList<RelieveShiftPrintBean> relieveShiftPrintBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<RelieveShiftPrintBean>>() {
-//                            }.getType());
-//                            MyPrinterHelper.getInstance().asyncPrintRelieveShift(context,relieveShiftPrintBeanArrayList.get(0));
-//
-//                        } catch (JSONException e) {
-//                            Log.e("ttt", "Error occurred", e);
-//                        }
-//
-//                    }
-//                });
-//
-//            }
-//
-//            @Override
-//            public void onFailure(IOException e) {
-//                System.err.println("请求失败: " + e.getMessage());
-//            }
-//        });
-//    }
+
 }
