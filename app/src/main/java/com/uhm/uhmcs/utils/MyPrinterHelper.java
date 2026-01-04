@@ -105,25 +105,50 @@ public class MyPrinterHelper {
     public void asyncPrintLastOrder(Activity context, LastOrderBean bean, PrintDataBean printDataBean) {
         printExecutor.execute(() -> {
             try {
-                // 1. 数据转换：将历史订单转为结账 Bean，以便服用指令工具
+                // 1. 数据转换：将历史订单转为结账 Bean
                 CheckoutBean checkoutBean = new CheckoutBean();
                 checkoutBean.setTotal_amount(bean.getTotal_amount());
+
+                // 会员信息对齐
                 checkoutBean.setMember_name(bean.getConsignee());
                 checkoutBean.setMember_phone(bean.getPhone());
+
+                // 商品与金额对齐
                 checkoutBean.setGoodsjson(new Gson().toJson(bean.getOrder_item()));
                 checkoutBean.setDiscount_fee(bean.getDiscount_fee());
+                checkoutBean.setCoupon_fee(bean.getCoupon_fee());
                 checkoutBean.setPay_type(bean.getPay_type());
                 checkoutBean.setCash_change(bean.getCash_change());
-                // 计算总数
+
+                // ⭐【核心修复：动态化收银员】⭐
+                // 逻辑：如果历史订单 bean 里的 cash_user_sn 有值，就用历史的；
+                // 如果为空（比如旧数据），则获取当前登录用户的 Nickname。
+                String realCashier = "";
+                if (bean != null && !TextUtils.isEmpty(bean.getCash_user_sn())) {
+                    realCashier = bean.getCash_user_sn();
+                } else {
+                    try {
+                        realCashier = UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
+                    } catch (Exception e) {
+                        realCashier = "管理员"; // 最后的保底
+                    }
+                }
+                checkoutBean.setMachineNumber(realCashier);
+
+                // 计算总数量
                 int allNum = 0;
                 if (bean.getOrder_item() != null) {
-                    for (LastOrderBean.GoodsJsonBean item : bean.getOrder_item()) allNum += item.getGoods_num();
+                    for (LastOrderBean.GoodsJsonBean item : bean.getOrder_item()) {
+                        allNum += item.getGoods_num();
+                    }
                 }
                 checkoutBean.setAllNum(allNum);
 
-                // 2. 调用指令工具
+                // 2. 调用指令工具打印
+                // 注意：这里传入 bean.getOrder_sn() 确保打印的是该订单的条码
                 byte[] commands = ReceiptCommandUtils.getReceiptCommands(context, checkoutBean, bean.getOrder_sn());
                 executePrint(context, commands);
+
             } catch (Exception e) {
                 Log.e("PrintError", "尾单打印异常", e);
                 sendPrintStatus(context, false);
