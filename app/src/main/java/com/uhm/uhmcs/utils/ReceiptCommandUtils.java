@@ -171,7 +171,7 @@ public class ReceiptCommandUtils {
             if (config.showBarcode() && !TextUtils.isEmpty(orderSn)) {
                 buffer.write(ALIGN_CENTER);
                 printBarcode(buffer, orderSn);
-                printText(buffer, orderSn + "\n");
+
             }
 
             if (config.showQrcode()) {
@@ -311,11 +311,29 @@ public class ReceiptCommandUtils {
         setFontSize(buffer, 0, size == 2 ? 1 : 0);
     }
 
+    /**
+     * 【深度优化版】打印条形码
+     * 解决“超出宽度”报错：将宽度倍率由 2 降为 1，确保长订单号不溢出。
+     */
     private static void printBarcode(ByteArrayOutputStream buffer, String c) throws IOException {
-        buffer.write(new byte[]{0x1D, 0x68, (byte) 75});
-        buffer.write(new byte[]{0x1D, 0x77, (byte) 2});
+        if (TextUtils.isEmpty(c)) return;
+
+        // 1. 设置条码高度 (建议保持在 60-80 之间)
+        buffer.write(new byte[]{0x1D, 0x68, (byte) 70});
+
+        // 2. 【核心修复点】设置条码宽度倍率
+        // 将最后一个字节从 0x02 改为 0x01。1 是最窄模式，能容纳超长字符。
+        buffer.write(new byte[]{0x1D, 0x77, (byte) 1});
+
+        // 3. 设置 HRI 字符（条码下方的数字）打印位置
+        // 0x02 表示在条码下方打印，这样可以增加条码的可读性。
+        buffer.write(new byte[]{0x1D, 0x48, (byte) 0x02});
+
+        // 4. 执行 CODE128 打印指令
         buffer.write(new byte[]{0x1D, 0x6B, 73, (byte) c.length()});
         buffer.write(c.getBytes());
+
+        // 5. 强制换行解决粘连
         buffer.write(0x0A);
     }
 
