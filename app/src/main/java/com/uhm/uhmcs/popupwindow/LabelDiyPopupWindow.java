@@ -213,7 +213,7 @@ public class LabelDiyPopupWindow {
             // 修正 1：规格控件显示规格内容
             tvSpecs.setText(TextUtils.isEmpty(goodsModel.getSpecs_title()) ? "规格" : goodsModel.getSpecs_title());
 
-            tvUnit.setText(TextUtils.isEmpty(goodsModel.getUnit()) ? "1" : goodsModel.getUnit());
+            tvUnit.setText(TextUtils.isEmpty(goodsModel.getUnit()) ? "单位：个" : goodsModel.getUnit());
 
             // 修正 2：产地控件显示副标题内容，如果为空显示默认字样
             String originText = goodsModel.getSubtitle();
@@ -223,10 +223,10 @@ public class LabelDiyPopupWindow {
             tvLevel.setText("合格品");
 
             String points = String.valueOf(goodsModel.getReward_points());
-            tvPoints.setText((TextUtils.isEmpty(points) || "null".equalsIgnoreCase(points)) ? "0.00" : points);
+            tvPoints.setText((TextUtils.isEmpty(points) || "null".equalsIgnoreCase(points)) ? "可获积分" : points);
 
             String coupon = String.valueOf(goodsModel.getDeduction_golive());
-            tvCoupon.setText((TextUtils.isEmpty(coupon) || "null".equalsIgnoreCase(coupon)) ? "0.00" : coupon);
+            tvCoupon.setText((TextUtils.isEmpty(coupon) || "null".equalsIgnoreCase(coupon)) ? "可用代金券" : coupon);
 
             applyBlackStyle(tvShop, tvName, tvPrice, tvCode, tvSn, tvSpecs, tvUnit, tvStaff, tvLevel, tvOrigin, tvPoints, tvCoupon);
         }
