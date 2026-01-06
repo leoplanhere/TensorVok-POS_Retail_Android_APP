@@ -26,9 +26,9 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="提示：输入尺寸应用后，若标签过大画面会自动缩放，不影响打印"
+            android:text="提示：100x40固定模版，请拖动元素对齐底图线条"
             android:textSize="14sp"
-            android:textColor="#666"
+            android:textColor="#FF5722"
             android:gravity="center"
             android:layout_marginTop="5dp"
             android:layout_marginBottom="10dp"/>
@@ -43,70 +43,143 @@
 
             <FrameLayout
                 android:id="@+id/layout_preview"
-                android:layout_width="200dp"
-                android:layout_height="100dp"
+                android:layout_width="400dp"
+                android:layout_height="160dp"
                 android:layout_gravity="center"
                 android:background="@color/white"
                 android:elevation="4dp">
+
+                <ImageView
+                    android:id="@+id/iv_paper_background"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:alpha="0.3"
+                    android:scaleType="fitXY" />
 
                 <TextView
                     android:id="@+id/tv_preview_shop"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="优海猫测试店"
+                    android:text="优道佳家福"
                     android:textColor="@color/black"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:textStyle="bold"
-                    android:padding="5dp"
-                    android:background="#110000FF"/>
+                    android:padding="2dp" />
 
                 <TextView
                     android:id="@+id/tv_preview_name"
-                    android:layout_width="200dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:maxLines="2"
+                    android:maxLines="1"
                     android:ellipsize="end"
-                    android:text="测试商品名称"
+                    android:text="小国乐透明方形垃圾桶"
                     android:textColor="@color/black"
-                    android:textSize="22sp"
-                    android:padding="5dp"
-                    android:background="#110000FF"/>
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:padding="2dp" />
 
                 <TextView
                     android:id="@+id/tv_preview_price"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="￥88.00"
+                    android:text="19.90"
                     android:textStyle="bold"
                     android:textColor="@color/black"
-                    android:textSize="22sp"
-                    android:padding="5dp"
-                    android:background="#110000FF"/>
+                    android:textSize="32sp"
+                    android:padding="2dp" />
 
                 <LinearLayout
                     android:id="@+id/layout_barcode_group"
-                    android:layout_width="280dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="#110000FF"
                     android:gravity="center"
                     android:orientation="vertical"
                     android:padding="2dp">
-
                     <ImageView
                         android:id="@+id/iv_preview_barcode"
-                        android:layout_width="match_parent"
-                        android:layout_height="70dp"
+                        android:layout_width="180dp"
+                        android:layout_height="40dp"
                         android:scaleType="fitXY" />
-
                     <TextView
                         android:id="@+id/tv_preview_code"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="12345678"
+                        android:text="6932898737864"
                         android:textColor="@color/black"
-                        android:textSize="16sp" />
+                        android:textSize="14sp" />
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tv_preview_sn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="12345678"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:padding="2dp" />
+
+                <TextView
+                    android:id="@+id/tv_preview_specs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="规格"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:padding="2dp" />
+
+                <TextView
+                    android:id="@+id/tv_preview_unit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="个"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:padding="2dp" />
+
+                <TextView
+                    android:id="@+id/tv_preview_staff"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="物价员"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:padding="2dp" />
+
+                <TextView
+                    android:id="@+id/tv_preview_level"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="合格品"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:padding="2dp" />
+
+                <TextView
+                    android:id="@+id/tv_preview_origin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="深圳"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:padding="2dp" />
+
+                <TextView
+                    android:id="@+id/tv_preview_points"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="19.90"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:padding="2dp" />
+
+                <TextView
+                    android:id="@+id/tv_preview_coupon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="9.95"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:padding="2dp" />
 
             </FrameLayout>
         </FrameLayout>
@@ -133,7 +206,7 @@
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 android:gravity="center"
-                android:text="40"/>
+                android:text="100"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -156,7 +229,7 @@
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 android:gravity="center"
-                android:text="30"/>
+                android:text="40"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -177,40 +250,28 @@
                 android:background="@color/black"/>
         </LinearLayout>
 
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginBottom="5dp">
-            <CheckBox
-                android:id="@+id/cb_shop_name"
-                android:layout_width="0dp"
-                android:layout_weight="1"
+            <GridLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="店名"
-                android:textColor="@color/black"/>
-            <CheckBox
-                android:id="@+id/cb_product_name"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="品名"
-                android:textColor="@color/black"/>
-            <CheckBox
-                android:id="@+id/cb_price"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="价格"
-                android:textColor="@color/black"/>
-            <CheckBox
-                android:id="@+id/cb_barcode"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="条码"
-                android:textColor="@color/black"/>
-        </LinearLayout>
+                android:columnCount="4">
+                <CheckBox android:id="@+id/cb_shop_name" android:text="店名" android:textColor="@color/black" />
+                <CheckBox android:id="@+id/cb_product_name" android:text="品名" android:textColor="@color/black" />
+                <CheckBox android:id="@+id/cb_price" android:text="价格" android:textColor="@color/black" />
+                <CheckBox android:id="@+id/cb_barcode" android:text="条码" android:textColor="@color/black" />
+                <CheckBox android:id="@+id/cb_sn" android:text="编码" android:textColor="@color/black" />
+                <CheckBox android:id="@+id/cb_specs" android:text="规格" android:textColor="@color/black" />
+                <CheckBox android:id="@+id/cb_unit" android:text="单位" android:textColor="@color/black" />
+                <CheckBox android:id="@+id/cb_staff" android:text="物价员" android:textColor="@color/black" />
+                <CheckBox android:id="@+id/cb_level" android:text="等级" android:textColor="@color/black" />
+                <CheckBox android:id="@+id/cb_origin" android:text="产地" android:textColor="@color/black" />
+                <CheckBox android:id="@+id/cb_points" android:text="积分" android:textColor="@color/black" />
+                <CheckBox android:id="@+id/cb_coupon" android:text="券" android:textColor="@color/black" />
+            </GridLayout>
+        </ScrollView>
 
         <LinearLayout
             android:layout_width="match_parent"
