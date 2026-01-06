@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -37,10 +38,17 @@ public class LabelDiyPopupWindow {
     private GrouponGoodsBean.GrouponGoodsModel goodsModel;
 
     private FrameLayout layoutPreview; // 画布
-    private FrameLayout flContainer;   // 【新增】画布的父容器，用于计算缩放
+    private FrameLayout flContainer;   // 画布的父容器
+    private ImageView ivPaperBackground; // 模拟底图容器
 
-    // 比例尺：1mm = 8dp (这是为了在屏幕上模拟显示，打印时我们发图)
+    // 比例尺：1mm = 8dp
     private static final float MM_TO_DP = 8f;
+
+    // UI 元素声明
+    private TextView tvShop, tvName, tvPrice, tvCode, tvSn, tvSpecs, tvUnit, tvStaff, tvLevel, tvOrigin, tvPoints, tvCoupon;
+    private LinearLayout layoutBarcodeGroup;
+    private ImageView ivBarcode;
+    private CheckBox cbShopName, cbProductName, cbPrice, cbBarcode, cbSn, cbSpecs, cbUnit, cbStaff, cbLevel, cbOrigin, cbPoints, cbCoupon;
 
     public LabelDiyPopupWindow(Activity context, GrouponGoodsBean.GrouponGoodsModel goods) {
         this.context = context;
@@ -54,93 +62,100 @@ public class LabelDiyPopupWindow {
         popupWindow.setBackgroundDrawable(new ColorDrawable(0x00000000));
         popupWindow.setOutsideTouchable(true);
 
-        // 绑定控件
+        // 1. 绑定基础控件
         layoutPreview = view.findViewById(R.id.layout_preview);
-        flContainer = view.findViewById(R.id.fl_container); // 【新增】绑定父容器
+        flContainer = view.findViewById(R.id.fl_container);
+        ivPaperBackground = view.findViewById(R.id.iv_paper_background);
 
-        TextView tvShop = view.findViewById(R.id.tv_preview_shop);
-        TextView tvName = view.findViewById(R.id.tv_preview_name);
-        TextView tvPrice = view.findViewById(R.id.tv_preview_price);
-        LinearLayout layoutBarcode = view.findViewById(R.id.layout_barcode_group); // 条码组
-        TextView tvCode = view.findViewById(R.id.tv_preview_code);
-        ImageView ivBarcode = view.findViewById(R.id.iv_preview_barcode);
+        tvShop = view.findViewById(R.id.tv_preview_shop);
+        tvName = view.findViewById(R.id.tv_preview_name);
+        tvPrice = view.findViewById(R.id.tv_preview_price);
+        layoutBarcodeGroup = view.findViewById(R.id.layout_barcode_group);
+        tvCode = view.findViewById(R.id.tv_preview_code);
+        ivBarcode = view.findViewById(R.id.iv_preview_barcode);
+
+        tvSn = view.findViewById(R.id.tv_preview_sn);
+        tvSpecs = view.findViewById(R.id.tv_preview_specs);
+        tvUnit = view.findViewById(R.id.tv_preview_unit);
+        tvStaff = view.findViewById(R.id.tv_preview_staff);
+        tvLevel = view.findViewById(R.id.tv_preview_level);
+        tvOrigin = view.findViewById(R.id.tv_preview_origin);
+        tvPoints = view.findViewById(R.id.tv_preview_points);
+        tvCoupon = view.findViewById(R.id.tv_preview_coupon);
 
         EditText etWidth = view.findViewById(R.id.et_width);
         EditText etHeight = view.findViewById(R.id.et_height);
 
-        CheckBox cbShopName = view.findViewById(R.id.cb_shop_name);
-        CheckBox cbProductName = view.findViewById(R.id.cb_product_name);
-        CheckBox cbPrice = view.findViewById(R.id.cb_price);
-        CheckBox cbBarcode = view.findViewById(R.id.cb_barcode);
+        // 3. 绑定所有 CheckBox
+        cbShopName = view.findViewById(R.id.cb_shop_name);
+        cbProductName = view.findViewById(R.id.cb_product_name);
+        cbPrice = view.findViewById(R.id.cb_price);
+        cbBarcode = view.findViewById(R.id.cb_barcode);
+        cbSn = view.findViewById(R.id.cb_sn);
+        cbSpecs = view.findViewById(R.id.cb_specs);
+        cbUnit = view.findViewById(R.id.cb_unit);
+        cbStaff = view.findViewById(R.id.cb_staff);
+        cbLevel = view.findViewById(R.id.cb_level);
+        cbOrigin = view.findViewById(R.id.cb_origin);
+        cbPoints = view.findViewById(R.id.cb_points);
+        cbCoupon = view.findViewById(R.id.cb_coupon);
 
-        // 1. 启用拖拽 (核心功能)
+        // 4. 启用拖拽监听并初始化背景透明
         DragTouchListener dragListener = new DragTouchListener();
-        tvShop.setOnTouchListener(dragListener);
-        tvName.setOnTouchListener(dragListener);
-        tvPrice.setOnTouchListener(dragListener);
-        layoutBarcode.setOnTouchListener(dragListener);
-
-        // 2. 回显数据与配置
-        int savedW = UserUtils.getInstance().getLabelWidth(context);
-        int savedH = UserUtils.getInstance().getLabelHeight(context);
-        etWidth.setText(String.valueOf(savedW));
-        etHeight.setText(String.valueOf(savedH));
-
-        // 立即应用一次尺寸，把画布撑开
-        updateCanvasSize(savedW, savedH);
-
-        // 填充商品信息
-        if (goodsModel != null) {
-            String shopName = "";
-            try {
-                // 【核心修正】改为从 ShopDataBean 获取店铺名称 (getName)
-                if (UserUtils.getInstance().getShopDataBean() != null
-                        && UserUtils.getInstance().getShopDataBean().getData() != null
-                        && !UserUtils.getInstance().getShopDataBean().getData().isEmpty()) {
-
-                    shopName = UserUtils.getInstance().getShopDataBean().getData().get(0).getName();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+        View[] draggableElements = {tvShop, tvName, tvPrice, layoutBarcodeGroup, tvSn, tvSpecs, tvUnit, tvStaff, tvLevel, tvOrigin, tvPoints, tvCoupon};
+        for (View v : draggableElements) {
+            if (v != null) {
+                v.setOnTouchListener(dragListener);
+                v.setBackgroundColor(Color.TRANSPARENT);
             }
-
-// 如果获取失败，使用默认值
-            if (TextUtils.isEmpty(shopName)) shopName = "店铺名称未获取";
-            tvShop.setText(shopName);
-            tvName.setText(goodsModel.getTitle());
-            String unit = TextUtils.isEmpty(goodsModel.getUnit()) ? "" : "/" + goodsModel.getUnit();
-            tvPrice.setText("￥" + goodsModel.getPrice() + unit);
-
-            String code = getValidCode(goodsModel);
-            tvCode.setText(code);
-            ivBarcode.setImageBitmap(generateBarcode(code));
         }
 
-        // 3. 恢复上次保存的坐标位置
-        // 注意：要在 View 布局完成后恢复，或者简单的延迟恢复，这里我们简单处理
+        // 5. 初始化尺寸回显
+        int savedW = UserUtils.getInstance().getLabelWidth(context);
+        int savedH = UserUtils.getInstance().getLabelHeight(context);
+        if (savedW <= 0) savedW = 100;
+        if (savedH <= 0) savedH = 40;
+
+        etWidth.setText(String.valueOf(savedW));
+        etHeight.setText(String.valueOf(savedH));
+        updateCanvasSize(savedW, savedH);
+
+        // 6. 填充数据
+        fillGoodsData();
+
+        // 7. 恢复坐标位置
         layoutPreview.post(() -> {
             restorePosition(tvShop, "shop");
             restorePosition(tvName, "name");
             restorePosition(tvPrice, "price");
-            restorePosition(layoutBarcode, "barcode");
+            restorePosition(layoutBarcodeGroup, "barcode");
+            restorePosition(tvSn, "sn");
+            restorePosition(tvSpecs, "specs");
+            restorePosition(tvUnit, "unit");
+            restorePosition(tvStaff, "staff");
+            restorePosition(tvLevel, "level");
+            restorePosition(tvOrigin, "origin");
+            restorePosition(tvPoints, "points");
+            restorePosition(tvCoupon, "coupon");
         });
 
-        // 4. 可见性联动
-        setupCheckListener(cbShopName, tvShop);
-        setupCheckListener(cbProductName, tvName);
-        setupCheckListener(cbPrice, tvPrice);
-        setupCheckListener(cbBarcode, layoutBarcode);
+        // 8. 绑定显隐联动 (已校准绑定关系)
+        setupCheckListener(cbShopName, tvShop, "shop_name");
+        setupCheckListener(cbProductName, tvName, "product_name");
+        setupCheckListener(cbPrice, tvPrice, "price");
+        setupCheckListener(cbBarcode, layoutBarcodeGroup, "barcode");
+        setupCheckListener(cbSn, tvSn, "sn");
+        setupCheckListener(cbSpecs, tvSpecs, "specs"); // 规格配对规格
+        setupCheckListener(cbUnit, tvUnit, "unit");
+        setupCheckListener(cbStaff, tvStaff, "staff");
+        setupCheckListener(cbLevel, tvLevel, "level");
+        setupCheckListener(cbOrigin, tvOrigin, "origin"); // 产地配对产地
+        setupCheckListener(cbPoints, tvPoints, "points");
+        setupCheckListener(cbCoupon, tvCoupon, "coupon");
 
-        // 初始化勾选状态
-        cbShopName.setChecked(UserUtils.getInstance().getLabelConfig(context, "shop_name", true));
-        cbProductName.setChecked(UserUtils.getInstance().getLabelConfig(context, "product_name", true));
-        cbPrice.setChecked(UserUtils.getInstance().getLabelConfig(context, "price", true));
-        cbBarcode.setChecked(UserUtils.getInstance().getLabelConfig(context, "barcode", true));
-
-        // 5. 按钮事件
+        // 9. 按钮事件
         view.findViewById(R.id.btn_cancel).setOnClickListener(v -> popupWindow.dismiss());
 
-        // "应用尺寸" 按钮
         view.findViewById(R.id.btn_apply_size).setOnClickListener(v -> {
             String wStr = etWidth.getText().toString();
             String hStr = etHeight.getText().toString();
@@ -149,7 +164,6 @@ public class LabelDiyPopupWindow {
             }
         });
 
-        // "保存并打印" 按钮
         view.findViewById(R.id.btn_print_preview).setOnClickListener(v -> {
             String w = etWidth.getText().toString();
             String h = etHeight.getText().toString();
@@ -158,95 +172,187 @@ public class LabelDiyPopupWindow {
                 return;
             }
 
-            // A. 保存尺寸配置
             UserUtils.getInstance().setLabelWidth(context, Integer.parseInt(w));
             UserUtils.getInstance().setLabelHeight(context, Integer.parseInt(h));
+            saveAllConfigs();
 
-            // B. 保存开关配置
-            UserUtils.getInstance().setLabelConfig(context, "shop_name", cbShopName.isChecked());
-            UserUtils.getInstance().setLabelConfig(context, "product_name", cbProductName.isChecked());
-            UserUtils.getInstance().setLabelConfig(context, "price", cbPrice.isChecked());
-            UserUtils.getInstance().setLabelConfig(context, "barcode", cbBarcode.isChecked());
+            if (ivPaperBackground != null) ivPaperBackground.setVisibility(View.GONE);
+            layoutPreview.setBackgroundColor(Color.WHITE);
+            clearFocusBackground(draggableElements);
 
-            // C. 保存元素坐标 (关键!)
-            savePosition(tvShop, "shop");
-            savePosition(tvName, "name");
-            savePosition(tvPrice, "price");
-            savePosition(layoutBarcode, "barcode");
-
-            // D. 截图并打印
-            // 为了打印清晰，去除选中背景色后再截图
-            clearFocusBackground(tvShop, tvName, tvPrice, layoutBarcode);
-            Bitmap bitmap = viewToBitmap(layoutPreview);
-            if (bitmap != null) {
-                MyLabeksPrinterHelper.getInstance().printBitmapLabel(context, bitmap, 1);
-                Toast.makeText(context, "保存成功并打印", Toast.LENGTH_SHORT).show();
+            Bitmap originalBitmap = viewToBitmap(layoutPreview);
+            if (originalBitmap != null) {
+                Bitmap printerBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, false);
+                MyLabeksPrinterHelper.getInstance().printBitmapLabel(context, printerBitmap, 1);
+                if (ivPaperBackground != null) ivPaperBackground.setVisibility(View.VISIBLE);
                 popupWindow.dismiss();
             }
         });
     }
 
-    // 【修改】动态调整画布大小，并增加缩放逻辑
+    /**
+     * 【物理映射校准】修正赋值逻辑
+     */
+    private void fillGoodsData() {
+        if (goodsModel != null) {
+            String shopName = "";
+            try {
+                shopName = UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
+            } catch (Exception e) {}
+            tvShop.setText(TextUtils.isEmpty(shopName) ? "店铺名称" : shopName);
+
+            tvName.setText(goodsModel.getTitle());
+            tvPrice.setText(goodsModel.getPrice() + "元");
+
+            String barcodeContent = TextUtils.isEmpty(goodsModel.getSn()) ? goodsModel.getGoods_sn() : goodsModel.getSn();
+            tvCode.setText(TextUtils.isEmpty(goodsModel.getGoods_sn()) ? barcodeContent : goodsModel.getGoods_sn());
+            ivBarcode.setImageBitmap(generateBarcode(barcodeContent));
+
+            tvSn.setText(goodsModel.getSn());
+
+            // 修正 1：规格控件显示规格内容
+            tvSpecs.setText(TextUtils.isEmpty(goodsModel.getSpecs_title()) ? "规格" : goodsModel.getSpecs_title());
+
+            tvUnit.setText(TextUtils.isEmpty(goodsModel.getUnit()) ? "1" : goodsModel.getUnit());
+
+            // 修正 2：产地控件显示副标题内容，如果为空显示默认字样
+            String originText = goodsModel.getSubtitle();
+            tvOrigin.setText(TextUtils.isEmpty(originText) ? "产地/副标题" : originText);
+
+            tvStaff.setText("物价员");
+            tvLevel.setText("合格品");
+
+            String points = String.valueOf(goodsModel.getReward_points());
+            tvPoints.setText((TextUtils.isEmpty(points) || "null".equalsIgnoreCase(points)) ? "0.00" : points);
+
+            String coupon = String.valueOf(goodsModel.getDeduction_golive());
+            tvCoupon.setText((TextUtils.isEmpty(coupon) || "null".equalsIgnoreCase(coupon)) ? "0.00" : coupon);
+
+            applyBlackStyle(tvShop, tvName, tvPrice, tvCode, tvSn, tvSpecs, tvUnit, tvStaff, tvLevel, tvOrigin, tvPoints, tvCoupon);
+        }
+    }
+
+    private void applyBlackStyle(View... views) {
+        for (View v : views) {
+            if (v instanceof TextView) {
+                ((TextView) v).setTextColor(Color.BLACK);
+                ((TextView) v).setPaintFlags(((TextView) v).getPaintFlags() | Paint.FAKE_BOLD_TEXT_FLAG);
+            }
+        }
+    }
+
+    private void drawFakePrePrintBackground(int pxW, int pxH) {
+        if (ivPaperBackground == null) return;
+        Bitmap bgBitmap = Bitmap.createBitmap(pxW, pxH, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bgBitmap);
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        canvas.drawColor(Color.WHITE);
+
+        paint.setColor(Color.parseColor("#F5E6E6"));
+        canvas.drawRect(pxW * 0.52f, 0, pxW, pxH, paint);
+
+        paint.setColor(Color.DKGRAY);
+        float textSize = pxH * 0.08f;
+        paint.setTextSize(textSize);
+
+        float leftMargin = pxW * 0.02f;
+        float firstLineY = pxH * 0.30f;
+        float lineGap = pxH * 0.15f;
+
+        canvas.drawText("品牌品名：", leftMargin, firstLineY, paint);
+        canvas.drawLine(leftMargin + (paint.measureText("品牌品名：")), firstLineY + 5, pxW * 0.50f, firstLineY + 5, paint);
+        canvas.drawText("条码：", leftMargin, firstLineY + lineGap, paint);
+        canvas.drawLine(leftMargin + (paint.measureText("条码：")), firstLineY + lineGap + 5, pxW * 0.50f, firstLineY + lineGap + 5, paint);
+        canvas.drawText("编号：", leftMargin, firstLineY + lineGap * 2, paint);
+        canvas.drawLine(leftMargin + (paint.measureText("编号：")), firstLineY + lineGap * 2 + 5, pxW * 0.25f, firstLineY + lineGap * 2 + 5, paint);
+        canvas.drawText("规格：", pxW * 0.26f, firstLineY + lineGap * 2, paint);
+        canvas.drawLine(pxW * 0.26f + (paint.measureText("规格：")), firstLineY + lineGap * 2 + 5, pxW * 0.50f, firstLineY + lineGap * 2 + 5, paint);
+        canvas.drawText("计价单位：", leftMargin, firstLineY + lineGap * 3, paint);
+        canvas.drawLine(leftMargin + (paint.measureText("计价单位：")), firstLineY + lineGap * 3 + 5, pxW * 0.25f, firstLineY + lineGap * 3 + 5, paint);
+        canvas.drawText("物价员：", pxW * 0.26f, firstLineY + lineGap * 3, paint);
+        canvas.drawLine(pxW * 0.26f + (paint.measureText("物价员：")), firstLineY + lineGap * 3 + 5, pxW * 0.50f, firstLineY + lineGap * 3 + 5, paint);
+        canvas.drawText("等级：", leftMargin, firstLineY + lineGap * 4, paint);
+        canvas.drawLine(leftMargin + (paint.measureText("等级：")), firstLineY + lineGap * 4 + 5, pxW * 0.25f, firstLineY + lineGap * 4 + 5, paint);
+        canvas.drawText("产地：", pxW * 0.26f, firstLineY + lineGap * 4, paint);
+        canvas.drawLine(pxW * 0.26f + (paint.measureText("产地：")), firstLineY + lineGap * 4 + 5, pxW * 0.50f, firstLineY + lineGap * 4 + 5, paint);
+
+        paint.setTextSize(pxH * 0.09f);
+        canvas.drawText("零售价：", pxW * 0.53f, pxH * 0.30f, paint);
+        canvas.drawText("元", pxW * 0.92f, pxH * 0.30f, paint);
+        paint.setTextSize(pxH * 0.07f);
+        canvas.drawText("可获得积分：", pxW * 0.53f, pxH * 0.55f, paint);
+        canvas.drawText("可用代金券：", pxW * 0.53f, pxH * 0.75f, paint);
+        paint.setTextSize(pxH * 0.05f);
+        canvas.drawText("明码实价标价签", pxW * 0.75f, pxH * 0.08f, paint);
+        canvas.drawText("监督电话：12315", pxW * 0.75f, pxH * 0.95f, paint);
+
+        ivPaperBackground.setImageBitmap(bgBitmap);
+    }
+
+    private void saveAllConfigs() {
+        UserUtils.getInstance().setLabelConfig(context, "shop_name", cbShopName.isChecked());
+        UserUtils.getInstance().setLabelConfig(context, "product_name", cbProductName.isChecked());
+        UserUtils.getInstance().setLabelConfig(context, "price", cbPrice.isChecked());
+        UserUtils.getInstance().setLabelConfig(context, "barcode", cbBarcode.isChecked());
+        UserUtils.getInstance().setLabelConfig(context, "sn", cbSn.isChecked());
+        UserUtils.getInstance().setLabelConfig(context, "specs", cbSpecs.isChecked());
+        UserUtils.getInstance().setLabelConfig(context, "unit", cbUnit.isChecked());
+        UserUtils.getInstance().setLabelConfig(context, "staff", cbStaff.isChecked());
+        UserUtils.getInstance().setLabelConfig(context, "level", cbLevel.isChecked());
+        UserUtils.getInstance().setLabelConfig(context, "origin", cbOrigin.isChecked());
+        UserUtils.getInstance().setLabelConfig(context, "points", cbPoints.isChecked());
+        UserUtils.getInstance().setLabelConfig(context, "coupon", cbCoupon.isChecked());
+
+        savePosition(tvShop, "shop");
+        savePosition(tvName, "name");
+        savePosition(tvPrice, "price");
+        savePosition(layoutBarcodeGroup, "barcode");
+        savePosition(tvSn, "sn");
+        savePosition(tvSpecs, "specs");
+        savePosition(tvUnit, "unit");
+        savePosition(tvStaff, "staff");
+        savePosition(tvLevel, "level");
+        savePosition(tvOrigin, "origin");
+        savePosition(tvPoints, "points");
+        savePosition(tvCoupon, "coupon");
+    }
+
     private void updateCanvasSize(int mmWidth, int mmHeight) {
-        // 1. 计算目标像素大小 (1mm = 8dp)
         final float density = context.getResources().getDisplayMetrics().density;
         final int targetPxWidth = (int) (mmWidth * MM_TO_DP * density);
         final int targetPxHeight = (int) (mmHeight * MM_TO_DP * density);
 
-        // 2. 设置 LayoutParams (这是真实的物理像素，保证打印清晰度)
         ViewGroup.LayoutParams params = layoutPreview.getLayoutParams();
         params.width = targetPxWidth;
         params.height = targetPxHeight;
         layoutPreview.setLayoutParams(params);
 
-        // 3. 计算屏幕缩放比例 (Scale)，确保大标签也能完整显示
+        drawFakePrePrintBackground(targetPxWidth, targetPxHeight);
+
         if (flContainer != null) {
             flContainer.post(() -> {
                 int containerW = flContainer.getWidth();
                 int containerH = flContainer.getHeight();
-
                 if (containerW == 0 || containerH == 0) return;
-
-                // 留出一点边距
                 int availableW = containerW - 40;
                 int availableH = containerH - 40;
-
-                float scaleX = 1.0f;
-                float scaleY = 1.0f;
-
-                // 计算宽度的缩放比
-                if (targetPxWidth > availableW) {
-                    scaleX = (float) availableW / targetPxWidth;
-                }
-                // 计算高度的缩放比
-                if (targetPxHeight > availableH) {
-                    scaleY = (float) availableH / targetPxHeight;
-                }
-
-                // 取较小的比例，保持宽高比
+                float scaleX = (float) availableW / targetPxWidth;
+                float scaleY = (float) availableH / targetPxHeight;
                 float finalScale = Math.min(scaleX, scaleY);
-
-                // 如果不需要缩小(scale >= 1)，则保持 1.0，或者你可以允许放大
                 if (finalScale > 1.0f) finalScale = 1.0f;
-
-                // 设置缩放中心点为中心
                 layoutPreview.setPivotX(targetPxWidth / 2f);
                 layoutPreview.setPivotY(targetPxHeight / 2f);
-
-                // 应用缩放
                 layoutPreview.setScaleX(finalScale);
                 layoutPreview.setScaleY(finalScale);
             });
         }
-
         layoutPreview.requestLayout();
     }
 
     private void restorePosition(View view, String key) {
         float x = UserUtils.getInstance().getElementX(context, key);
         float y = UserUtils.getInstance().getElementY(context, key);
-
-        // 如果有保存过，就恢复；否则保持布局文件的默认位置
         if (x != -1 && y != -1) {
             view.setX(x);
             view.setY(y);
@@ -258,63 +364,40 @@ public class LabelDiyPopupWindow {
         UserUtils.getInstance().setElementY(context, key, view.getY());
     }
 
-    // 辅助方法：清除拖拽时的临时背景色，打印白底黑字
     private void clearFocusBackground(View... views) {
         for (View v : views) {
-            v.setBackgroundColor(Color.TRANSPARENT);
+            if (v != null) v.setBackgroundColor(Color.TRANSPARENT);
         }
     }
 
-    private void setupCheckListener(CheckBox cb, View target) {
-        target.setVisibility(cb.isChecked() ? View.VISIBLE : View.GONE);
-        cb.setOnCheckedChangeListener((v, isChecked) -> {
-            target.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+    private void setupCheckListener(CheckBox cb, View target, String configKey) {
+        boolean isChecked = UserUtils.getInstance().getLabelConfig(context, configKey, true);
+        cb.setChecked(isChecked);
+        target.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+        cb.setOnCheckedChangeListener((v, isCheckedNow) -> {
+            target.setVisibility(isCheckedNow ? View.VISIBLE : View.GONE);
         });
     }
 
-    private String getValidCode(GrouponGoodsBean.GrouponGoodsModel model) {
-        String code = model.getSn();
-        if (TextUtils.isEmpty(code)) code = model.getGoods_sn();
-        if (TextUtils.isEmpty(code)) return "123456";
-        return code.replaceAll("[^\\x00-\\x7F]", "").trim();
-    }
-
     private Bitmap viewToBitmap(View view) {
-        // 保证画布有纯白底色
-        view.setBackgroundColor(Color.WHITE);
-        // 注意：这里创建 Bitmap 用的是 view.getWidth/Height，也就是 LayoutParams 设置的原始高分辨率尺寸
-        // 无论 View 在屏幕上被 ScaleX/ScaleY 缩放到多小，draw(canvas) 都会绘制出原始尺寸的高清图
         Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         view.draw(canvas);
         return bitmap;
     }
 
-    // 引入需要的包
-    // import java.util.Hashtable;
-    // import com.google.zxing.EncodeHintType;
-
     private Bitmap generateBarcode(String content) {
         try {
-            // 1. 配置参数：取消白边
-            java.util.Hashtable<com.google.zxing.EncodeHintType, Object> hints = new java.util.Hashtable<>();
-            hints.put(com.google.zxing.EncodeHintType.CHARACTER_SET, "utf-8");
-            hints.put(com.google.zxing.EncodeHintType.MARGIN, 0);
-
-            // 2. 提高分辨率 (宽度 1000)
+            Hashtable<EncodeHintType, Object> hints = new Hashtable<>();
+            hints.put(EncodeHintType.CHARACTER_SET, "utf-8");
+            hints.put(EncodeHintType.MARGIN, 0);
             int width = 1000;
             int height = 300;
-
             BitMatrix matrix = new MultiFormatWriter().encode(content, BarcodeFormat.CODE_128, width, height, hints);
-
             int[] pixels = new int[width * height];
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    if (matrix.get(x, y)) {
-                        pixels[y * width + x] = 0xFF000000;
-                    } else {
-                        pixels[y * width + x] = 0xFFFFFFFF;
-                    }
+                    pixels[y * width + x] = matrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF;
                 }
             }
             Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);

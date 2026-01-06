@@ -21,142 +21,152 @@ import com.uhm.uhmcs.bean.GrouponGoodsBean;
 
 import java.util.Hashtable;
 
+/**
+ * 标签图片生成器 - 已修正规格与产地的映射逻辑
+ */
 public class LabelBitmapGenerator {
 
-    // 比例尺：1mm = 8dp (必须与 DIY 界面一致)
     private static final float MM_TO_DP = 8f;
-
-    // 【自定义】条码固定宽度 (mm)
-    // 你要求 >= 30mm，这里设为 35mm 以保证容错率和清晰度
-    // 如果纸张很宽(120mm)，条码依然保持这个宽度，不会拉伸变形
     private static final int BARCODE_FIXED_WIDTH_MM = 35;
 
     public static Bitmap generateLabelBitmap(Context context, GrouponGoodsBean.GrouponGoodsModel goods) {
         try {
-            // 1. 加载模板 (必须对应 FrameLayout 的 xml)
-            View view = LayoutInflater.from(context).inflate(R.layout.item_label_template, null);
+            // 1. 加载整个 DIY 布局
+            View fullView = LayoutInflater.from(context).inflate(R.layout.popupwindow_label_diy, null);
 
-            // 2. 计算标签物理像素尺寸
+            // 定位预览布局
+            FrameLayout layoutPreview = fullView.findViewById(R.id.layout_preview);
+            if (layoutPreview == null) return null;
+
+            // 2. 尺寸计算
             int mmWidth = UserUtils.getInstance().getLabelWidth(context);
             int mmHeight = UserUtils.getInstance().getLabelHeight(context);
-            if (mmWidth <= 0) mmWidth = 40;
-            if (mmHeight <= 0) mmHeight = 30;
+            if (mmWidth <= 0) mmWidth = 100;
+            if (mmHeight <= 0) mmHeight = 40;
 
-            int pxWidth = (int) (mmWidth * MM_TO_DP * context.getResources().getDisplayMetrics().density);
-            int pxHeight = (int) (mmHeight * MM_TO_DP * context.getResources().getDisplayMetrics().density);
+            float density = context.getResources().getDisplayMetrics().density;
+            int pxWidth = (int) (mmWidth * MM_TO_DP * density);
+            int pxHeight = (int) (mmHeight * MM_TO_DP * density);
 
-            // 设置根布局大小 (FrameLayout)
-            view.setLayoutParams(new ViewGroup.LayoutParams(pxWidth, pxHeight));
+            layoutPreview.setLayoutParams(new FrameLayout.LayoutParams(pxWidth, pxHeight));
 
-            // 3. 绑定控件
-            TextView tvShop = view.findViewById(R.id.tv_preview_shop);
-            TextView tvName = view.findViewById(R.id.tv_preview_name);
-            TextView tvPrice = view.findViewById(R.id.tv_preview_price);
-            LinearLayout layoutBarcode = view.findViewById(R.id.layout_barcode_group);
-            TextView tvCode = view.findViewById(R.id.tv_preview_code);
-            ImageView ivBarcode = view.findViewById(R.id.iv_preview_barcode);
+            // 3. 绑定所有控件
+            TextView tvShop = layoutPreview.findViewById(R.id.tv_preview_shop);
+            TextView tvName = layoutPreview.findViewById(R.id.tv_preview_name);
+            TextView tvPrice = layoutPreview.findViewById(R.id.tv_preview_price);
+            LinearLayout layoutBarcode = layoutPreview.findViewById(R.id.layout_barcode_group);
+            ImageView ivBarcode = layoutPreview.findViewById(R.id.iv_preview_barcode);
+            TextView tvCode = layoutPreview.findViewById(R.id.tv_preview_code);
 
-            // 4. 恢复可见性
+            TextView tvSn = layoutPreview.findViewById(R.id.tv_preview_sn);
+            TextView tvSpecs = layoutPreview.findViewById(R.id.tv_preview_specs);
+            TextView tvUnit = layoutPreview.findViewById(R.id.tv_preview_unit);
+            TextView tvStaff = layoutPreview.findViewById(R.id.tv_preview_staff);
+            TextView tvLevel = layoutPreview.findViewById(R.id.tv_preview_level);
+            TextView tvOrigin = layoutPreview.findViewById(R.id.tv_preview_origin);
+            TextView tvPoints = layoutPreview.findViewById(R.id.tv_preview_points);
+            TextView tvCoupon = layoutPreview.findViewById(R.id.tv_preview_coupon);
+
+            // 隐藏背景
+            View ivPaperBg = layoutPreview.findViewById(R.id.iv_paper_background);
+            if (ivPaperBg != null) ivPaperBg.setVisibility(View.GONE);
+
+            layoutPreview.setBackgroundColor(Color.WHITE);
+            layoutPreview.setScaleX(1.0f);
+            layoutPreview.setScaleY(1.0f);
+
+            // 4. 应用 CheckBox 显隐控制 (严格匹配 UserUtils 保存的 Key)
             setViewVisibility(context, tvShop, "shop_name");
             setViewVisibility(context, tvName, "product_name");
             setViewVisibility(context, tvPrice, "price");
             setViewVisibility(context, layoutBarcode, "barcode");
+            setViewVisibility(context, tvSn, "sn");
+            setViewVisibility(context, tvSpecs, "specs");
+            setViewVisibility(context, tvUnit, "unit");
+            setViewVisibility(context, tvStaff, "staff");
+            setViewVisibility(context, tvLevel, "level");
+            setViewVisibility(context, tvOrigin, "origin");
+            setViewVisibility(context, tvPoints, "points");
+            setViewVisibility(context, tvCoupon, "coupon");
 
-            // 5. 填充数据
+            // 5. 填充真实数据 (修正映射关系)
             if (goods != null) {
+                // 店名
                 String shopName = "";
                 try {
-                    // 【核心修正】改为获取 ShopDataBean -> getName()
-                    if (UserUtils.getInstance().getShopDataBean() != null
-                            && UserUtils.getInstance().getShopDataBean().getData() != null
-                            && !UserUtils.getInstance().getShopDataBean().getData().isEmpty()) {
-
+                    if (UserUtils.getInstance().getShopDataBean() != null && UserUtils.getInstance().getShopDataBean().getData() != null) {
                         shopName = UserUtils.getInstance().getShopDataBean().getData().get(0).getName();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                } catch (Exception e) {}
+                tvShop.setText(TextUtils.isEmpty(shopName) ? "店铺" : shopName);
 
-                // 默认兜底
-                if (TextUtils.isEmpty(shopName)) shopName = "店铺名称未获取";
-
-                tvShop.setText(shopName);
+                // 品名/价格
                 tvName.setText(goods.getTitle());
-                String unit = TextUtils.isEmpty(goods.getUnit()) ? "" : "/" + goods.getUnit();
-                tvPrice.setText("￥" + goods.getPrice() + unit);
+                tvPrice.setText(goods.getPrice() + "元");
 
-                // 获取条码，如果为空则返回 null (配合外层跳过逻辑)
-                String code = getValidCode(goods);
-                if (TextUtils.isEmpty(code)) {
-                    return null;
+                // 编码
+                tvSn.setText(goods.getSn());
+
+                // 【关键修正】：规格展示真实的 Specs_title
+                tvSpecs.setText(TextUtils.isEmpty(goods.getSpecs_title()) ? "" : goods.getSpecs_title());
+
+                // 单位
+                tvUnit.setText(TextUtils.isEmpty(goods.getUnit()) ? "1" : goods.getUnit());
+
+                // 【关键修正】：产地控件显示 Subtitle (对应你之前的业务逻辑)
+                tvOrigin.setText(TextUtils.isEmpty(goods.getSubtitle()) ? "" : goods.getSubtitle());
+
+                // 固定文本
+                tvStaff.setText("物价员");
+                tvLevel.setText("合格品");
+
+                // 积分与券
+                String points = String.valueOf(goods.getReward_points());
+                tvPoints.setText((TextUtils.isEmpty(points) || "null".equalsIgnoreCase(points)) ? "0.00" : points);
+                String coupon = String.valueOf(goods.getDeduction_golive());
+                tvCoupon.setText((TextUtils.isEmpty(coupon) || "null".equalsIgnoreCase(coupon)) ? "0.00" : coupon);
+
+                // 条码
+                String barcodeStr = TextUtils.isEmpty(goods.getSn()) ? goods.getGoods_sn() : goods.getSn();
+                if (!TextUtils.isEmpty(barcodeStr)) {
+                    tvCode.setText(TextUtils.isEmpty(goods.getGoods_sn()) ? barcodeStr : goods.getGoods_sn());
+                    ivBarcode.setImageBitmap(createBarcode(barcodeStr));
                 }
-
-                tvCode.setText(code);
-                ivBarcode.setImageBitmap(createBarcode(code));
             }
 
-            // =================================================================================
-            // 【核心修复 A】 设置条码为固定宽度 (35mm)，而不是撑满整个标签
-            // =================================================================================
-            // 计算 35mm 对应的像素
-            int barcodePxWidth = (int) (BARCODE_FIXED_WIDTH_MM * MM_TO_DP * context.getResources().getDisplayMetrics().density);
-
-            // 安全检查：如果标签本身小于 35mm (比如 30mm纸)，则最大只能是标签宽
-            if (barcodePxWidth > pxWidth) {
-                barcodePxWidth = pxWidth;
+            // 6. 条码宽度处理
+            int barcodePxWidth = (int) (BARCODE_FIXED_WIDTH_MM * MM_TO_DP * density);
+            if (layoutBarcode != null) {
+                ViewGroup.LayoutParams params = layoutBarcode.getLayoutParams();
+                params.width = Math.min(barcodePxWidth, pxWidth);
+                layoutBarcode.setLayoutParams(params);
             }
 
-            ViewGroup.LayoutParams barcodeParams = layoutBarcode.getLayoutParams();
-            if (barcodeParams == null) {
-                barcodeParams = new FrameLayout.LayoutParams(barcodePxWidth, ViewGroup.LayoutParams.WRAP_CONTENT);
-            }
-            barcodeParams.width = barcodePxWidth; // 设置为固定宽
-            layoutBarcode.setLayoutParams(barcodeParams);
-
-            // 图片填满这个固定宽
-            ViewGroup.LayoutParams imgParams = ivBarcode.getLayoutParams();
-            imgParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
-            ivBarcode.setLayoutParams(imgParams);
-
-            // =================================================================================
-            // 【核心修复 B】 先测量 (Measure) 和 布局 (Layout)
-            // =================================================================================
-            view.measure(
+            // 7. 强制测量布局
+            layoutPreview.measure(
                     View.MeasureSpec.makeMeasureSpec(pxWidth, View.MeasureSpec.EXACTLY),
                     View.MeasureSpec.makeMeasureSpec(pxHeight, View.MeasureSpec.EXACTLY)
             );
-            view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+            layoutPreview.layout(0, 0, pxWidth, pxHeight);
 
-            // =================================================================================
-            // 【核心修复 C】 应用 DIY 保存的坐标
-            // =================================================================================
+            // 8. 应用 DIY 保存的绝对坐标 (确保所有字段位置正确)
             applyPosition(context, tvShop, "shop");
             applyPosition(context, tvName, "name");
             applyPosition(context, tvPrice, "price");
+            applyPosition(context, layoutBarcode, "barcode");
+            applyPosition(context, tvSn, "sn");
+            applyPosition(context, tvSpecs, "specs");
+            applyPosition(context, tvUnit, "unit");
+            applyPosition(context, tvStaff, "staff");
+            applyPosition(context, tvLevel, "level");
+            applyPosition(context, tvOrigin, "origin");
+            applyPosition(context, tvPoints, "points");
+            applyPosition(context, tvCoupon, "coupon");
 
-            // 条码位置特殊处理
-            float barcodeX = UserUtils.getInstance().getElementX(context, "barcode");
-            float barcodeY = UserUtils.getInstance().getElementY(context, "barcode");
-
-            if (barcodeX != -1 && barcodeY != -1) {
-                // 如果用户拖拽保存过位置，使用用户的位置
-                layoutBarcode.setX(barcodeX);
-                layoutBarcode.setY(barcodeY);
-            } else {
-                // 如果没保存过：
-                // X轴：默认水平居中
-                layoutBarcode.setX((pxWidth - barcodePxWidth) / 2f);
-                // Y轴：默认放底部
-                layoutBarcode.setY(pxHeight - convertDpToPx(context, 85));
-            }
-
-            // =================================================================================
-            // 【核心修复 D】 绘制
-            // =================================================================================
+            // 9. 生成 Bitmap
             Bitmap bitmap = Bitmap.createBitmap(pxWidth, pxHeight, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
-            canvas.drawColor(Color.WHITE);
-            view.draw(canvas);
+            layoutPreview.draw(canvas);
 
             return bitmap;
 
@@ -167,32 +177,19 @@ public class LabelBitmapGenerator {
     }
 
     private static void setViewVisibility(Context context, View view, String configKey) {
+        if (view == null) return;
         boolean isShow = UserUtils.getInstance().getLabelConfig(context, configKey, true);
         view.setVisibility(isShow ? View.VISIBLE : View.GONE);
     }
 
     private static void applyPosition(Context context, View view, String elementKey) {
+        if (view == null) return;
         float x = UserUtils.getInstance().getElementX(context, elementKey);
         float y = UserUtils.getInstance().getElementY(context, elementKey);
-
         if (x != -1 && y != -1) {
             view.setX(x);
             view.setY(y);
         }
-    }
-
-    private static String getValidCode(GrouponGoodsBean.GrouponGoodsModel model) {
-        String code = model.getSn();
-        if (!TextUtils.isEmpty(code)) return code.replaceAll("[^\\x00-\\x7F]", "").trim();
-
-        code = model.getGoods_sn();
-        if (!TextUtils.isEmpty(code)) return code.replaceAll("[^\\x00-\\x7F]", "").trim();
-
-        return null; // 无码返回null
-    }
-
-    private static int convertDpToPx(Context context, float dp) {
-        return (int) (dp * context.getResources().getDisplayMetrics().density);
     }
 
     private static Bitmap createBarcode(String content) {
@@ -200,27 +197,18 @@ public class LabelBitmapGenerator {
             Hashtable<com.google.zxing.EncodeHintType, Object> hints = new Hashtable<>();
             hints.put(com.google.zxing.EncodeHintType.CHARACTER_SET, "utf-8");
             hints.put(com.google.zxing.EncodeHintType.MARGIN, 0);
-
-            // 宽度 1000 保证清晰度
-            int width = 1000;
-            int height = 300;
-
-            BitMatrix matrix = new MultiFormatWriter().encode(content, BarcodeFormat.CODE_128, width, height, hints);
+            BitMatrix matrix = new MultiFormatWriter().encode(content, BarcodeFormat.CODE_128, 800, 200, hints);
+            int width = matrix.getWidth();
+            int height = matrix.getHeight();
             int[] pixels = new int[width * height];
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    if (matrix.get(x, y)) {
-                        pixels[y * width + x] = 0xFF000000;
-                    } else {
-                        pixels[y * width + x] = 0xFFFFFFFF;
-                    }
+                    pixels[y * width + x] = matrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF;
                 }
             }
             Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
             bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
             return bitmap;
-        } catch (Exception e) {
-            return null;
-        }
+        } catch (Exception e) { return null; }
     }
 }

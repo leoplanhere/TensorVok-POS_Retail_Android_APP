@@ -8,7 +8,6 @@ import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-// 【关键修复】补全 ViewGroup 导入
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -28,6 +27,7 @@ import com.uhm.uhmcs.utils.UserUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 public class PrintLabelsPopupWindow {
@@ -49,7 +49,6 @@ public class PrintLabelsPopupWindow {
     private void initPopup() {
         View popupView = LayoutInflater.from(context).inflate(R.layout.popupwindow_print_labels, null);
 
-        // 这里使用了 ViewGroup，所以必须 import android.view.ViewGroup
         popupWindow = new PopupWindow(
                 popupView,
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -68,18 +67,14 @@ public class PrintLabelsPopupWindow {
             popupWindow.update(x, y, -1, -1);
         });
 
-        // 获取打印机名称
         try {
             current_printer_tv = popupView.findViewById(R.id.dqxz_tv);
             displayCurrentPrinterName();
         } catch (Exception e) {}
 
-        // --- 按钮事件绑定 ---
-
-        // 1. 标签设置 (DIY)
+        // 1. 标签设置
         popupView.findViewById(R.id.setting_btn).setOnClickListener(v -> {
             GrouponGoodsBean.GrouponGoodsModel sample = null;
-            // 尝试获取选中的商品作为预览
             if (shopAdapter.getData() != null && !shopAdapter.getData().isEmpty()) {
                 for (GrouponGoodsBean.GrouponGoodsModel m : shopAdapter.getData()) {
                     if (m.isSelected()) {
@@ -87,15 +82,14 @@ public class PrintLabelsPopupWindow {
                         break;
                     }
                 }
-                // 没选中就拿第一个
                 if (sample == null) sample = shopAdapter.getData().get(0);
             }
-            // 列表为空则造假数据
             if (sample == null) {
                 sample = new GrouponGoodsBean.GrouponGoodsModel();
-                sample.setTitle("预览商品");
+                sample.setTitle("预览商品名称");
                 sample.setPrice("0.00");
-                sample.setSn("123456");
+                sample.setSn("123456789");
+                sample.setSubtitle("深圳");
             }
             new LabelDiyPopupWindow(context, sample).show();
         });
@@ -112,11 +106,8 @@ public class PrintLabelsPopupWindow {
             }).show();
         });
 
-        // 3. 打印 (核心功能：批量生成所见即所得图片)
-        // 3. 打印 (修复版)
-        // 3. 打印 (核心优化：流式队列、自动跳过无效码、防OOM)
+        // 3. 核心打印逻辑 (已修复崩溃问题)
         popupView.findViewById(R.id.print_btn).setOnClickListener(v -> {
-            // 1. 获取选中的商品
             ArrayList<GrouponGoodsBean.GrouponGoodsModel> selectedList = shopAdapter.getData().stream()
                     .filter(GrouponGoodsBean.GrouponGoodsModel::isSelected)
                     .collect(Collectors.toCollection(ArrayList::new));
@@ -126,100 +117,75 @@ public class PrintLabelsPopupWindow {
                 return;
             }
 
-            // 2. 弹出数量确认框
             new PrintNumPopupWindow(context, discount -> {
                 int copies = Integer.parseInt(discount);
-                Toast.makeText(context, "开始打印 " + selectedList.size() + " 个商品...", Toast.LENGTH_SHORT).show();
-
-                // 关闭弹窗，避免遮挡
+                Toast.makeText(context, "正在准备打印...", Toast.LENGTH_SHORT).show();
                 popupWindow.dismiss();
 
-                // 3. 开启单线程任务，串行处理
                 new Thread(() -> {
                     int successCount = 0;
                     int skipCount = 0;
 
                     for (GrouponGoodsBean.GrouponGoodsModel goods : selectedList) {
-                        // --- 步骤 A: 预检查 SN 码 ---
+                        // A. 基础检查
                         String code = goods.getSn();
                         if (TextUtils.isEmpty(code)) code = goods.getGoods_sn();
-
-                        // 如果没有有效条码，直接跳过
                         if (TextUtils.isEmpty(code)) {
                             skipCount++;
                             continue;
                         }
 
-                        // --- 步骤 B: 在主线程生成 Bitmap (必须在主线程 measure/layout) ---
-                        // 使用数组来跨线程获取结果
+                        // B. 主线程同步生成 Bitmap (使用 Latch 替代 wait)
                         final Bitmap[] holder = new Bitmap[1];
-                        final GrouponGoodsBean.GrouponGoodsModel currentGoods = goods;
+                        CountDownLatch latch = new CountDownLatch(1);
 
-                        // 同步等待主线程生成完毕
                         context.runOnUiThread(() -> {
                             try {
-                                holder[0] = LabelBitmapGenerator.generateLabelBitmap(context, currentGoods);
+                                holder[0] = LabelBitmapGenerator.generateLabelBitmap(context, goods);
                             } catch (Exception e) {
                                 e.printStackTrace();
-                            }
-                            // 唤醒等待的子线程
-                            synchronized (holder) {
-                                holder.notify();
+                            } finally {
+                                latch.countDown();
                             }
                         });
 
-                        // 子线程阻塞等待主线程完成图片生成
-                        synchronized (holder) {
-                            try {
-                                if (holder[0] == null) holder.wait(2000); // 最多等2秒
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
+                        try {
+                            latch.await(); // 等待图片生成结束
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
 
                         Bitmap bmp = holder[0];
 
-                        // --- 步骤 C: 发送打印并回收 ---
+                        // C. 异步发送打印 (修复：不手动执行 recycle)
                         if (bmp != null) {
                             try {
-                                // 1. 发送打印 (打印单张)
-                                // 注意：这里我们复用 printBitmapLabel 方法，它内部是异步的，
-                                // 为了防止 USB 缓冲区溢出，我们需要稍微 sleep 一下，或者让 printerHelper 提供同步方法。
-                                // 这里简单起见，调用后 sleep 300ms 缓冲一下。
+                                // 调用打印机Helper
                                 MyLabeksPrinterHelper.getInstance().printBitmapLabel(context, bmp, copies);
-
                                 successCount++;
 
-                                // 简单限流，防止打印机卡死
-                                Thread.sleep(500);
+                                // 【关键修复】批量打印必须增加等待时间，防止打印机固件死机
+                                Thread.sleep(800);
 
                             } catch (Exception e) {
                                 e.printStackTrace();
-                            } finally {
-                                // 2. 【关键防OOM】立即回收 Bitmap
-                                if (!bmp.isRecycled()) {
-                                    bmp.recycle();
-                                }
-                                bmp = null;
                             }
+                            // 注意：此处绝对不要调用 bmp.recycle()！！
+                            // 打印机 Helper 是异步的，它在另一个线程读取此 bmp 的像素。
+                            // 在循环结束后或由系统 GC 自动处理。
                         }
                     }
 
-                    // 全部完成后提示
                     final int s = successCount;
                     final int k = skipCount;
                     context.runOnUiThread(() ->
-                            Toast.makeText(context, "打印完成: 成功 " + s + ", 跳过无码 " + k, Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "任务提交完毕: 成功 " + s + ", 跳过 " + k, Toast.LENGTH_LONG).show()
                     );
-
                 }).start();
-
             }).show();
         });
 
-
-
-        // ... 列表逻辑 ...
+        // 4. 列表初始化
         shop_rv = popupView.findViewById(R.id.shop_rv);
         shop_rv.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
         shopAdapter = new ShopAdapter();
