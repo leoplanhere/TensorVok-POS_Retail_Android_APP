@@ -102,8 +102,7 @@ public class LabelBitmapGenerator {
             applyElementStyle(context, tvCoupon, "coupon");
 
             // 条码下方的数字，你之前要求固定大字号加粗
-            tvCode.setTextSize(20);
-            tvCode.getPaint().setFakeBoldText(true);
+            applyElementStyle(context, tvCode, "barcode");
 
             // 6. 填充真实数据
             if (goods != null) {

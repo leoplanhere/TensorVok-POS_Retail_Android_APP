@@ -2503,6 +2503,7 @@ public class MainActivity extends Activity {
 
     private void downloadGoodsPage(int requestPage) {
         String shopId = UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid();
+        // 建议检查此路径在旧服务器和新服务器是否完全一致
         String url = POSApiSerview.POS_URL + "Supermarket/getGrouponGoods1";
 
         Map<String, String> params = new HashMap<>();
@@ -2512,31 +2513,38 @@ public class MainActivity extends Activity {
         params.put("category_ids", "");
         params.put("goods_sn", "");
 
+        // --- 详细日志：请求发起阶段 ---
+        Log.e("SyncNetworkDebug", "==================== 同步请求发起 ====================");
+        Log.e("SyncNetworkDebug", "请求URL: " + url);
+        Log.e("SyncNetworkDebug", "请求页码: " + requestPage);
+        Log.e("SyncNetworkDebug", "请求参数: " + params.toString());
+        Log.e("SyncNetworkDebug", "Token状态: " + (UserUtils.getInstance().getLoginBase() != null ? "已携带" : "未登录"));
+
         OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {
+                // --- 详细日志：请求成功阶段 ---
+                Log.i("SyncNetworkDebug", "收到响应 [第 " + requestPage + " 页]");
+                // 只打印前500个字符，防止日志溢出，但能看清结构
+                Log.d("SyncNetworkDebug", "原始JSON预览: " + (response.length() > 500 ? response.substring(0, 500) : response));
+
                 dbExecutor.execute(() -> {
                     try {
                         org.json.JSONObject root = new org.json.JSONObject(response);
-                        if (root.optInt("code") != 1) { finishSync(); return; }
+                        int code = root.optInt("code");
+                        String msg = root.optString("msg");
 
-                        // --- 【保留：核心破案日志】 ---
-                        if (requestPage == 1) {
-                            Object dataObj = root.get("data");
-                            String firstItemStr = "";
-                            if (dataObj instanceof org.json.JSONArray) {
-                                firstItemStr = ((org.json.JSONArray) dataObj).optJSONObject(0).toString();
-                            } else if (dataObj instanceof org.json.JSONObject) {
-                                firstItemStr = ((org.json.JSONObject) dataObj).optJSONArray("data").optJSONObject(0).toString();
-                            }
-                            Log.e("CRITICAL_DEBUG", "!!! 真实 JSON 结构原文 !!! : " + firstItemStr);
+                        if (code != 1) {
+                            Log.e("SyncNetworkDebug", "业务逻辑错误 - code: " + code + ", msg: " + msg);
+                            finishSync();
+                            return;
                         }
 
                         Gson gson = new Gson();
                         List<GrouponGoodsBean.GrouponGoodsModel> rawList = new ArrayList<>();
                         Object dataObj = root.get("data");
 
-                        // 1. 兼容性解析数据
+                        // 兼容逻辑
                         if (dataObj instanceof org.json.JSONArray) {
                             java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<List<GrouponGoodsBean.GrouponGoodsModel>>(){}.getType();
                             rawList = gson.fromJson(dataObj.toString(), listType);
@@ -2548,42 +2556,32 @@ public class MainActivity extends Activity {
                         }
 
                         if (rawList != null && !rawList.isEmpty()) {
+                            Log.i("SyncNetworkDebug", "本页成功解析商品数量: " + rawList.size());
                             List<GrouponGoodsBean.GrouponGoodsModel> finalSaveList = new ArrayList<>();
 
                             for (GrouponGoodsBean.GrouponGoodsModel item : rawList) {
-
-                                // ================= 【核心新增：生成拼音与首字母】 =================
-                                // 在保存或深拷贝之前生成，确保 SKU 副本也能继承拼音数据
+                                // 拼音处理逻辑保持不变...
                                 if (!TextUtils.isEmpty(item.getTitle())) {
-                                    // A. 生成全拼 (例如：苹果 -> pingguo)
                                     String fullPinyin = com.github.promeg.pinyinhelper.Pinyin.toPinyin(item.getTitle(), "").toLowerCase();
                                     item.setPinyin(fullPinyin);
-
-                                    // B. 生成首字母 (例如：苹果 -> pg)
                                     StringBuilder sbInitial = new StringBuilder();
                                     for (char c : item.getTitle().toCharArray()) {
                                         if (com.github.promeg.pinyinhelper.Pinyin.isChinese(c)) {
-                                            // 提取拼音首字母
                                             sbInitial.append(com.github.promeg.pinyinhelper.Pinyin.toPinyin(c).charAt(0));
                                         } else {
-                                            // 非中文（数字/英文）直接保留
                                             sbInitial.append(c);
                                         }
                                     }
                                     item.setPyInitial(sbInitial.toString().toLowerCase());
                                 }
-                                // ==========================================================
 
-                                // --- 【保留：超级兼容抓取策略】 ---
                                 String foundSn = "";
                                 if (!TextUtils.isEmpty(item.getSn())) foundSn = item.getSn();
                                 else if (!TextUtils.isEmpty(item.getBarcode())) foundSn = item.getBarcode();
                                 else if (!TextUtils.isEmpty(item.getGoods_sn())) foundSn = item.getGoods_sn();
 
-                                // 2. 检查是否有 SKU 数组，如果有，打平存储
                                 if (item.getSkuPrice() != null && !item.getSkuPrice().isEmpty()) {
                                     for (GrouponGoodsBean.GrouponGoodsModel.SkuPriceBean sku : item.getSkuPrice()) {
-                                        // 使用深拷贝确保 SKU 行也携带了刚才生成的拼音
                                         GrouponGoodsBean.GrouponGoodsModel skuRow = SerializableUtils.deepCopy(item);
                                         skuRow.assignBaseObjId(0);
                                         skuRow.setSn(!TextUtils.isEmpty(sku.getSn()) ? sku.getSn() : foundSn);
@@ -2591,37 +2589,48 @@ public class MainActivity extends Activity {
                                         finalSaveList.add(skuRow);
                                     }
                                 } else {
-                                    // 没有规格，直接存
                                     item.assignBaseObjId(0);
                                     item.setSn(foundSn);
                                     finalSaveList.add(item);
                                 }
                             }
 
-                            // 3. 开启事务批量保存到数据库
                             org.litepal.LitePal.beginTransaction();
                             try {
                                 org.litepal.LitePal.saveAll(finalSaveList);
                                 org.litepal.LitePal.setTransactionSuccessful();
+                                Log.d("SyncNetworkDebug", "数据库写入成功 [第 " + requestPage + " 页]");
                             } finally {
                                 org.litepal.LitePal.endTransaction();
                             }
 
-                            // 4. 继续分页递归
                             handlePagination(gson.fromJson(response, GrouponGoodsBean.class), requestPage);
                         } else {
+                            Log.w("SyncNetworkDebug", "本页数据为空，同步可能已提前结束");
                             finishSync();
                         }
                     } catch (Exception e) {
-                        Log.e("SyncError", "致命错误: " + e.getMessage());
+                        Log.e("SyncNetworkDebug", "解析过程崩溃: " + e.getMessage());
+                        e.printStackTrace();
                         finishSync();
                     }
                 });
             }
+
             @Override
-            public void onFailure(IOException e) { finishSync(); }
+            public void onFailure(IOException e) {
+                // --- 详细日志：请求失败阶段 ---
+                Log.e("SyncNetworkDebug", "==================== 请求彻底失败 ====================");
+                Log.e("SyncNetworkDebug", "错误类型: " + e.getClass().getSimpleName());
+                Log.e("SyncNetworkDebug", "错误描述: " + e.getMessage());
+                if (e.getCause() != null) {
+                    Log.e("SyncNetworkDebug", "根本原因: " + e.getCause().toString());
+                }
+                finishSync();
+            }
         });
     }
+
 
 
 
