@@ -50,18 +50,22 @@
             android:id="@+id/tv_preview_code"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="00000000"
-            android:textSize="14sp"
-            android:textColor="@color/black"/>
+            android:text="6932898737864"
+            android:textColor="@color/black"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginTop="2dp" />
     </LinearLayout>
 
     <TextView
         android:id="@+id/tv_preview_sn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="SN123456"
+        android:text="12345678"
         android:textColor="@color/black"
-        android:textSize="14sp" />
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:padding="2dp" />
 
     <TextView
         android:id="@+id/tv_preview_specs"

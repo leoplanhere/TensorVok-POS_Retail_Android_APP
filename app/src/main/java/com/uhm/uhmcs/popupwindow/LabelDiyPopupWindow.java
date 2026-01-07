@@ -100,17 +100,54 @@ public class LabelDiyPopupWindow {
         cbPoints = view.findViewById(R.id.cb_points);
         cbCoupon = view.findViewById(R.id.cb_coupon);
 
-        // 4. 启用拖拽监听并初始化背景透明
+        // 4. 启用拖拽监听并初始化背景透明及字号切换
         DragTouchListener dragListener = new DragTouchListener();
         View[] draggableElements = {tvShop, tvName, tvPrice, layoutBarcodeGroup, tvSn, tvSpecs, tvUnit, tvStaff, tvLevel, tvOrigin, tvPoints, tvCoupon};
+
         for (View v : draggableElements) {
-            if (v != null) {
-                v.setOnTouchListener(dragListener);
-                v.setBackgroundColor(Color.TRANSPARENT);
+            if (v == null) continue;
+
+            // 恢复保存的字号
+            String key = getElementKey(v.getId());
+            int savedSize = UserUtils.getInstance().getElementTextSize(context, key, 16);
+            if (v instanceof TextView) {
+                ((TextView) v).setTextSize(savedSize);
+            } else if (v.getId() == R.id.layout_barcode_group) {
+                // 条码组特殊处理：设置下方数字的字号
+                if (tvCode != null) tvCode.setTextSize(savedSize);
             }
+
+            // 设置点击事件：点击一次切换一个档位 (16->20->30)
+            v.setOnClickListener(clickedView -> {
+                TextView targetTv = null;
+                if (clickedView instanceof TextView) {
+                    targetTv = (TextView) clickedView;
+                } else if (clickedView.getId() == R.id.layout_barcode_group) {
+                    targetTv = tvCode;
+                }
+
+                if (targetTv != null) {
+                    float density = context.getResources().getDisplayMetrics().density;
+                    int currentSize = Math.round(targetTv.getTextSize() / density);
+
+                    int nextSize;
+                    if (currentSize < 20) nextSize = 20;
+                    else if (currentSize < 30) nextSize = 30;
+                    else nextSize = 16;
+
+                    targetTv.setTextSize(nextSize);
+                    UserUtils.getInstance().setElementTextSize(context, key, nextSize);
+                    Toast.makeText(context, "字号已切换至: " + (nextSize == 16 ? "小" : nextSize == 20 ? "中" : "大"), Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            // 开启拖拽并设为点击可用
+            v.setOnTouchListener(dragListener);
+            v.setClickable(true);
+            v.setBackgroundColor(Color.TRANSPARENT);
         }
 
-        // 5. 初始化尺寸回显
+        // 5. 初始化画布尺寸
         int savedW = UserUtils.getInstance().getLabelWidth(context);
         int savedH = UserUtils.getInstance().getLabelHeight(context);
         if (savedW <= 0) savedW = 100;
@@ -120,10 +157,50 @@ public class LabelDiyPopupWindow {
         etHeight.setText(String.valueOf(savedH));
         updateCanvasSize(savedW, savedH);
 
-        // 6. 填充数据
+        // 同步条码物理尺寸预览
+        float density = context.getResources().getDisplayMetrics().density;
+        int syncBarWidthPx = (int) (30 * MM_TO_DP * density);
+        int syncBarHeightPx = (int) (10 * MM_TO_DP * density);
+
+        if (layoutBarcodeGroup != null) {
+            ViewGroup.LayoutParams params = layoutBarcodeGroup.getLayoutParams();
+            params.width = syncBarWidthPx;
+            layoutBarcodeGroup.setLayoutParams(params);
+
+            if (ivBarcode != null) {
+                ViewGroup.LayoutParams imgParams = ivBarcode.getLayoutParams();
+                imgParams.width = syncBarWidthPx;
+                imgParams.height = syncBarHeightPx;
+                ivBarcode.setLayoutParams(imgParams);
+                ivBarcode.setScaleType(ImageView.ScaleType.FIT_XY);
+            }
+        }
+
+        // 6. 交互：点击画布背景(灰色区域)切换底图显示
+        if (flContainer != null) {
+            flContainer.setOnClickListener(v -> {
+                if (ivPaperBackground != null) {
+                    boolean isVisible = ivPaperBackground.getVisibility() == View.VISIBLE;
+                    ivPaperBackground.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+                    UserUtils.getInstance().setLabelConfig(context, "show_background", !isVisible);
+                    Toast.makeText(context, isVisible ? "底图已关闭" : "底图已开启", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        // 拦截画布点击，防止点击白色区域时意外关闭底图
+        if (layoutPreview != null) {
+            layoutPreview.setOnClickListener(v -> { /* 消费事件 */ });
+        }
+        // 读取并应用底图保存状态
+        boolean isBgVisible = UserUtils.getInstance().getLabelConfig(context, "show_background", true);
+        if (ivPaperBackground != null) {
+            ivPaperBackground.setVisibility(isBgVisible ? View.VISIBLE : View.GONE);
+        }
+
+        // 7. 填充数据
         fillGoodsData();
 
-        // 7. 恢复坐标位置
+        // 8. 恢复坐标位置
         layoutPreview.post(() -> {
             restorePosition(tvShop, "shop");
             restorePosition(tvName, "name");
@@ -139,23 +216,22 @@ public class LabelDiyPopupWindow {
             restorePosition(tvCoupon, "coupon");
         });
 
-        // 8. 绑定显隐联动 (已校准绑定关系)
+        // 9. 绑定显隐联动
         setupCheckListener(cbShopName, tvShop, "shop_name");
         setupCheckListener(cbProductName, tvName, "product_name");
         setupCheckListener(cbPrice, tvPrice, "price");
         setupCheckListener(cbBarcode, layoutBarcodeGroup, "barcode");
         setupCheckListener(cbSn, tvSn, "sn");
-        setupCheckListener(cbSpecs, tvSpecs, "specs"); // 规格配对规格
+        setupCheckListener(cbSpecs, tvSpecs, "specs");
         setupCheckListener(cbUnit, tvUnit, "unit");
         setupCheckListener(cbStaff, tvStaff, "staff");
         setupCheckListener(cbLevel, tvLevel, "level");
-        setupCheckListener(cbOrigin, tvOrigin, "origin"); // 产地配对产地
+        setupCheckListener(cbOrigin, tvOrigin, "origin");
         setupCheckListener(cbPoints, tvPoints, "points");
         setupCheckListener(cbCoupon, tvCoupon, "coupon");
 
-        // 9. 按钮事件
+        // 10. 底部按钮事件
         view.findViewById(R.id.btn_cancel).setOnClickListener(v -> popupWindow.dismiss());
-
         view.findViewById(R.id.btn_apply_size).setOnClickListener(v -> {
             String wStr = etWidth.getText().toString();
             String hStr = etHeight.getText().toString();
@@ -171,11 +247,11 @@ public class LabelDiyPopupWindow {
                 Toast.makeText(context, "请输入宽高", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             UserUtils.getInstance().setLabelWidth(context, Integer.parseInt(w));
             UserUtils.getInstance().setLabelHeight(context, Integer.parseInt(h));
             saveAllConfigs();
 
+            // 打印前强制隐藏底图
             if (ivPaperBackground != null) ivPaperBackground.setVisibility(View.GONE);
             layoutPreview.setBackgroundColor(Color.WHITE);
             clearFocusBackground(draggableElements);
@@ -184,15 +260,30 @@ public class LabelDiyPopupWindow {
             if (originalBitmap != null) {
                 Bitmap printerBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, false);
                 MyLabeksPrinterHelper.getInstance().printBitmapLabel(context, printerBitmap, 1);
-                if (ivPaperBackground != null) ivPaperBackground.setVisibility(View.VISIBLE);
+                // 打印后恢复底图状态
+                if (ivPaperBackground != null) {
+                    boolean bgState = UserUtils.getInstance().getLabelConfig(context, "show_background", true);
+                    ivPaperBackground.setVisibility(bgState ? View.VISIBLE : View.GONE);
+                }
                 popupWindow.dismiss();
             }
         });
     }
 
-    /**
-     * 【物理映射校准】修正赋值逻辑
-     */
+    private String getElementKey(int id) {
+        if (id == R.id.tv_preview_shop) return "shop";
+        if (id == R.id.tv_preview_name) return "name";
+        if (id == R.id.tv_preview_price) return "price";
+        if (id == R.id.layout_barcode_group) return "barcode";
+        if (id == R.id.tv_preview_sn) return "sn";
+        if (id == R.id.tv_preview_specs) return "specs";
+        if (id == R.id.tv_preview_unit) return "unit";
+        if (id == R.id.tv_preview_origin) return "origin";
+        if (id == R.id.tv_preview_points) return "points";
+        if (id == R.id.tv_preview_coupon) return "coupon";
+        return "default";
+    }
+
     private void fillGoodsData() {
         if (goodsModel != null) {
             String shopName = "";
@@ -200,7 +291,6 @@ public class LabelDiyPopupWindow {
                 shopName = UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
             } catch (Exception e) {}
             tvShop.setText(TextUtils.isEmpty(shopName) ? "店铺名称" : shopName);
-
             tvName.setText(goodsModel.getTitle());
             tvPrice.setText(goodsModel.getPrice() + "元");
 
@@ -209,22 +299,15 @@ public class LabelDiyPopupWindow {
             ivBarcode.setImageBitmap(generateBarcode(barcodeContent));
 
             tvSn.setText(goodsModel.getSn());
-
-            // 修正 1：规格控件显示规格内容
             tvSpecs.setText(TextUtils.isEmpty(goodsModel.getSpecs_title()) ? "规格" : goodsModel.getSpecs_title());
-
             tvUnit.setText(TextUtils.isEmpty(goodsModel.getUnit()) ? "单位：个" : goodsModel.getUnit());
-
-            // 修正 2：产地控件显示副标题内容，如果为空显示默认字样
             String originText = goodsModel.getSubtitle();
             tvOrigin.setText(TextUtils.isEmpty(originText) ? "产地/副标题" : originText);
-
             tvStaff.setText("物价员");
             tvLevel.setText("合格品");
 
             String points = String.valueOf(goodsModel.getReward_points());
             tvPoints.setText((TextUtils.isEmpty(points) || "null".equalsIgnoreCase(points)) ? "可获积分" : points);
-
             String coupon = String.valueOf(goodsModel.getDeduction_golive());
             tvCoupon.setText((TextUtils.isEmpty(coupon) || "null".equalsIgnoreCase(coupon)) ? "可用代金券" : coupon);
 
@@ -248,18 +331,14 @@ public class LabelDiyPopupWindow {
         Paint paint = new Paint();
         paint.setAntiAlias(true);
         canvas.drawColor(Color.WHITE);
-
         paint.setColor(Color.parseColor("#F5E6E6"));
         canvas.drawRect(pxW * 0.52f, 0, pxW, pxH, paint);
-
         paint.setColor(Color.DKGRAY);
         float textSize = pxH * 0.08f;
         paint.setTextSize(textSize);
-
         float leftMargin = pxW * 0.02f;
         float firstLineY = pxH * 0.30f;
         float lineGap = pxH * 0.15f;
-
         canvas.drawText("品牌品名：", leftMargin, firstLineY, paint);
         canvas.drawLine(leftMargin + (paint.measureText("品牌品名：")), firstLineY + 5, pxW * 0.50f, firstLineY + 5, paint);
         canvas.drawText("条码：", leftMargin, firstLineY + lineGap, paint);
@@ -276,7 +355,6 @@ public class LabelDiyPopupWindow {
         canvas.drawLine(leftMargin + (paint.measureText("等级：")), firstLineY + lineGap * 4 + 5, pxW * 0.25f, firstLineY + lineGap * 4 + 5, paint);
         canvas.drawText("产地：", pxW * 0.26f, firstLineY + lineGap * 4, paint);
         canvas.drawLine(pxW * 0.26f + (paint.measureText("产地：")), firstLineY + lineGap * 4 + 5, pxW * 0.50f, firstLineY + lineGap * 4 + 5, paint);
-
         paint.setTextSize(pxH * 0.09f);
         canvas.drawText("零售价：", pxW * 0.53f, pxH * 0.30f, paint);
         canvas.drawText("元", pxW * 0.92f, pxH * 0.30f, paint);
@@ -286,7 +364,6 @@ public class LabelDiyPopupWindow {
         paint.setTextSize(pxH * 0.05f);
         canvas.drawText("明码实价标价签", pxW * 0.75f, pxH * 0.08f, paint);
         canvas.drawText("监督电话：12315", pxW * 0.75f, pxH * 0.95f, paint);
-
         ivPaperBackground.setImageBitmap(bgBitmap);
     }
 
@@ -322,14 +399,11 @@ public class LabelDiyPopupWindow {
         final float density = context.getResources().getDisplayMetrics().density;
         final int targetPxWidth = (int) (mmWidth * MM_TO_DP * density);
         final int targetPxHeight = (int) (mmHeight * MM_TO_DP * density);
-
         ViewGroup.LayoutParams params = layoutPreview.getLayoutParams();
         params.width = targetPxWidth;
         params.height = targetPxHeight;
         layoutPreview.setLayoutParams(params);
-
         drawFakePrePrintBackground(targetPxWidth, targetPxHeight);
-
         if (flContainer != null) {
             flContainer.post(() -> {
                 int containerW = flContainer.getWidth();
