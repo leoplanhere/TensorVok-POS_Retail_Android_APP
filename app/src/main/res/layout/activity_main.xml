@@ -389,7 +389,7 @@
 
                 <LinearLayout
                     android:id="@+id/shuaxin_btn"
-                    android:layout_width="116dp"
+                    android:layout_width="0dp"
                     android:layout_height="45dp"
                     android:orientation="horizontal"
                     android:gravity="center"

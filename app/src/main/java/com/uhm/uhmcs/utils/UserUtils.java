@@ -45,7 +45,7 @@ public class UserUtils {
         isDazhe = pref.getBoolean("isDazhe", false);
         language = pref.getString("language", "");
         isDianji = pref.getBoolean("isDianji", true);
-        serialPortName = pref.getString("serialPortName", "/dev/ttyS4");
+        serialPortName = pref.getString("serialPortName", "");
         licenseNo = pref.getString(LICENSE_NO_KEY, "");
 
         // --- 来自第二份：初始化 POS 参数 ---
@@ -151,7 +151,11 @@ public class UserUtils {
     public void setShopDataBean(Context context, ShopDataBean bean) { this.shopDataBean = bean; saveString(context, "shopDataBean", bean == null ? "" : new Gson().toJson(bean)); }
     public LoginBase getLoginBase() { return loginBase; }
     public void setLoginBase(Context context, LoginBase base) { this.loginBase = base; saveString(context, "loginBase", base == null ? "" : new Gson().toJson(base)); }
-    public String getSerialPortName() { return TextUtils.isEmpty(serialPortName) ? "/dev/ttyS4" : serialPortName; }
+    public String getSerialPortName() {
+        // 删掉硬编码的 ttyS4，直接返回变量值
+        // 这样如果没存过，返回的就是空字符串或 null
+        return serialPortName;
+    }
     public void setSerialPortName(Context context, String name) { this.serialPortName = name; saveString(context, "serialPortName", name); }
 
     // ================== 来自第一份：坐标定位存取方法 ==================

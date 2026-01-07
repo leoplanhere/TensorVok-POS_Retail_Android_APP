@@ -250,6 +250,18 @@ public class MainActivity extends Activity {
     private LinearLayout zhifuxinxi_view;
 
 
+    // --- 新增：称重盲扫控制变量 ---
+    private int currentScanIndex = 0;
+    private boolean isScaleConnected = false;
+    private String lastAttemptPort = ""; // 用于记录最后一次尝试的端口
+    private final String[] SCAN_PORTS = {
+            "/dev/ttyS0", "/dev/ttyS1", "/dev/ttyS2", "/dev/ttyS3",
+            "/dev/ttyS4", "/dev/ttyS5", "/dev/ttyS6", "/dev/ttyS7",
+            "/dev/ttyS8", "/dev/ttyS9", "/dev/ttyS10", "/dev/ttyS11",
+            "/dev/ttyS12", "/dev/ttyS13", "/dev/ttyS14", "/dev/ttyS15",
+            "/dev/ttyAMA0", "/dev/ttyAMA1", "/dev/ttyAMA2", "/dev/ttyAMA3"
+    };
+
 
 
 
@@ -265,7 +277,7 @@ public class MainActivity extends Activity {
 
         // 2. 称重设备初始化（已将耗时提权逻辑移至异步，防止启动 ANR）
         InitDevice(0);
-        OpenScale();
+
 
         Log.i("ttt", ">>>>onCreate 启动成功>>>>");
         MyUsbDeviceHelper.getInstance().inti(this);
@@ -1316,8 +1328,18 @@ public class MainActivity extends Activity {
         View btn_qupi = findViewById(R.id.btn_qupi); // 去皮按钮
 
         btn_qupi.setOnClickListener(v -> {
-            if (m_scaler != null && m_weight != null && m_weight.isStable) {
-                m_scaler.AclasTare(); // 执行去皮逻辑
+            if (isScaleConnected) {
+                // 情况 A：已连接，执行去皮
+                if (m_scaler != null && m_weight != null && m_weight.isStable) {
+                    m_scaler.AclasTare();
+                } else if (m_weight != null && !m_weight.isStable) {
+                    Toast.makeText(MainActivity.this, "重量不稳定", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                // 情况 B：未连接，启动扫描
+                Log.i("ScaleScan", "用户手动触发秤盘重连...");
+                Toast.makeText(MainActivity.this, "正在搜索秤盘，可能需要20秒，请稍候...", Toast.LENGTH_SHORT).show();
+                OpenScale(); // 调用扫描方法
             }
         });
 
@@ -3189,81 +3211,126 @@ public class MainActivity extends Activity {
         m_scaler.AclasSetMulTare(false);
     }
 
+
+
     /**
-     * 打开秤连接
+     * 1. 开启连接流程
      */
     private void OpenScale() {
-        // 整个过程放入子线程，严禁在主线程 waitFor()
+        isScaleConnected = false;
+        currentScanIndex = 0;
+
+        // 优先读取缓存地址
+        String savedPort = UserUtils.getInstance().getSerialPortName();
+        if (!TextUtils.isEmpty(savedPort)) {
+            Log.i("ScaleScan", ">>> 尝试直连缓存地址: " + savedPort);
+            startConnectStep(savedPort);
+        } else {
+            Log.i("ScaleScan", ">>> 无配置，开始盲扫...");
+            scanToNextAvailablePort();
+        }
+    }
+
+    /**
+     * 2. 执行提权并连接 (800ms 快速模式)
+     */
+    private void startConnectStep(String portPath) {
+        this.lastAttemptPort = portPath;
         new Thread(() -> {
+            Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
             try {
-                Log.i("Scale", "开始尝试提权...");
-                Process p = Runtime.getRuntime().exec("su");
+                // 强力提权：chmod + setenforce 0
+                java.lang.Process p = Runtime.getRuntime().exec("su");
                 java.io.DataOutputStream os = new java.io.DataOutputStream(p.getOutputStream());
-                os.writeBytes("chmod 666 /dev/ttyS4\n");
+                os.writeBytes("chmod 666 " + portPath + "\n");
+                os.writeBytes("setenforce 0\n");
                 os.writeBytes("exit\n");
                 os.flush();
-                int result = p.waitFor(); // 子线程等待没关系
-                Log.i("Scale", "提权尝试结束，结果代码: " + result);
-            } catch (Exception e) {
-                Log.e("Scale", "提权异常: " + e.getMessage());
-            }
+                p.waitFor();
+            } catch (Exception e) {}
 
-            // 无论提权成功与否，尝试开启串口连接
             runOnUiThread(() -> {
                 if (m_scaler != null) {
-                    openInThread();
+                    if (m_scaler.AclasIsConnect()) m_scaler.AclasDisconnect();
+                    m_weight.init();
+                    m_scaler.AclasConnect(portPath, 9600, 500);
+
+                    // 800ms 后检查，没连上就切下一个
+                    handler.postDelayed(() -> {
+                        if (!isScaleConnected && portPath.equals(lastAttemptPort)) {
+                            Log.d("ScaleScan", portPath + " 无响应，跳过...");
+                            scanToNextAvailablePort();
+                        }
+                    }, 800);
                 }
             });
         }).start();
     }
+
     /**
-     * 开启线程连接串口，防止 UI 线程卡顿
+     * 3. 切换到下一个串口
      */
-    // 串口连接 - 原 App 逻辑
-    private void openInThread() {
-        m_weight.init();
-        new Thread() {
-            public void run() {
-                // 关键：不要在这里循环，直接取 UserUtils 里的地址
-                String port = UserUtils.getInstance().getSerialPortName();
-                if (TextUtils.isEmpty(port)) port = "/dev/ttyS4"; // 保底值
-                m_scaler.AclasConnect(port, 9600, 500);
+    private void scanToNextAvailablePort() {
+        if (isScaleConnected) return;
+        if (currentScanIndex < SCAN_PORTS.length) {
+            String nextPort = SCAN_PORTS[currentScanIndex];
+            currentScanIndex++;
+            // 排除刚才试过的缓存口
+            if (nextPort.equals(UserUtils.getInstance().getSerialPortName())) {
+                scanToNextAvailablePort();
+                return;
             }
-        }.start();
+            startConnectStep(nextPort);
+        } else {
+            runOnUiThread(() -> {
+                Toast.makeText(MainActivity.this, "未检测到可用秤盘", Toast.LENGTH_LONG).show();
+                if (tv_real_weight != null) tv_real_weight.setText("未连接");
+            });
+            currentScanIndex = 0;
+        }
     }
-
-
 
     /**
      * 秤数据监听回调
      */
     private AclasScaler.AclasScalerListener m_listener = new AclasScaler.AclasScalerListener() {
         @Override
+        public void onConnected() {
+            isScaleConnected = true;
+            String successPort = lastAttemptPort; // 获取最后一次尝试成功的口
+            Log.i("ScaleScan", "★★ 连接成功！地址: " + successPort);
+
+            // 锁定地址：存入本地缓存，实现下次秒连
+            UserUtils.getInstance().setSerialPortName(MainActivity.this, successPort);
+            currentScanIndex = 0;
+
+            runOnUiThread(() -> Toast.makeText(MainActivity.this, "秤盘连接成功", Toast.LENGTH_SHORT).show());
+        }
+
+        @Override
         public void onError(int errornum, String str) {
-            Log.e("Scale", "onError: " + errornum + " str:" + str);
+            Log.e("ScaleScan", "onError [" + errornum + "]: " + str);
+            // 错误 -7 代表读不到数据，触发切换下一个口
+            if (errornum == -7 && !isScaleConnected) {
+                runOnUiThread(() -> scanToNextAvailablePort());
+            }
         }
 
         @Override
         public void onDisConnected() {
-            Log.i("Scale", "秤已断开");
-        }
-
-        @Override
-        public void onConnected() {
-            Log.i("Scale", "秤连接成功");
+            isScaleConnected = false;
         }
 
         @Override
         public void onRcvData(AclasScaler.WeightInfoNew info) {
             if (setWeightInfo(info)) {
-                // 收到数据，通过 Handler 发送到 UI 线程更新
                 handler.sendEmptyMessage(MSG_Weight);
             }
         }
 
-        @Override
-        public void onUpdateProcess(int iIndex, int iTotal) {}
+        @Override public void onUpdateProcess(int iIndex, int iTotal) {}
     };
+
 
     /**
      * 实时更新主界面称重 UI
