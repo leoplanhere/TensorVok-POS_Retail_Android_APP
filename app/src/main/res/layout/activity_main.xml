@@ -450,8 +450,7 @@
                 <TextView
                     android:id="@+id/bendin_view"
                     android:visibility="gone"
-                    android:layout_marginLeft="150dp"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_centerVertical="true"
                     android:text="@string/Local_bill_upload_required"
