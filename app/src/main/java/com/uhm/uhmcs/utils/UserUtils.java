@@ -58,6 +58,25 @@ public class UserUtils {
     public void setLabelWidth(Context context, int width) {
         saveInt(context, "label_width", width);
     }
+
+
+    // 在 UserUtils.java 中修改这两个方法
+    public void setElementTextSize(Context context, String key, int size) {
+        // 将 getPrefs(context) 替换为 context.getSharedPreferences("label_config", Context.MODE_PRIVATE)
+        context.getSharedPreferences("label_config", Context.MODE_PRIVATE)
+                .edit()
+                .putInt(key + "_size", size)
+                .apply();
+    }
+
+    public int getElementTextSize(Context context, String key, int defaultSize) {
+        // 同理替换
+        return context.getSharedPreferences("label_config", Context.MODE_PRIVATE)
+                .getInt(key + "_size", defaultSize);
+    }
+
+
+
     public int getLabelWidth(Context context) {
         return getInt(context, "label_width", 40);
     }
@@ -186,4 +205,12 @@ public class UserUtils {
         if (c == null) return defValue;
         return c.getSharedPreferences(USER_INFO_PREFERENCES_NAME, Context.MODE_PRIVATE).getFloat(key, defValue);
     }
+
+    // 在 UserUtils 类内部的最下方添加这个私有方法
+    private SharedPreferences getPrefs(Context context) {
+        return context.getSharedPreferences("label_config", Context.MODE_PRIVATE);
+    }
+
+
+
 }
