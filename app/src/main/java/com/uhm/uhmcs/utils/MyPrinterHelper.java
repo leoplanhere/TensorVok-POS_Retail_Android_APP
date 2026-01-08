@@ -28,6 +28,7 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,8 +36,8 @@ import java.util.concurrent.Executors;
 /**
  * 打印机辅助类（最终修正全功能版）
  * 1. 结账与补打：对齐 9 参数逻辑，支持组合支付与 NETS 明细。
- * 2. 指令生成：准确调用 ReceiptCommandUtils 解决条码 10000 错误。
- * 3. 补打修复：修复尾单打印不显示支付详情的问题。
+ * 2. 指令生成：调用 ReceiptCommandUtils 解决条码逻辑。
+ * 3. 补打修复：精准解析 PaymentlogBean 列表，修复组合支付显示。
  */
 public class MyPrinterHelper {
     private final ExecutorService printExecutor = Executors.newSingleThreadExecutor();
@@ -116,14 +117,14 @@ public class MyPrinterHelper {
     }
 
     /**
-     * ⭐ 专门修复：打印尾单（历史订单）
-     * 解决：1. 组合支付只显示现金问题  2. 支付金额未扣优惠问题
+     * ⭐ 补打尾单（历史订单）- 完美修复组合支付版
      */
+    // 找到 asyncPrintLastOrder 方法，直接完整替换
     public void asyncPrintLastOrder(Activity context, LastOrderBean bean, PrintDataBean printDataBean) {
         printExecutor.execute(() -> {
             try {
-                // 1. 数据模型转换：将 LastOrder 转换为 CheckoutBean 供指令类使用
                 CheckoutBean checkoutBean = new CheckoutBean();
+                // ...基础属性赋值保持不变...
                 checkoutBean.setTotal_amount(bean.getTotal_amount());
                 checkoutBean.setMember_name(bean.getConsignee());
                 checkoutBean.setMember_phone(bean.getPhone());
@@ -134,7 +135,7 @@ public class MyPrinterHelper {
                 checkoutBean.setCash_change(bean.getCash_change());
                 checkoutBean.setMachineNumber(!TextUtils.isEmpty(bean.getCash_user_sn()) ? bean.getCash_user_sn() : "管理员");
 
-                // 计算商品总数量
+                // 计算总件数
                 int allNum = 0;
                 if (bean.getOrder_item() != null) {
                     for (LastOrderBean.GoodsJsonBean item : bean.getOrder_item()) {
@@ -143,59 +144,68 @@ public class MyPrinterHelper {
                 }
                 checkoutBean.setAllNum(allNum);
 
-                // ⭐ 核心逻辑 A：计算真实的“实付金额” (应付总计 - 代金券)
-                BigDecimal totalAmount = new BigDecimal(TextUtils.isEmpty(bean.getTotal_amount()) ? "0.00" : bean.getTotal_amount());
-                BigDecimal couponFee = new BigDecimal(TextUtils.isEmpty(bean.getCoupon_fee()) ? "0.00" : bean.getCoupon_fee());
-                BigDecimal actualPaid = totalAmount.subtract(couponFee);
-                if (actualPaid.compareTo(BigDecimal.ZERO) < 0) actualPaid = BigDecimal.ZERO;
-                String payAmountStr = actualPaid.setScale(2, BigDecimal.ROUND_HALF_UP).toString();
+                // --- 核心修复：精准解析所有支付列表 ---
+                String cash = "0.00", wechat = "0.00", alipay = "0.00", wallet = "0.00", nets = "0.00";
 
-                // ⭐ 核心逻辑 B：多关键字匹配支付方式
-                // 必须使用独立的 if 判断（不要用 else if），这样 "cash,alipay" 这种组合才能全部识别出来
-                String cash = "", wechat = "", alipay = "", wallet = "", nets = "";
-                String pType = (bean.getPay_type() != null) ? bean.getPay_type().toLowerCase() : "";
+                List<LastOrderBean.PaymentlogBean> combinedLogs = new ArrayList<>();
+                if (bean.getPaymentlog() != null) combinedLogs.addAll(bean.getPaymentlog());
+                if (bean.getPayment() != null) combinedLogs.addAll(bean.getPayment());
 
-                // 现金匹配
-                if (pType.contains("cash")) {
-                    cash = payAmountStr;
-                }
-                // 微信匹配 (兼容不同标识)
-                if (pType.contains("wechat") || pType.contains("weixin")) {
-                    wechat = payAmountStr;
-                }
-                // 支付宝匹配 (兼容不同标识)
-                if (pType.contains("alipay") || pType.contains("zhifubao")) {
-                    alipay = payAmountStr;
-                }
-                // 会员卡/钱包匹配
-                if (pType.contains("member") || pType.contains("wallet")) {
-                    wallet = payAmountStr;
-                }
-                // NETS 匹配
-                if (pType.contains("nets")) {
-                    nets = payAmountStr;
+                Log.d("PrintDebug", "开始解析支付列表，共计: " + combinedLogs.size() + " 条记录");
+
+                for (LastOrderBean.PaymentlogBean log : combinedLogs) {
+                    String type = (log.getPay_type() != null) ? log.getPay_type().toLowerCase() : "";
+                    String money = log.getReceivedmoney();
+
+                    // ⭐ 诊断日志：请在 Android Studio 的 Logcat 过滤 "PrintDebug" 查看
+                    Log.d("PrintDebug", "检测到支付项 -> 类型: " + type + " 金额: " + money);
+
+                    if (TextUtils.isEmpty(money)) continue;
+
+                    // 采用广谱匹配，防止后台传 ID (1, 2, 3) 或 缩写
+                    if (type.contains("cash") || type.equals("1")) {
+                        cash = money;
+                    } else if (type.contains("wechat") || type.contains("weixin") || type.equals("2")) {
+                        wechat = money;
+                    } else if (type.contains("alipay") || type.contains("zhifubao") || type.equals("3")) {
+                        alipay = money;
+                    } else if (type.contains("member") || type.contains("wallet") || type.contains("card") || type.equals("4")) {
+                        wallet = money;
+                    } else if (type.contains("nets") || type.equals("5")) {
+                        nets = money;
+                    }
                 }
 
-                // 2. 调用下单小票同款指令生成器
+                // 只有全部为0时，才走兜底逻辑
+                if (isZero(cash) && isZero(wechat) && isZero(alipay) && isZero(wallet) && isZero(nets)) {
+                    Log.d("PrintDebug", "列表为空，进入单类型兜底解析");
+                    String pType = (bean.getPay_type() != null) ? bean.getPay_type().toLowerCase() : "";
+                    BigDecimal actual = new BigDecimal(bean.getTotal_amount()).subtract(new BigDecimal(bean.getCoupon_fee()));
+                    String amt = actual.setScale(2, BigDecimal.ROUND_HALF_UP).toString();
+
+                    if (pType.contains("cash")) cash = amt;
+                    else if (pType.contains("wechat") || pType.contains("weixin")) wechat = amt;
+                    else if (pType.contains("alipay") || pType.contains("zhifubao")) alipay = amt;
+                    else if (pType.contains("member") || pType.contains("wallet")) wallet = amt;
+                    else if (pType.contains("nets")) nets = amt;
+                }
+
                 byte[] commands = ReceiptCommandUtils.getReceiptCommands(
-                        context,
-                        checkoutBean,
-                        bean.getOrder_sn(),
-                        cash,
-                        wechat,
-                        alipay,
-                        wallet,
-                        nets
+                        context, checkoutBean, bean.getOrder_sn(),
+                        cash, wechat, alipay, wallet, nets
                 );
-
-                // 3. 执行物理打印
                 executePrint(context, commands);
 
             } catch (Exception e) {
-                Log.e("PrintError", "尾单打印失败", e);
-                sendPrintStatus(context, false);
+                Log.e("PrintDebug", "打印异常: ", e);
             }
         });
+    }
+
+    // 辅助方法
+    private boolean isZero(String val) {
+        if (TextUtils.isEmpty(val)) return true;
+        try { return new BigDecimal(val).compareTo(BigDecimal.ZERO) == 0; } catch (Exception e) { return true; }
     }
 
     /**

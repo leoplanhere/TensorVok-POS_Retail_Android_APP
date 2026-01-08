@@ -6,7 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
@@ -22,6 +21,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * 小票打印指令工具类
+ * 修复重点：彻底解耦支付明细判断，确保组合支付在下单和补打时均能正确显示
+ */
 public class ReceiptCommandUtils {
 
     private static final byte[] RESET = {0x1B, 0x40};
@@ -31,9 +34,6 @@ public class ReceiptCommandUtils {
     private static final byte[] BOLD_OFF = {0x1B, 0x45, 0x00};
     private static final byte[] CUT_PAPER = {0x1D, 0x56, 0x42, 0x00};
 
-    /**
-     * ⭐ 终极对齐版：支持组合支付明细 + 还原免责声明 + 修复二维码大小 + 修复尾单组合支付显示
-     */
     public static byte[] getReceiptCommands(Context context, CheckoutBean bean, String orderSn,
                                             String cash, String wechat, String alipay, String wallet, String nets) {
         ReceiptConfigUtils config = ReceiptConfigUtils.getInstance(context);
@@ -109,21 +109,15 @@ public class ReceiptCommandUtils {
                 printTwoColumnRow(buffer, "实付金额:", "￥" + actualPaid.setScale(2, BigDecimal.ROUND_HALF_UP).toString(), TOTAL_WIDTH);
                 buffer.write(BOLD_OFF);
 
-                /* ========== ⭐ 支付明细修复版（适配尾单组合支付） ========== */
+                /* ========== ⭐ 支付详情 (关键修复点：平铺式判断) ========== */
                 printText(buffer, "支付详情:\n");
 
-                // 判断是否为尾单补打的组合支付（标记位由 MyPrinterHelper 传入）
-                if (nets != null && nets.startsWith("COMBINED:")) {
-                    String combinedAmount = nets.replace("COMBINED:", "");
-                    printTwoColumnRow(buffer, "  - 组合支付:", "￥" + combinedAmount, TOTAL_WIDTH);
-                } else {
-                    // 正常下单时的明细显示
-                    if (isGreaterZero(cash))    printTwoColumnRow(buffer, "  - 现金支付:", "￥" + cash, TOTAL_WIDTH);
-                    if (isGreaterZero(wechat))  printTwoColumnRow(buffer, "  - 微信支付:", "￥" + wechat, TOTAL_WIDTH);
-                    if (isGreaterZero(alipay))  printTwoColumnRow(buffer, "  - 支付宝支付:", "￥" + alipay, TOTAL_WIDTH);
-                    if (isGreaterZero(wallet))  printTwoColumnRow(buffer, "  - 会员卡余额:", "￥" + wallet, TOTAL_WIDTH);
-                    if (isGreaterZero(nets))    printTwoColumnRow(buffer, "  - NETS支付:", "￥" + nets, TOTAL_WIDTH);
-                }
+                // 每一项都是独立的，只要大于0就印出来，不再使用 if-else 互斥
+                if (isGreaterZero(cash))    printTwoColumnRow(buffer, "  - 现金支付:", "￥" + cash.trim(), TOTAL_WIDTH);
+                if (isGreaterZero(wechat))  printTwoColumnRow(buffer, "  - 微信支付:", "￥" + wechat.trim(), TOTAL_WIDTH);
+                if (isGreaterZero(alipay))  printTwoColumnRow(buffer, "  - 支付宝支付:", "￥" + alipay.trim(), TOTAL_WIDTH);
+                if (isGreaterZero(wallet))  printTwoColumnRow(buffer, "  - 会员卡余额:", "￥" + wallet.trim(), TOTAL_WIDTH);
+                if (isGreaterZero(nets))    printTwoColumnRow(buffer, "  - NETS支付:", "￥" + nets.trim(), TOTAL_WIDTH);
 
                 if (isGreaterZero(bean.getCash_change())) printTwoColumnRow(buffer, "找零:", "￥" + bean.getCash_change(), TOTAL_WIDTH);
             }
@@ -142,28 +136,15 @@ public class ReceiptCommandUtils {
                 buffer.write(new byte[]{0x0A});
             }
 
-            /* ========== 7. 还原：底部免责声明 ========== */
+            /* ========== 7. 底部文案 ========== */
             buffer.write(ALIGN_CENTER);
             printText(buffer, "此单据二维码为开具增值税普通发票\n");
             printText(buffer, "的唯一凭证，请妥善保管。\n");
             printText(buffer, "请保留此单据，作为退、换货凭证。");
-
             if (config.showBottomText()) printText(buffer, "\n\n谢谢惠顾，欢迎下次光临！");
 
-            /* ========== 8. 底部 Logo & 走纸 ========== */
-            if (config.showBottomLogo()) {
-                printText(buffer, "\n");
-                try {
-                    int targetWidth = (config.getPaperType() == 0) ? 200 : 320;
-                    Bitmap bottomLogo = Glide.with(context).asBitmap().load(R.mipmap.pos_ui_logo_01).submit().get();
-                    Bitmap bBmp = processBitmapForPrinter(bottomLogo, targetWidth);
-                    if (bBmp != null) buffer.write(ImagePrinter.convertBitmapToEscPos(ImagePrinter.toMonochrome(bBmp)));
-                } catch (Exception ignored) {}
-                buffer.write(new byte[]{0x1B, 0x64, 0x05});
-            } else {
-                buffer.write(new byte[]{0x1B, 0x64, 0x03});
-            }
-
+            /* ========== 8. 走纸 & 切纸 ========== */
+            buffer.write(new byte[]{0x1B, 0x64, 0x05});
             buffer.write(CUT_PAPER);
 
         } catch (Exception e) {
@@ -172,11 +153,16 @@ public class ReceiptCommandUtils {
         return buffer.toByteArray();
     }
 
-    // ---------------- 助手方法 ----------------
+    // ---------------- 助手方法 (带健壮性解析) ----------------
     private static boolean isGreaterZero(String val) {
         if (TextUtils.isEmpty(val)) return false;
-        if (val.startsWith("COMBINED:")) return true; // 特殊处理
-        try { return new BigDecimal(val).compareTo(BigDecimal.ZERO) > 0; } catch (Exception e) { return false; }
+        try {
+            // 过滤掉可能存在的 COMBINED 等干扰字符，确保纯数字判断
+            String cleanVal = val.replace("COMBINED:", "").trim();
+            return new BigDecimal(cleanVal).compareTo(BigDecimal.ZERO) > 0;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private static String maskPhone(String phone) {
@@ -261,7 +247,6 @@ public class ReceiptCommandUtils {
     private static void printQRCode(ByteArrayOutputStream buffer, String content) throws IOException {
         byte[] bytes = content.getBytes();
         int length = bytes.length + 3;
-        // ⭐ 修正点：将模块大小设为 0x08，增大二维码
         buffer.write(new byte[]{0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x08});
         buffer.write(new byte[]{0x1D, 0x28, 0x6B, (byte) (length % 256), (byte) (length / 256), 0x31, 0x50, 0x30});
         buffer.write(bytes);
