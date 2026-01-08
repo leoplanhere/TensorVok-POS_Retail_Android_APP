@@ -117,9 +117,11 @@ public class MyPrinterHelper {
     }
 
     /**
-     * ⭐ 补打尾单（历史订单）- 完美修复组合支付版
+     * ⭐ 补打尾单（历史订单）- 完整功能增强版
+     * 1. 支持组合支付金额拆分
+     * 2. 支持列表为空时的 pay_type 暴力解析
+     * 3. 【新增】支持从顶层字段或 Paymentlog 明细中抓取找零金额
      */
-    // 找到 asyncPrintLastOrder 方法，直接完整替换
     public void asyncPrintLastOrder(Activity context, LastOrderBean bean, PrintDataBean printDataBean) {
         printExecutor.execute(() -> {
             try {
@@ -132,7 +134,10 @@ public class MyPrinterHelper {
                 checkoutBean.setDiscount_fee(bean.getDiscount_fee());
                 checkoutBean.setCoupon_fee(bean.getCoupon_fee());
                 checkoutBean.setPay_type(bean.getPay_type());
-                checkoutBean.setCash_change(bean.getCash_change());
+
+                // ⭐ 找零逻辑第一步：先尝试取订单顶层的找零金额
+                String finalChange = bean.getCash_change();
+
                 checkoutBean.setMachineNumber(!TextUtils.isEmpty(bean.getCash_user_sn()) ? bean.getCash_user_sn() : "管理员");
 
                 int allNum = 0;
@@ -143,7 +148,7 @@ public class MyPrinterHelper {
                 }
                 checkoutBean.setAllNum(allNum);
 
-                // 2. ⭐ 支付解析 (主界面按钮专用加强版)
+                // 2. 支付解析
                 String cash = "0.00", wechat = "0.00", alipay = "0.00", wallet = "0.00", nets = "0.00";
 
                 List<LastOrderBean.PaymentlogBean> logList = bean.getPaymentlog();
@@ -154,6 +159,13 @@ public class MyPrinterHelper {
                     for (LastOrderBean.PaymentlogBean log : logList) {
                         String type = (log.getPay_type() != null) ? log.getPay_type().toLowerCase() : "";
                         String money = log.getReceivedmoney();
+
+                        // ⭐ 找零逻辑第二步：如果顶层没拿到找零（为空或0），则从明细列表里的 changemoney 字段抓取
+                        if (!TextUtils.isEmpty(log.getChangemoney()) &&
+                                (TextUtils.isEmpty(finalChange) || "0".equals(finalChange) || "0.00".equals(finalChange))) {
+                            finalChange = log.getChangemoney();
+                        }
+
                         if (type.contains("cash")) cash = money;
                         else if (type.contains("wechat") || type.contains("weixin")) wechat = money;
                         else if (type.contains("alipay") || type.contains("zhifubao")) alipay = money;
@@ -161,20 +173,16 @@ public class MyPrinterHelper {
                         else if (type.contains("nets")) nets = money;
                     }
                 }
-                // 情况 B: ⭐ 列表为空 (主界面点击打印尾单通常走这里)
+                // 情况 B: 列表为空 (执行强制拆分逻辑)
                 else {
                     String pType = (bean.getPay_type() != null) ? bean.getPay_type().toLowerCase() : "";
                     BigDecimal total = new BigDecimal(TextUtils.isEmpty(bean.getTotal_amount()) ? "0" : bean.getTotal_amount());
                     BigDecimal coupon = new BigDecimal(TextUtils.isEmpty(bean.getCoupon_fee()) ? "0" : bean.getCoupon_fee());
                     String actualAmount = total.subtract(coupon).setScale(2, BigDecimal.ROUND_HALF_UP).toString();
 
-                    // 强制检测是否是组合支付 (即便没有明细列表)
-                    // 兼容 逗号、空格、竖线 各种分隔符
                     if (pType.contains(",") || pType.contains(" ") || pType.contains("|")) {
-                        // 如果检测到多个支付方式，但没明细，我们标记为“组合支付”
                         nets = "COMBINED:" + actualAmount;
                     } else {
-                        // 单一支付方式解析
                         if (pType.contains("cash")) cash = actualAmount;
                         else if (pType.contains("wechat") || pType.contains("weixin")) wechat = actualAmount;
                         else if (pType.contains("alipay") || pType.contains("zhifubao")) alipay = actualAmount;
@@ -182,6 +190,9 @@ public class MyPrinterHelper {
                         else if (pType.contains("nets")) nets = actualAmount;
                     }
                 }
+
+                // ⭐ 找零逻辑第三步：将最终确定的找零金额塞进 CheckoutBean，传给指令生成器
+                checkoutBean.setCash_change(finalChange);
 
                 // 3. 调用指令生成
                 byte[] commands = ReceiptCommandUtils.getReceiptCommands(

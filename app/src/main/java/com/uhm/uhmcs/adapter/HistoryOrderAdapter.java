@@ -51,15 +51,36 @@ public class HistoryOrderAdapter extends BaseQuickAdapter<LastOrderBean, BaseVie
             helper.addOnClickListener(R.id.gouwuxinxi_tv);
         }
 
-        // ========================== 核心修改：处理退款状态 ==========================
+        // ========================== 核心修改：处理支付信息按钮文字 ==========================
+
         if (item.getRefund_type() == 2) {
-            // 退款成功状态：显示红色“已退款”
+            // A. 已退款优先级最高：显示红色“已退款”
             helper.setText(R.id.zhifuxinxi_btn, "已退款");
             helper.setTextColor(R.id.zhifuxinxi_btn, Color.RED);
         } else {
-            // 正常状态：显示“支付信息”并恢复默认颜色（通常是黑色或你在XML定义的颜色）
-            helper.setText(R.id.zhifuxinxi_btn, "支付信息");
-            helper.setTextColor(R.id.zhifuxinxi_btn, Color.BLACK);
+            // B. 未退款状态，进一步判断是否为组合支付
+            String pType = item.getPay_type();
+            boolean isCombined = false;
+
+            // 逻辑 1：通过 pay_type 字符串中的分隔符判断 (cash,alipay 或 cash alipay)
+            if (!TextUtils.isEmpty(pType) && (pType.contains(",") || pType.contains(" "))) {
+                isCombined = true;
+            }
+            // 逻辑 2：通过 paymentlog 列表长度判断
+            else if (item.getPaymentlog() != null && item.getPaymentlog().size() > 1) {
+                isCombined = true;
+            }
+
+            if (isCombined) {
+                // 如果是组合支付
+                helper.setText(R.id.zhifuxinxi_btn, "组合支付信息");
+                // 建议使用一个稍微不同的颜色（如蓝色或深绿色）来提醒收银员这是组合单
+                helper.setTextColor(R.id.zhifuxinxi_btn, Color.parseColor("#007AFF"));
+            } else {
+                // 普通单一支付
+                helper.setText(R.id.zhifuxinxi_btn, "支付信息");
+                helper.setTextColor(R.id.zhifuxinxi_btn, Color.BLACK);
+            }
         }
         // =========================================================================
     }
