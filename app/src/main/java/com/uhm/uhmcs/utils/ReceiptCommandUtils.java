@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  * 小票打印指令工具类
- * 修复重点：彻底解耦支付明细判断，确保组合支付在下单和补打时均能正确显示
+ * 修复重点：1. 恢复字体大小设置逻辑  2. 确保底部 Logo 物理打印注入  3. 保持组合支付明细显示
  */
 public class ReceiptCommandUtils {
 
@@ -61,8 +61,11 @@ public class ReceiptCommandUtils {
             buffer.write(BOLD_OFF);
             if (config.showPhone()) printText(buffer, "全国客服热线:17560635652\n");
 
-            /* ========== 3. 基础信息 ========== */
+            /* ========== 3. 基础信息（应用字体缩放） ========== */
             buffer.write(ALIGN_LEFT);
+            // ⭐ 恢复字体设置：在打印详情前应用用户设置的字体大小
+            applyUserFontSize(buffer, config.getFontSize());
+
             if (config.showMember() && bean != null && !TextUtils.isEmpty(bean.getMember_name())) {
                 printText(buffer, "会员名称:" + bean.getMember_name() + "\n");
                 printText(buffer, "会员手机:" + maskPhone(bean.getMember_phone()) + "\n");
@@ -73,6 +76,9 @@ public class ReceiptCommandUtils {
                 printText(buffer, "收银员:" + cashier + "\n");
                 printText(buffer, "收银时间:" + time + "\n");
             }
+
+            // 分割线重置回标准大小，防止排版错乱
+            setFontSize(buffer, 0, 0);
             printSeparator(buffer, TOTAL_WIDTH);
 
             /* ========== 4. 商品明细 ========== */
@@ -81,6 +87,8 @@ public class ReceiptCommandUtils {
             buffer.write(BOLD_OFF);
             printSeparator(buffer, TOTAL_WIDTH);
 
+            // 商品列表再次应用设置的字体大小
+            applyUserFontSize(buffer, config.getFontSize());
             if (bean != null && !TextUtils.isEmpty(bean.getGoodsjson())) {
                 ArrayList<CheckoutBean.GoodsJsonBean> goodsList = new Gson().fromJson(bean.getGoodsjson(), new TypeToken<ArrayList<CheckoutBean.GoodsJsonBean>>(){}.getType());
                 if (goodsList != null) {
@@ -90,6 +98,7 @@ public class ReceiptCommandUtils {
                     }
                 }
             }
+            setFontSize(buffer, 0, 0); // 打印结束后恢复标准大小
             printSeparator(buffer, TOTAL_WIDTH);
 
             /* ========== 5. 金额汇总 ========== */
@@ -109,10 +118,8 @@ public class ReceiptCommandUtils {
                 printTwoColumnRow(buffer, "实付金额:", "￥" + actualPaid.setScale(2, BigDecimal.ROUND_HALF_UP).toString(), TOTAL_WIDTH);
                 buffer.write(BOLD_OFF);
 
-                /* ========== ⭐ 支付详情 (关键修复点：平铺式判断) ========== */
+                /* ========== ⭐ 支付详情 (平铺判断，支持组合支付) ========== */
                 printText(buffer, "支付详情:\n");
-
-                // 每一项都是独立的，只要大于0就印出来，不再使用 if-else 互斥
                 if (isGreaterZero(cash))    printTwoColumnRow(buffer, "  - 现金支付:", "￥" + cash.trim(), TOTAL_WIDTH);
                 if (isGreaterZero(wechat))  printTwoColumnRow(buffer, "  - 微信支付:", "￥" + wechat.trim(), TOTAL_WIDTH);
                 if (isGreaterZero(alipay))  printTwoColumnRow(buffer, "  - 支付宝支付:", "￥" + alipay.trim(), TOTAL_WIDTH);
@@ -123,48 +130,39 @@ public class ReceiptCommandUtils {
             }
 
             /* ========== 6. 条码 & 二维码 ========== */
+            // 打印条码前强制对齐中心并确保字体重置
+            buffer.write(ALIGN_CENTER);
             if (config.showBarcode() && !TextUtils.isEmpty(orderSn) && orderSn.length() > 5 && !orderSn.equals("10000")) {
-                buffer.write(new byte[]{0x0A, 0x0A});
-                buffer.write(ALIGN_CENTER);
+                buffer.write(new byte[]{0x0A});
                 printBarcode(buffer, orderSn);
                 buffer.write(new byte[]{0x0A});
             }
 
             if (config.showQrcode()) {
-                buffer.write(ALIGN_CENTER);
                 printQRCode(buffer, "https://posvox.com");
                 buffer.write(new byte[]{0x0A});
             }
 
             /* ========== 7. 底部文案 ========== */
-            buffer.write(ALIGN_CENTER);
             printText(buffer, "此单据二维码为开具增值税普通发票\n");
             printText(buffer, "的唯一凭证，请妥善保管。\n");
             printText(buffer, "请保留此单据，作为退、换货凭证。");
             if (config.showBottomText()) printText(buffer, "\n\n谢谢惠顾，欢迎下次光临！");
 
             /* ========== 8. 底部 Logo & 走纸 & 切纸 ========== */
-            // ⭐ 修复点：物理打印必须在这里判断并绘制位图指令
+            // ⭐ 确认：底部 Logo 打印逻辑
             if (config.showBottomLogo()) {
-                buffer.write(new byte[]{0x0A}); // 先换个行，避免离文字太近
+                buffer.write(new byte[]{0x0A}); // 留出一个空行
                 buffer.write(ALIGN_CENTER);
                 try {
-                    // 根据纸张宽度决定 Logo 缩放大小
                     int targetWidth = (config.getPaperType() == 0) ? 200 : 320;
-                    // 加载 Logo 资源
                     Bitmap logo = Glide.with(context).asBitmap().load(R.mipmap.pos_ui_logo_01).submit().get();
                     Bitmap bmp = processBitmapForPrinter(logo, targetWidth);
-                    if (bmp != null) {
-                        buffer.write(ImagePrinter.convertBitmapToEscPos(ImagePrinter.toMonochrome(bmp)));
-                    }
-                } catch (Exception ignored) {
-                    // 如果 Logo 加载失败，至少保证正常打印
-                }
-                // 走纸 5 行再切纸
-                buffer.write(new byte[]{0x1B, 0x64, 0x05});
+                    if (bmp != null) buffer.write(ImagePrinter.convertBitmapToEscPos(ImagePrinter.toMonochrome(bmp)));
+                } catch (Exception ignored) {}
+                buffer.write(new byte[]{0x1B, 0x64, 0x05}); // 打印完 Logo 后多走几行纸
             } else {
-                // 不显示 Logo 时，走纸 3 行即可
-                buffer.write(new byte[]{0x1B, 0x64, 0x03});
+                buffer.write(new byte[]{0x1B, 0x64, 0x03}); // 不印 Logo 走 3 行纸
             }
 
             buffer.write(CUT_PAPER);
@@ -175,16 +173,25 @@ public class ReceiptCommandUtils {
         return buffer.toByteArray();
     }
 
-    // ---------------- 助手方法 (带健壮性解析) ----------------
+    // ---------------- 字体助手方法 ----------------
+    private static void setFontSize(ByteArrayOutputStream buffer, int w, int h) {
+        // w: 0-7 (倍宽), h: 0-7 (倍高)
+        try { buffer.write(new byte[]{0x1D, 0x21, (byte) ((w << 4) | h)}); } catch (IOException ignored) {}
+    }
+
+    private static void applyUserFontSize(ByteArrayOutputStream buffer, int size) {
+        // config.getFontSize(): 0=小, 1=中, 2=大
+        // 此处大字模式应用“倍高”指令 (0, 1)
+        setFontSize(buffer, 0, size == 2 ? 1 : 0);
+    }
+
+    // ---------------- 业务助手方法 ----------------
     private static boolean isGreaterZero(String val) {
         if (TextUtils.isEmpty(val)) return false;
         try {
-            // 过滤掉可能存在的 COMBINED 等干扰字符，确保纯数字判断
             String cleanVal = val.replace("COMBINED:", "").trim();
             return new BigDecimal(cleanVal).compareTo(BigDecimal.ZERO) > 0;
-        } catch (Exception e) {
-            return false;
-        }
+        } catch (Exception e) { return false; }
     }
 
     private static String maskPhone(String phone) {
