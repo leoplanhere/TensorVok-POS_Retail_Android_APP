@@ -776,7 +776,9 @@ public class CheckoutPopupWindow {
     }
 
     public String order_sn = "";
-    public String xinjin_pice = "", weixin_pice = "", zhifubao_pice = "", huiyuanka_pice = "";
+    public String xinjin_pice = "", weixin_pice = "", zhifubao_pice = "", huiyuanka_pice = "", nets_pice = "";
+
+
 
     /**
      * 统一提交订单到后端接口
@@ -813,11 +815,11 @@ public class CheckoutPopupWindow {
         Gson gson = new Gson();
         String finalJsonBody = gson.toJson(checkoutBean);
 
-        // ⭐ [日志 4：最终报账阶段]
+        // [日志]：最终报账阶段
         Log.e("NETS_DEBUG_REPORT", ">>> 4. 最终发给后端 (addOrderzh) 的数据: " + finalJsonBody);
 
         if (!NetworkUtils.getInstance().isNetworkConnected(context)) {
-            // --- 离线处理逻辑 (保持不变) ---
+            // --- 离线处理逻辑 ---
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             checkoutBean.setPay_time(sdf.format(System.currentTimeMillis()));
             ArrayList<CheckoutBean> list = new ArrayList<>();
@@ -827,10 +829,14 @@ public class CheckoutPopupWindow {
             list.add(checkoutBean);
             UserUtils.getInstance().setOrderListJson(context, gson.toJson(list));
 
+            // 离线默认视为现金累加
+            String currentInput = shoukuan_tv.getText().toString();
+            xinjin_pice = TextUtils.isEmpty(xinjin_pice) ? currentInput : new BigDecimal(xinjin_pice).add(new BigDecimal(currentInput)).toString();
+
             DialogUIUtils.dismiss(buildBean);
             popupWindow.dismiss();
-            checkoutOnClickListener.onClick(checkoutBean, shoukuan_tv.getText().toString(), weixin_pice, zhifubao_pice, huiyuanka_pice);
-            MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, null, shoukuan_tv.getText().toString(), weixin_pice, zhifubao_pice, huiyuanka_pice, order_sn);
+            checkoutOnClickListener.onClick(checkoutBean, xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice, nets_pice);
+            MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, null, xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice, order_sn);
         } else {
             // --- 在线提交逻辑 ---
             RequestBody body = RequestBody.create(finalJsonBody, MediaType.parse("application/json; charset=utf-8"));
@@ -860,35 +866,65 @@ public class CheckoutPopupWindow {
                     final int statusCode = response.code();
                     final String rawBody = response.body() != null ? response.body().string() : "";
 
-                    // ⭐ [后端响应审计日志]
-                    Log.e("BACKEND_DEBUG", "======= 接口响应详情 =======");
-                    Log.e("BACKEND_DEBUG", "状态码: " + statusCode);
-                    Log.e("BACKEND_DEBUG", "返回内容: " + rawBody);
-                    Log.e("BACKEND_DEBUG", "============================");
-
                     context.runOnUiThread(() -> {
-                        DialogUIUtils.dismiss(buildBean);
                         if (!response.isSuccessful()) {
+                            DialogUIUtils.dismiss(buildBean);
                             new DeleteShopPopupWindow(context, "服务器报错: " + statusCode, true).show();
-                            return;
-                        }
-                        if (TextUtils.isEmpty(rawBody.trim())) {
-                            new DeleteShopPopupWindow(context, "后端返回空数据，请检查接口", true).show();
                             return;
                         }
                         try {
                             JSONObject jsonObject = new JSONObject(rawBody);
-                            // 调用统一的响应处理方法（即之前添加的 handleBackendResponse）
-                            handleBackendResponse(jsonObject);
-                        } catch (JSONException e) {
+                            if (jsonObject.getString("msg").contains("成功") || jsonObject.getString("msg").contains("Success")) {
+
+                                String currentInput = shoukuan_tv.getText().toString();
+
+                                // ⭐ 核心累加：根据支付方式将金额存入对应的“桶”
+                                if (pay_type.equals("cash")) {
+                                    xinjin_pice = TextUtils.isEmpty(xinjin_pice) ? currentInput : new BigDecimal(xinjin_pice).add(new BigDecimal(currentInput)).toString();
+                                    order_sn = jsonObject.getString("code");
+                                } else if (pay_type.equals("wechat")) {
+                                    weixin_pice = TextUtils.isEmpty(weixin_pice) ? currentInput : new BigDecimal(weixin_pice).add(new BigDecimal(currentInput)).toString();
+                                    order_sn = new JSONObject(jsonObject.getString("code")).getString("order_sn");
+                                } else if (pay_type.equals("alipay")) {
+                                    zhifubao_pice = TextUtils.isEmpty(zhifubao_pice) ? currentInput : new BigDecimal(zhifubao_pice).add(new BigDecimal(currentInput)).toString();
+                                    order_sn = jsonObject.getString("order_sn");
+                                    out_trade_no = jsonObject.getString("out_trade_no");
+                                } else if (pay_type.equals("wallet")) {
+                                    huiyuanka_pice = TextUtils.isEmpty(huiyuanka_pice) ? currentInput : new BigDecimal(huiyuanka_pice).add(new BigDecimal(currentInput)).toString();
+                                    order_sn = jsonObject.getString("code");
+                                } else if (pay_type.equals("netsp") || pay_type.equals("netsqr") || pay_type.equals("netscc")) {
+                                    // ⭐ 新增：累加 NETS 金额
+                                    nets_pice = TextUtils.isEmpty(nets_pice) ? currentInput : new BigDecimal(nets_pice).add(new BigDecimal(currentInput)).toString();
+                                    order_sn = jsonObject.optString("code", "");
+                                }
+
+                                handleBackendResponse(jsonObject);
+                            } else if (jsonObject.getString("msg").contains("输入密码中") || jsonObject.getString("msg").contains("order success pay inprocess")) {
+                                // 处理支付中状态
+                                if (pay_type.equals("wechat")) {
+                                    order_sn = new JSONObject(jsonObject.getString("code")).getString("order_sn");
+                                    out_trade_no = new JSONObject(jsonObject.getString("code")).optString("out_trade_no");
+                                    fwsgetOrderInformation();
+                                } else if (pay_type.equals("alipay")) {
+                                    out_trade_no = jsonObject.getString("out_trade_no");
+                                    order_sn = jsonObject.getString("order_sn");
+                                    time.start();
+                                }
+                            } else {
+                                DialogUIUtils.dismiss(buildBean);
+                                new DeleteShopPopupWindow(context, "支付失败: " + jsonObject.optString("msg"), true).show();
+                            }
+                        } catch (Exception e) {
+                            DialogUIUtils.dismiss(buildBean);
                             Log.e("BACKEND_DEBUG", "JSON 解析失败: " + rawBody);
-                            new DeleteShopPopupWindow(context, "数据格式错误", true).show();
                         }
                     });
                 }
             });
         }
     }
+
+
 
     public String out_trade_no = "";
 
@@ -1097,36 +1133,18 @@ public class CheckoutPopupWindow {
                         try {
                             JSONObject jsonObject = new JSONObject(success);
                             if (jsonObject.getString("msg").contains("成功") || jsonObject.getString("msg").contains("Success")) {
-                                DialogUIUtils.dismiss(buildBean);
-                                MediaPlayer mediaPlayer = MediaPlayer.create(context, R.raw.yidong);
-                                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
-                                mediaPlayer.start();
 
-                                if (pay_type.equals("wechat")) { weixin_pice = shoukuan_tv.getText().toString(); }
-                                if (pay_type.equals("alipay")) { zhifubao_pice = shoukuan_tv.getText().toString(); }
-
-                                yinshou = new BigDecimal(yinshou).add(new BigDecimal(shoukuan_tv.getText().toString())).toString();
-                                yishou_tv.setText(yinshou);
-
-                                if (order_status == 2) {
-                                    deleteShopPopupWindow.dismiss();
-                                    popupWindow.dismiss();
-                                    checkoutOnClickListener.onClick(checkoutBean, xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice);
-                                    MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, null, xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice, order_sn);
-                                    order_sn = ""; out_trade_no = "";
-                                } else {
-                                    new DeleteShopPopupWindow(context, context.getString(R.string.Payment_succeeded), true).show();
-                                    deleteShopPopupWindow.dismiss();
-                                    cleadView();
-                                    xianjin_btn.setBackgroundResource(R.drawable.blue_bg8);
-                                    xianjin_btn.setTextColor(Color.parseColor("#FF3B82F6"));
-                                    pay_type = "cash";
-                                    huiyuan_view.setVisibility(GONE);
-                                    BigDecimal daizhifu = new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou));
-                                    MyPresentation.setDaizhifu_tv(daizhifu.toString());
-                                    shoukuan_tv.setText(daizhifu.toString());
+                                String currentInput = shoukuan_tv.getText().toString();
+                                // ⭐ 累加反扫金额
+                                if (pay_type.equals("wechat")) {
+                                    weixin_pice = TextUtils.isEmpty(weixin_pice) ? currentInput : new BigDecimal(weixin_pice).add(new BigDecimal(currentInput)).toString();
+                                } else if (pay_type.equals("alipay")) {
+                                    zhifubao_pice = TextUtils.isEmpty(zhifubao_pice) ? currentInput : new BigDecimal(zhifubao_pice).add(new BigDecimal(currentInput)).toString();
+                                } else if (pay_type.startsWith("nets")) {
+                                    nets_pice = TextUtils.isEmpty(nets_pice) ? currentInput : new BigDecimal(nets_pice).add(new BigDecimal(currentInput)).toString();
                                 }
+
+                                handleBackendResponse(jsonObject);
                             }
                         } catch (JSONException e) { Log.e("ttt", "Error occurred", e); }
                     });
@@ -1134,6 +1152,8 @@ public class CheckoutPopupWindow {
             }
         });
     }
+
+
 
     public void operateDetails() {
         Map<String, String> params = new HashMap<>();
@@ -1176,10 +1196,13 @@ public class CheckoutPopupWindow {
      * 核心逻辑：处理后端 addOrderzh 接口成功后的业务流程
      * 支持组合支付：如果没付清，则更新 UI 准备下一笔支付
      */
+    /**
+     * 核心逻辑：处理后端接口成功后的业务流程
+     */
     private void handleBackendResponse(JSONObject jsonObject) {
         try {
-            // 1. 判断后端是否真的处理成功
             if (jsonObject.getString("msg").contains("成功") || jsonObject.getString("msg").contains("Success")) {
+                DialogUIUtils.dismiss(buildBean);
 
                 // 播放支付成功音效
                 MediaPlayer mediaPlayer = MediaPlayer.create(context, R.raw.yidong);
@@ -1187,41 +1210,49 @@ public class CheckoutPopupWindow {
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release);
                 mediaPlayer.start();
 
-                // 2. 统计金额：将本次支付的金额累加到“已收” (yinshou) 中
+                // 1. 统计已收总金额（控制弹窗内的进度显示）
                 String currentPayAmount = shoukuan_tv.getText().toString();
                 yinshou = new BigDecimal(yinshou).add(new BigDecimal(currentPayAmount)).toString();
                 yishou_tv.setText("￥" + yinshou);
 
-                // 3. 判断订单是否彻底结清
+                // 2. 判断订单是否彻底结清
                 if (order_status == 2) {
-                    // ✅ 全部付清：记录后端返回的 code (通常是 order_sn)
-                    order_sn = jsonObject.optString("code", "");
+                    // ✅ 全部付清
+                    order_sn = jsonObject.optString("code", order_sn);
 
-                    // 关闭弹窗并回调 MainActivity 刷新 UI
+                    deleteShopPopupWindow.dismiss();
                     popupWindow.dismiss();
-                    checkoutOnClickListener.onClick(checkoutBean, xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice);
 
-                    // 打印小票 (传入 8 个完整参数)
+                    // ⭐ 关键：回传 6 个参数给 MainActivity，包括最新的 nets_pice
+                    checkoutOnClickListener.onClick(checkoutBean, xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice, nets_pice);
+
+                    if (!TextUtils.isEmpty(xinjin_pice)) {
+                        MyPrinterHelper.getInstance().asyncOpenMoneyBox(context);
+                    }
+
+                    // 打印小票
                     MyPrinterHelper.getInstance().asyncPrintCheckout(context, checkoutBean, null, xinjin_pice, weixin_pice, zhifubao_pice, huiyuanka_pice, order_sn);
 
-                    // 重置流水号，防止下一单误用
                     order_sn = "";
                     out_trade_no = "";
                 } else {
-                    // 🌗 组合支付：本笔成功，但还有余款
-                    new DeleteShopPopupWindow(context, "本笔支付成功，请继续支付余款", true).show();
+                    // 🌗 组合支付：本笔成功，提示继续支付余款
+                    new DeleteShopPopupWindow(context, context.getString(R.string.Payment_succeeded), true).show();
+                    deleteShopPopupWindow.dismiss();
 
-                    // 自动计算并显示剩余待付金额
-                    BigDecimal remaining = new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou));
-                    shoukuan_tv.setText(remaining.toString());
-                    zhaolin_tv.setText("0.00");
-
-                    // 清除按钮选中状态，让收银员选下一种支付方式
+                    // 重置 UI 状态为现金支付，方便下一次操作
                     cleadView();
+                    xianjin_btn.setBackgroundResource(R.drawable.blue_bg8);
+                    xianjin_btn.setTextColor(Color.parseColor("#FF3B82F6"));
+                    pay_type = "cash";
+                    huiyuan_view.setVisibility(GONE);
+
+                    // 计算并填入剩余待付金额
+                    BigDecimal remain = new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou));
+                    MyPresentation.setDaizhifu_tv(remain.toString());
+                    shoukuan_tv.setText(remain.toString());
+                    zhaolin_tv.setText("0.00");
                 }
-            } else {
-                // 后端逻辑返回失败
-                new DeleteShopPopupWindow(context, "提交失败: " + jsonObject.optString("msg"), true).show();
             }
         } catch (Exception e) {
             Log.e("ttt", "处理后端响应异常", e);

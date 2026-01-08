@@ -829,11 +829,8 @@ public class MainActivity extends Activity {
                /*结账*/
 
 
-                /*
-                  结账按钮逻辑 - 支持组合支付与金额自动累加
-                 */
-                /*
-                  结账按钮逻辑 - 修正显示消失问题
+              /*
+                  结账按钮逻辑 - 支持 6 参数回调与金额累加
                  */
                 if (id == R.id.checkout_btn) {
                     if (selectedShopAdapter.getItemCount() <= 0) {
@@ -847,7 +844,9 @@ public class MainActivity extends Activity {
                     checkoutBean.setAllNum(allNum);
                     checkoutBean.setUser_id(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId());
                     checkoutBean.setTotal_fee(zongjia.toString());
-                    checkoutBean.setOrder_sn(MainActivity.this.order_sn); // 透传单号
+
+                    // 透传单号，确保组合支付关联到同一个订单
+                    checkoutBean.setOrder_sn(MainActivity.this.order_sn);
 
                     if (is_kuangjie || !NetworkUtils.getInstance().isNetworkConnected(MainActivity.this)) {
                         checkoutBean.setPay_type("cash");
@@ -892,67 +891,60 @@ public class MainActivity extends Activity {
                         checkoutBean.setCoupon_fee(Coupon_fee);
                     }
 
+                    // ⭐ 弹出结账 PopupWindow，注意此处为 6 个参数的回调
                     CheckoutPopupWindow checkoutPopupWindow = new CheckoutPopupWindow(MainActivity.this, checkoutBean, new PopupWindowOnClickListener.CheckoutOnClickListener() {
                         @Override
-                        public void onClick(CheckoutBean bean, String xinjin_pice, String weixin_pice, String zhifubao_pice, String huiyuanka_pice) {
+                        public void onClick(CheckoutBean bean, String xinjin_pice, String weixin_pice, String zhifubao_pice, String huiyuanka_pice, String nets_pice) {
 
-                            // 1. 记录单号
+                            // 1. 记忆单号
                             MainActivity.this.order_sn = bean.getOrder_sn();
 
-                            // 2. 金额累加
-                            String currentType = bean.getPay_type();
-                            BigDecimal currentFee = new BigDecimal(TextUtils.isEmpty(bean.getPay_fee()) ? "0.00" : bean.getPay_fee());
-
-                            if ("cash".equals(currentType)) {
-                                totalCash = totalCash.add(currentFee);
-                            } else if ("wallet".equals(currentType)) {
-                                totalWallet = totalWallet.add(currentFee);
-                            } else if ("wechat".equals(currentType)) {
-                                totalWechat = totalWechat.add(currentFee);
-                            } else if ("alipay".equals(currentType)) {
-                                totalAlipay = totalAlipay.add(currentFee);
-                            } else if (currentType != null && currentType.startsWith("nets")) {
-                                totalNets = totalNets.add(currentFee);
-                            }
+                            // 2. 将弹窗传回的“各支付方式总额”赋值给 MainActivity 的统计变量
+                            totalCash = new BigDecimal(TextUtils.isEmpty(xinjin_pice) ? "0.00" : xinjin_pice);
+                            totalWechat = new BigDecimal(TextUtils.isEmpty(weixin_pice) ? "0.00" : weixin_pice);
+                            totalAlipay = new BigDecimal(TextUtils.isEmpty(zhifubao_pice) ? "0.00" : zhifubao_pice);
+                            totalWallet = new BigDecimal(TextUtils.isEmpty(huiyuanka_pice) ? "0.00" : huiyuanka_pice);
+                            totalNets = new BigDecimal(TextUtils.isEmpty(nets_pice) ? "0.00" : nets_pice);
 
                             // 3. 计算实付总计
-                            BigDecimal grandTotalPaid = totalCash.add(totalWallet).add(totalWechat).add(totalAlipay).add(totalNets);
+                            BigDecimal shifujine_pice = totalCash.add(totalWechat).add(totalAlipay).add(totalWallet).add(totalNets);
 
-                            // 4. ⭐ 核心：显示支付详情面板，并填入累加后的数据
+                            // 4. 更新 UI 详情面板
                             zhifuxinxi_view.setVisibility(VISIBLE);
                             shop_image.setVisibility(GONE);
                             tv_image_placeholder.setVisibility(GONE);
 
                             yingfu_tv.setText(bean.getTotal_amount());
-                            shifu_tv.setText(grandTotalPaid.setScale(2, RoundingMode.HALF_UP).toString());
-                            xianjin_tv.setText(totalCash.setScale(2, RoundingMode.HALF_UP).toString());
-                            huiyuanka_tv.setText(totalWallet.setScale(2, RoundingMode.HALF_UP).toString());
-                            weixin_tv.setText(totalWechat.setScale(2, RoundingMode.HALF_UP).toString());
-                            zhifubao_tv.setText(totalAlipay.setScale(2, RoundingMode.HALF_UP).toString());
-                            if (nets_tv != null) {
-                                nets_tv.setText(totalNets.setScale(2, RoundingMode.HALF_UP).toString());
-                            }
+                            shifu_tv.setText(shifujine_pice.setScale(2, RoundingMode.HALF_UP).toString());
+                            youhui_tv.setText("-" + bean.getDiscount_fee());
+                            daijinquan_tv.setText("-" + (TextUtils.isEmpty(bean.getCoupon_fee()) ? "0.00" : bean.getCoupon_fee()));
+
+                            xianjin_tv.setText(totalCash.toString());
+                            huiyuanka_tv.setText(totalWallet.toString());
+                            weixin_tv.setText(totalWechat.toString());
+                            zhifubao_tv.setText(totalAlipay.toString());
+                            if (nets_tv != null) nets_tv.setText(totalNets.toString());
                             zhaolin_tv.setText(TextUtils.isEmpty(bean.getCash_change()) ? "0.00" : bean.getCash_change());
 
-                            // 5. 判断订单是否结束
+                            // 5. 判断订单是否彻底付清
                             if (bean.getOrder_status() == 2) {
                                 have_paid_view.setVisibility(VISIBLE);
                                 new Handler().postDelayed(() -> have_paid_view.setVisibility(GONE), 3000);
 
-                                // ⭐ 核心修正：手动清理购物车，而不去调用那个会隐藏 UI 的 qingkong_btn
+                                // 支付完成，手动清理购物车数据，而不触发隐藏 UI 的 qingkong_btn
                                 selectedShopList.clear();
                                 selectedShopAdapter.notifyDataSetChanged();
                                 zongjia = new BigDecimal("0.00");
                                 tv_zongjia.setText("0.00");
                                 tv_zongjian.setText("0");
                                 allNum = 0;
-                                memberBean1 = null; // 清理会员
+                                memberBean1 = null;
                                 huiyuan_name.setText(getString(R.string.member_nickname));
 
-                                // 重置本单单号和累加器，但【不隐藏】zhifuxinxi_view
+                                // 重置本单数据状态，准备下一客
                                 resetOrderState();
                             } else {
-                                Toast.makeText(MainActivity.this, "已收部分款项，请继续结清", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "已收部分款项，请继续结清余款", Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
@@ -2997,104 +2989,108 @@ public class MainActivity extends Activity {
 
 
     public void pushorders(CheckoutBean checkoutBean) {
-
-
-// ======= 【关键修复：动态抓取收银员姓名】 =======
+        // ======= 【收银员姓名抓取】 =======
         try {
             if (UserUtils.getInstance().getLoginBase() != null) {
                 String realName = UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
                 checkoutBean.setMachineNumber(realName);
             }
         } catch (Exception e) {}
-        // =============================================
 
         String url = POSApiSerview.POS_URL + POSApiSerview.pushorders;
         Gson gson = new Gson();
         RequestBody body = RequestBody.create(gson.toJson(checkoutBean), MediaType.parse("application/json; charset=utf-8"));
-        Request.Builder builder = new Request.Builder()
-                .url(url);
-
+        Request.Builder builder = new Request.Builder().url(url);
         builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
-
-
         builder.post(body);
 
         Request request = builder.build();
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
         OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10000, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(10000, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(10000, TimeUnit.SECONDS)   // 写入超时
-                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
-                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+                .connectTimeout(10000, TimeUnit.SECONDS)
+                .readTimeout(10000, TimeUnit.SECONDS)
+                .addInterceptor(new NetworkErrorInterceptor())
                 .build();
+
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
-                    }
+                runOnUiThread(() -> {
+                    DialogUIUtils.dismiss(buildBean);
+                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected), true).show();
                 });
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if (response.isSuccessful()) {
-                    try {
-                        String success = response.body().string();
-                        JSONObject jsonObject = new JSONObject(success);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    if (jsonObject.getString("msg").contains("成功") || jsonObject.getString("msg").contains("Success")) {
+                    String success = response.body().string();
+                    runOnUiThread(() -> {
+                        try {
+                            JSONObject jsonObject = new JSONObject(success);
+                            if (jsonObject.getString("msg").contains("成功") || jsonObject.getString("msg").contains("Success")) {
 
-// 初始化MediaPlayer
-                                        MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.yidong);
-                                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                                        mediaPlayer.setOnCompletionListener(mp -> mp.release());
-//                    mediaPlayer.pause();  // 暂停
-//                    mediaPlayer.stop();   // 停止(需重新prepare)
+                                // 1. 播放成功音效
+                                MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.yidong);
+                                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                                mediaPlayer.setOnCompletionListener(mp -> mp.release());
+                                mediaPlayer.start();
 
-                                        // 播放控制
-                                        mediaPlayer.start();  // 开始播放
-                                        DialogUIUtils.dismiss(buildBean);
-                                        have_paid_view.setVisibility(VISIBLE);
-                                        new Handler().postDelayed(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                have_paid_view.setVisibility(GONE);
-                                            }
-                                        }, 3000);
-                                        onClickListener.onClick(qingkong_btn);
-                                        onClickListener.onClick(shanchuhuiyuan_btn);
-                                        String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
-                                        String zhifubao_pice = checkoutBean.getPay_type().equals("alipay") ? checkoutBean.getPay_fee() : "";
+                                // 2. ⭐ 累加反扫金额到主界面变量（支持组合支付场景）
+                                String currentType = checkoutBean.getPay_type();
+                                BigDecimal currentFee = new BigDecimal(TextUtils.isEmpty(checkoutBean.getPay_fee()) ? "0.00" : checkoutBean.getPay_fee());
 
-// --- 核心修改 ---
-                                        // ================== 【替换】使用 DIY 指令极速打印 ==================
-                                        byte[] printCmds = com.uhm.uhmcs.utils.ReceiptCommandUtils.getReceiptCommands(MainActivity.this, checkoutBean, order_sn);
-                                        MyPrinterHelper.getInstance().printCommand(MainActivity.this, printCmds);
-// ================================================================
-                                        order_sn = "";
-                                        out_trade_no = "";
-                                    }
-
-                                } catch (JSONException e) {
-                                    Log.e("ttt", "Error occurred", e);
+                                if ("wechat".equals(currentType)) {
+                                    totalWechat = totalWechat.add(currentFee);
+                                } else if ("alipay".equals(currentType)) {
+                                    totalAlipay = totalAlipay.add(currentFee);
                                 }
+
+                                // 3. 汇总并更新 UI
+                                BigDecimal grandTotalPaid = totalCash.add(totalWallet).add(totalWechat).add(totalAlipay).add(totalNets);
+
+                                zhifuxinxi_view.setVisibility(VISIBLE);
+                                yingfu_tv.setText(checkoutBean.getTotal_amount());
+                                shifu_tv.setText(grandTotalPaid.setScale(2, RoundingMode.HALF_UP).toString());
+                                xianjin_tv.setText(totalCash.toString());
+                                huiyuanka_tv.setText(totalWallet.toString());
+                                weixin_tv.setText(totalWechat.toString());
+                                zhifubao_tv.setText(totalAlipay.toString());
+                                if (nets_tv != null) nets_tv.setText(totalNets.toString());
+                                zhaolin_tv.setText(TextUtils.isEmpty(checkoutBean.getCash_change()) ? "0.00" : checkoutBean.getCash_change());
+
+                                // 4. 打印小票
+                                byte[] printCmds = com.uhm.uhmcs.utils.ReceiptCommandUtils.getReceiptCommands(MainActivity.this, checkoutBean, order_sn);
+                                MyPrinterHelper.getInstance().printCommand(MainActivity.this, printCmds);
+
+                                // 5. ⭐ 判定是否付清
+                                if (checkoutBean.getOrder_status() == 2) {
+                                    DialogUIUtils.dismiss(buildBean);
+                                    have_paid_view.setVisibility(VISIBLE);
+                                    new Handler().postDelayed(() -> have_paid_view.setVisibility(GONE), 3000);
+
+                                    // 支付成功清理数据
+                                    selectedShopList.clear();
+                                    selectedShopAdapter.notifyDataSetChanged();
+                                    zongjia = new BigDecimal("0.00");
+                                    tv_zongjia.setText("0.00");
+                                    tv_zongjian.setText("0");
+                                    allNum = 0;
+                                    memberBean1 = null;
+                                    resetOrderState();
+                                } else {
+                                    // 部分支付成功
+                                    MainActivity.this.order_sn = jsonObject.optString("code");
+                                    DialogUIUtils.dismiss(buildBean);
+                                    Toast.makeText(MainActivity.this, "部分支付成功，请继续结清余款", Toast.LENGTH_SHORT).show();
+                                }
+
+                                order_sn = "";
+                                out_trade_no = "";
                             }
-                        });
-
-                    } catch (JSONException e) {
-                        Log.e("ttt", "Error occurred", e);
-                    }
-                } else {
-
+                        } catch (Exception e) {
+                            Log.e("ttt", "pushorders error", e);
+                        }
+                    });
                 }
             }
         });

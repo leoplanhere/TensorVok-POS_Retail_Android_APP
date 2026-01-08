@@ -57,7 +57,7 @@ public class PopupWindowOnClickListener {
          * Called when a view has been clicked.
          *
          */
-        void onClick(CheckoutBean checkoutBean,String xinjin_pice, String weixin_pice, String zhifubao_pice,String huiyuanka_pice);
+        void onClick(CheckoutBean checkoutBean,String xinjin_pice, String weixin_pice, String zhifubao_pice,String huiyuanka_pice, String nets_pice);
     }
     public interface PrintDeviceOnClickListener {
         /**
