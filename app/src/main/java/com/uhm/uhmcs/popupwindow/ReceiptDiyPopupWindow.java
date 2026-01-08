@@ -123,8 +123,17 @@ public class ReceiptDiyPopupWindow {
 
         // 测试打印
         view.findViewById(R.id.btn_test_print).setOnClickListener(v -> {
-            // ReceiptCommandUtils 内部必须读取最新的 config 才能实现“勾选有效”
-            byte[] printCmds = ReceiptCommandUtils.getReceiptCommands(context, sampleData, "DIY-TEST-666888");
+            // ⭐ 传入模拟的支付金额（现金88.00，其余0.00），以对齐 8 个参数
+            byte[] printCmds = ReceiptCommandUtils.getReceiptCommands(
+                    context,
+                    sampleData,
+                    "DIY-TEST-666888",
+                    "88.00", // 模拟现金支付金额
+                    "0.00",  // 模拟微信
+                    "0.00",  // 模拟支付宝
+                    "0.00",  // 模拟会员卡
+                    "0.00"   // 模拟NETS
+            );
             if (printCmds != null && printCmds.length > 0) {
                 MyPrinterHelper.getInstance().printCommand(context, printCmds);
                 Toast.makeText(context, "正在发送测试小票...", Toast.LENGTH_SHORT).show();

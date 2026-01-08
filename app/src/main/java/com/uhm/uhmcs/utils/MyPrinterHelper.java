@@ -26,15 +26,17 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * 打印机辅助类（全功能稳定版 - 动态宽度与门店名适配）
- * 1. 结账与补打：统一走 ReceiptCommandUtils，应用 DIY 样式。
- * 2. 交接班：自动适配纸张宽度，动态获取门店名称。
+ * 打印机辅助类（最终修正全功能版）
+ * 1. 结账与补打：对齐 9 参数逻辑，支持组合支付与 NETS 明细。
+ * 2. 指令生成：准确调用 ReceiptCommandUtils 解决条码 10000 错误。
+ * 3. 补打修复：修复尾单打印不显示支付详情的问题。
  */
 public class MyPrinterHelper {
     private final ExecutorService printExecutor = Executors.newSingleThreadExecutor();
@@ -79,19 +81,33 @@ public class MyPrinterHelper {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "收银门店"; // 默认保底名称
+        return "收银门店";
     }
 
     /**
-     * 异步打印结账 - 已重定向至 DIY 模板
+     * ⭐ 结账打印 - 完整 9 参数版
      */
-    public void asyncPrintCheckout(Activity context, CheckoutBean bean, PrintDataBean printDataBean, String xinjin_pice, String weixin_pice, String zhifubao_pice, String huiyuanka_pice, String order_sn) {
+    public void asyncPrintCheckout(Activity context, CheckoutBean bean, PrintDataBean printDataBean,
+                                   String xinjin_pice, String weixin_pice, String zhifubao_pice,
+                                   String huiyuanka_pice, String nets_pice, String order_sn) {
+
         MyPresentation.showHavePaidView();
+
         printExecutor.execute(() -> {
             try {
-                // 直接调用辛苦调好的指令生成器
-                byte[] commands = ReceiptCommandUtils.getReceiptCommands(context, bean, order_sn);
+                byte[] commands = ReceiptCommandUtils.getReceiptCommands(
+                        context,
+                        bean,
+                        order_sn,
+                        xinjin_pice,
+                        weixin_pice,
+                        zhifubao_pice,
+                        huiyuanka_pice,
+                        nets_pice
+                );
+
                 executePrint(context, commands);
+
             } catch (Exception e) {
                 Log.e("PrintError", "结账打印异常", e);
                 sendPrintStatus(context, false);
@@ -100,45 +116,25 @@ public class MyPrinterHelper {
     }
 
     /**
-     * 异步打印历史订单/尾单 - 已重定向至 DIY 模板
-     */
-    /**
-     * 异步打印历史订单/尾单 - 已重定向至 DIY 模板
+     * ⭐ 专门修复：打印尾单（历史订单）
+     * 解决：1. 组合支付只显示现金问题  2. 支付金额未扣优惠问题
      */
     public void asyncPrintLastOrder(Activity context, LastOrderBean bean, PrintDataBean printDataBean) {
         printExecutor.execute(() -> {
             try {
-                // 1. 数据转换：将历史订单转为结账 Bean
+                // 1. 数据模型转换：将 LastOrder 转换为 CheckoutBean 供指令类使用
                 CheckoutBean checkoutBean = new CheckoutBean();
                 checkoutBean.setTotal_amount(bean.getTotal_amount());
-
-                // 会员信息对齐
                 checkoutBean.setMember_name(bean.getConsignee());
                 checkoutBean.setMember_phone(bean.getPhone());
-
-                // 商品与金额对齐
                 checkoutBean.setGoodsjson(new Gson().toJson(bean.getOrder_item()));
                 checkoutBean.setDiscount_fee(bean.getDiscount_fee());
                 checkoutBean.setCoupon_fee(bean.getCoupon_fee());
                 checkoutBean.setPay_type(bean.getPay_type());
                 checkoutBean.setCash_change(bean.getCash_change());
+                checkoutBean.setMachineNumber(!TextUtils.isEmpty(bean.getCash_user_sn()) ? bean.getCash_user_sn() : "管理员");
 
-                // ⭐【核心修复：动态化收银员】⭐
-                // 逻辑：如果历史订单 bean 里的 cash_user_sn 有值，就用历史的；
-                // 如果为空（比如旧数据），则获取当前登录用户的 Nickname。
-                String realCashier = "";
-                if (bean != null && !TextUtils.isEmpty(bean.getCash_user_sn())) {
-                    realCashier = bean.getCash_user_sn();
-                } else {
-                    try {
-                        realCashier = UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
-                    } catch (Exception e) {
-                        realCashier = "管理员"; // 最后的保底
-                    }
-                }
-                checkoutBean.setMachineNumber(realCashier);
-
-                // 计算总数量
+                // 计算商品总数量
                 int allNum = 0;
                 if (bean.getOrder_item() != null) {
                     for (LastOrderBean.GoodsJsonBean item : bean.getOrder_item()) {
@@ -147,20 +143,63 @@ public class MyPrinterHelper {
                 }
                 checkoutBean.setAllNum(allNum);
 
-                // 2. 调用指令工具打印
-                // 注意：这里传入 bean.getOrder_sn() 确保打印的是该订单的条码
-                byte[] commands = ReceiptCommandUtils.getReceiptCommands(context, checkoutBean, bean.getOrder_sn());
+                // ⭐ 核心逻辑 A：计算真实的“实付金额” (应付总计 - 代金券)
+                BigDecimal totalAmount = new BigDecimal(TextUtils.isEmpty(bean.getTotal_amount()) ? "0.00" : bean.getTotal_amount());
+                BigDecimal couponFee = new BigDecimal(TextUtils.isEmpty(bean.getCoupon_fee()) ? "0.00" : bean.getCoupon_fee());
+                BigDecimal actualPaid = totalAmount.subtract(couponFee);
+                if (actualPaid.compareTo(BigDecimal.ZERO) < 0) actualPaid = BigDecimal.ZERO;
+                String payAmountStr = actualPaid.setScale(2, BigDecimal.ROUND_HALF_UP).toString();
+
+                // ⭐ 核心逻辑 B：多关键字匹配支付方式
+                // 必须使用独立的 if 判断（不要用 else if），这样 "cash,alipay" 这种组合才能全部识别出来
+                String cash = "", wechat = "", alipay = "", wallet = "", nets = "";
+                String pType = (bean.getPay_type() != null) ? bean.getPay_type().toLowerCase() : "";
+
+                // 现金匹配
+                if (pType.contains("cash")) {
+                    cash = payAmountStr;
+                }
+                // 微信匹配 (兼容不同标识)
+                if (pType.contains("wechat") || pType.contains("weixin")) {
+                    wechat = payAmountStr;
+                }
+                // 支付宝匹配 (兼容不同标识)
+                if (pType.contains("alipay") || pType.contains("zhifubao")) {
+                    alipay = payAmountStr;
+                }
+                // 会员卡/钱包匹配
+                if (pType.contains("member") || pType.contains("wallet")) {
+                    wallet = payAmountStr;
+                }
+                // NETS 匹配
+                if (pType.contains("nets")) {
+                    nets = payAmountStr;
+                }
+
+                // 2. 调用下单小票同款指令生成器
+                byte[] commands = ReceiptCommandUtils.getReceiptCommands(
+                        context,
+                        checkoutBean,
+                        bean.getOrder_sn(),
+                        cash,
+                        wechat,
+                        alipay,
+                        wallet,
+                        nets
+                );
+
+                // 3. 执行物理打印
                 executePrint(context, commands);
 
             } catch (Exception e) {
-                Log.e("PrintError", "尾单打印异常", e);
+                Log.e("PrintError", "尾单打印失败", e);
                 sendPrintStatus(context, false);
             }
         });
     }
 
     /**
-     * 充值打印 (同步修改门店名)
+     * 充值打印
      */
     public void asyncPrintCheckout(Activity context, String pice, String pay_type) {
         printExecutor.execute(() -> {
@@ -180,25 +219,21 @@ public class MyPrinterHelper {
     }
 
     /**
-     * 【完整恢复并优化】交接班打印
-     * 自动适配 58mm/80mm 纸张规格，动态门店名称
+     * 交接班打印
      */
     public void asyncPrintRelieveShift(Activity context, RelieveShiftPrintBean relieveShiftPrintBean) {
         printExecutor.execute(() -> {
             try {
-                // 动态获取当前设置的纸张总宽度 (32字节或48字节)
                 int totalWidth = (ReceiptConfigUtils.getInstance(context).getPaperType() == 0) ? 32 : 48;
 
                 ByteArrayOutputStream output = new ByteArrayOutputStream();
                 output.write(new byte[]{0x1B, 0x40});
-                // 居中标题
                 output.write(new byte[]{0x1B, 0x61, 0x01});
-                output.write(new byte[]{0x1B, 0x45, 0x01}); // 加粗
+                output.write(new byte[]{0x1B, 0x45, 0x01});
                 output.write("交接单\n".getBytes("GBK"));
                 output.write(new byte[]{0x1B, 0x45, 0x00});
-                printSeparator(output, totalWidth); // 动态分割线
+                printSeparator(output, totalWidth);
 
-                // 左对齐基本信息
                 output.write(new byte[]{0x1B, 0x61, 0x00});
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                 RelieveShiftPrintBean.DataBean data = relieveShiftPrintBean.getData();
@@ -209,7 +244,6 @@ public class MyPrinterHelper {
                 output.write(("收银员:" + data.getNickname() + "\n").getBytes("GBK"));
                 printSeparator(output, totalWidth);
 
-                // 收款汇总
                 output.write("收款汇总:\n".getBytes("GBK"));
                 BigDecimal totalReceived = BigDecimal.ZERO;
                 if (data.getTotal() != null) {
@@ -222,7 +256,6 @@ public class MyPrinterHelper {
                 output.write(formatTwoColumn("总收款:", totalReceived.toString(), totalWidth).getBytes("GBK"));
                 printSeparator(output, totalWidth);
 
-                // 退款汇总
                 output.write("退款汇总:\n".getBytes("GBK"));
                 BigDecimal totalRefund = BigDecimal.ZERO;
                 if (data.getRefund() != null) {
@@ -235,13 +268,12 @@ public class MyPrinterHelper {
                 output.write(formatTwoColumn("总退款:", totalRefund.toString(), totalWidth).getBytes("GBK"));
                 printSeparator(output, totalWidth);
 
-                // 实际营收
                 output.write(new byte[]{0x1B, 0x45, 0x01});
                 output.write(formatTwoColumn("实际总营收:", totalReceived.subtract(totalRefund).toString(), totalWidth).getBytes("GBK"));
                 output.write(new byte[]{0x1B, 0x45, 0x00});
 
                 output.write("\n\n\n".getBytes("GBK"));
-                output.write(new byte[]{0x1D, 0x56, 0x42, 0x00}); // 切纸
+                output.write(new byte[]{0x1D, 0x56, 0x42, 0x00});
 
                 executePrint(context, output.toByteArray());
             } catch (Exception e) {
@@ -251,9 +283,6 @@ public class MyPrinterHelper {
         });
     }
 
-    /**
-     * 辅助：打印动态宽度的分割线
-     */
     private void printSeparator(ByteArrayOutputStream os, int width) throws IOException {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < width; i++) sb.append("-");
@@ -261,19 +290,21 @@ public class MyPrinterHelper {
     }
 
     private String getPayTypeLabel(String type) {
+        if (type == null) return "其他收入:";
         switch (type) {
             case "cash": return "现金收入:";
             case "alipay": return "支付宝收入:";
             case "wechat": return "微信收入:";
             case "wallet":
             case "member": return "会员卡收入:";
+            case "netsp":
+            case "netsqr":
+            case "netscc":
+            case "nets": return "NETS收入:";
             default: return "其他收入:";
         }
     }
 
-    /**
-     * 核心对齐逻辑：根据纸张宽度自动计算中间空格，实现左右分布
-     */
     private String formatTwoColumn(String left, String right, int width) {
         int leftLen = getGbkWidth(left);
         int rightLen = getGbkWidth(right);
@@ -291,22 +322,14 @@ public class MyPrinterHelper {
         return w;
     }
 
-    /**
-     * 底层执行：发送字节数组到打印机
-     */
     private void executePrint(Activity context, byte[] data) throws IOException {
         if (usbConnection == null || endpointOut == null) {
             Log.e("Printer", "USB 未连接");
-            sendPrintStatus(context, false);
             return;
         }
-        int transfer = usbConnection.bulkTransfer(endpointOut, data, data.length, 5000);
-        sendPrintStatus(context, transfer >= 0);
+        usbConnection.bulkTransfer(endpointOut, data, data.length, 5000);
     }
 
-    /**
-     * 发送 ESC/POS 指令 (DIY 测试打印专用)
-     */
     public void printCommand(Activity context, byte[] commands) {
         printExecutor.execute(() -> {
             try {
@@ -317,9 +340,6 @@ public class MyPrinterHelper {
         });
     }
 
-    /**
-     * 开启钱箱
-     */
     public void asyncOpenMoneyBox(Activity context) {
         printExecutor.execute(() -> {
             try {

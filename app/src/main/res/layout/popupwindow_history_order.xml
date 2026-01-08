@@ -162,7 +162,7 @@
                 android:layout_weight="1"
                 android:textSize="18dp"
                 android:textColor="@color/text_gray"
-                android:text="优惠卷"
+                android:text="优惠券"
                 android:gravity="center"/>
             <TextView
                 android:visibility="gone"

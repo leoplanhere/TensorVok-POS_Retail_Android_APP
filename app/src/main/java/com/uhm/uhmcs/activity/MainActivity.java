@@ -2092,10 +2092,10 @@ public class MainActivity extends Activity {
                                         String weixin_pice = checkoutBean.getPay_type().equals("wechat") ? checkoutBean.getPay_fee() : "";
                                         String zhifubao_pice = checkoutBean.getPay_type().equals("alipay") ? checkoutBean.getPay_fee() : "";
 
-// ================== 【替换】使用 DIY 指令极速打印 ==================
-                                        byte[] printCmds = com.uhm.uhmcs.utils.ReceiptCommandUtils.getReceiptCommands(MainActivity.this, checkoutBean, order_sn);
-                                        MyPrinterHelper.getInstance().printCommand(MainActivity.this, printCmds);
-// ================================================================
+                                        // ⭐ 补打/重打逻辑，同样对齐 9 参数
+                                        MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, null,
+                                                totalCash.toString(), totalWechat.toString(), totalAlipay.toString(),
+                                                totalWallet.toString(), totalNets.toString(), order_sn);
                                         order_sn = "";
                                         out_trade_no = "";
                                         return;
@@ -2793,48 +2793,69 @@ public class MainActivity extends Activity {
 
 
 
-    //tab货品类型list
+    // 打印尾单并同步修正界面显示逻辑
+    // 专门修复：打印尾单并同步屏幕详情显示
     public void getLastOder() {
-
         Map<String, String> params = new HashMap<>();
         params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
         String url = POSApiSerview.POS_URL + POSApiSerview.getLastOder;
+
         OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {
-                Log.i("ttt", response);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!response.isEmpty()) {
-                            try {
-                                JSONObject jsonObject = new JSONObject(response);
-                                int code = jsonObject.getInt("code");
-                                if (code == 1 && !TextUtils.isEmpty(jsonObject.getString("data"))) {
-                                    ArrayList<LastOrderBean> lastOrderBeanArrayList = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<LastOrderBean>>() {
-                                    }.getType());
-                                    MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, lastOrderBeanArrayList.get(0), null);
-                                }
-                            } catch (JSONException e) {
-                                Log.e("ttt", "Error occurred", e);
-                            }
+                runOnUiThread(() -> {
+                    if (TextUtils.isEmpty(response)) return;
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        if (jsonObject.getInt("code") == 1 && !TextUtils.isEmpty(jsonObject.getString("data"))) {
+                            ArrayList<LastOrderBean> list = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<LastOrderBean>>(){}.getType());
+                            LastOrderBean lastOrder = list.get(0);
 
-                        } else {
-                            Toast.makeText(MainActivity.this, "请求错误，结果为空", LENGTH_SHORT).show();
+                            // 1. 触发上面修正过的打印逻辑
+                            MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, lastOrder, null);
+
+                            // ⭐ 2. 屏幕显示逻辑同步：计算实付 (应付 - 代金券)
+                            BigDecimal total = new BigDecimal(TextUtils.isEmpty(lastOrder.getTotal_amount()) ? "0.00" : lastOrder.getTotal_amount());
+                            BigDecimal coupon = new BigDecimal(TextUtils.isEmpty(lastOrder.getCoupon_fee()) ? "0.00" : lastOrder.getCoupon_fee());
+                            BigDecimal actual = total.subtract(coupon);
+                            if (actual.compareTo(BigDecimal.ZERO) < 0) actual = BigDecimal.ZERO;
+                            String actualStr = actual.setScale(2, RoundingMode.HALF_UP).toString();
+
+                            // 3. 更新 UI 面板显示
+                            zhifuxinxi_view.setVisibility(VISIBLE);
+                            shop_image.setVisibility(GONE);
+                            if (tv_image_placeholder != null) tv_image_placeholder.setVisibility(GONE);
+
+                            yingfu_tv.setText(lastOrder.getTotal_amount());
+                            shifu_tv.setText(actualStr); // 屏幕显示扣除优惠后的钱
+                            youhui_tv.setText("-" + (TextUtils.isEmpty(lastOrder.getDiscount_fee()) ? "0.00" : lastOrder.getDiscount_fee()));
+                            daijinquan_tv.setText("-" + coupon.setScale(2).toString());
+
+                            // 重置所有支付项 UI 为 0
+                            xianjin_tv.setText("0.00"); huiyuanka_tv.setText("0.00");
+                            weixin_tv.setText("0.00"); zhifubao_tv.setText("0.00");
+                            if (nets_tv != null) nets_tv.setText("0.00");
+
+                            // 根据 pay_type 字符串匹配，显示对应的实付额
+                            String pType = lastOrder.getPay_type().toLowerCase();
+                            if (pType.contains("cash")) xianjin_tv.setText(actualStr);
+                            if (pType.contains("wechat")) weixin_tv.setText(actualStr);
+                            if (pType.contains("alipay")) zhifubao_tv.setText(actualStr);
+                            if (pType.contains("member") || pType.contains("wallet")) huiyuanka_tv.setText(actualStr);
+                            if (pType.contains("nets") && nets_tv != null) nets_tv.setText(actualStr);
+
+                            zhaolin_tv.setText(TextUtils.isEmpty(lastOrder.getCash_change()) ? "0.00" : lastOrder.getCash_change());
                         }
+                    } catch (Exception e) {
+                        Log.e("ttt", "尾单详情显示异常", e);
                     }
                 });
-
             }
-
-            @Override
-            public void onFailure(IOException e) {
-                System.err.println("请求失败: " + e.getMessage());
-            }
+            @Override public void onFailure(IOException e) {}
         });
-
-
     }
+
+
 
     public String out_trade_no = "", order_sn = "", transaction_id = "";
 
@@ -3059,8 +3080,10 @@ public class MainActivity extends Activity {
                                 zhaolin_tv.setText(TextUtils.isEmpty(checkoutBean.getCash_change()) ? "0.00" : checkoutBean.getCash_change());
 
                                 // 4. 打印小票
-                                byte[] printCmds = com.uhm.uhmcs.utils.ReceiptCommandUtils.getReceiptCommands(MainActivity.this, checkoutBean, order_sn);
-                                MyPrinterHelper.getInstance().printCommand(MainActivity.this, printCmds);
+                                // ⭐ 使用 9 参数异步打印方法，自动传入 MainActivity 中记录的所有支付统计
+                                MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, null,
+                                        totalCash.toString(), totalWechat.toString(), totalAlipay.toString(),
+                                        totalWallet.toString(), totalNets.toString(), order_sn);
 
                                 // 5. ⭐ 判定是否付清
                                 if (checkoutBean.getOrder_status() == 2) {
@@ -3114,10 +3137,12 @@ public class MainActivity extends Activity {
                             String zhifubao_pice = checkoutBean.getPay_type().equals("alipay") ? checkoutBean.getPay_fee() : "";
 
                             // ================== 【替换】使用 DIY 指令极速打印 ==================
-// 注意：补打接口可能没有 order_sn，如果有请传入，没有传空字符串
-                            byte[] printCmds = com.uhm.uhmcs.utils.ReceiptCommandUtils.getReceiptCommands(MainActivity.this, checkoutBean, order_sn);
-                            MyPrinterHelper.getInstance().printCommand(MainActivity.this, printCmds);
-// ================================================================
+
+                            // ⭐ 确保反扫（扫码枪）成功后，打印出包含组合支付明细的小票
+                            MyPrinterHelper.getInstance().asyncPrintCheckout(MainActivity.this, checkoutBean, null,
+                                    totalCash.toString(), totalWechat.toString(), totalAlipay.toString(),
+                                    totalWallet.toString(), totalNets.toString(), order_sn);
+
 
 
                         } catch (JSONException e) {
