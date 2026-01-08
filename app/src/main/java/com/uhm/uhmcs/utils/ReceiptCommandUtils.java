@@ -143,8 +143,30 @@ public class ReceiptCommandUtils {
             printText(buffer, "请保留此单据，作为退、换货凭证。");
             if (config.showBottomText()) printText(buffer, "\n\n谢谢惠顾，欢迎下次光临！");
 
-            /* ========== 8. 走纸 & 切纸 ========== */
-            buffer.write(new byte[]{0x1B, 0x64, 0x05});
+            /* ========== 8. 底部 Logo & 走纸 & 切纸 ========== */
+            // ⭐ 修复点：物理打印必须在这里判断并绘制位图指令
+            if (config.showBottomLogo()) {
+                buffer.write(new byte[]{0x0A}); // 先换个行，避免离文字太近
+                buffer.write(ALIGN_CENTER);
+                try {
+                    // 根据纸张宽度决定 Logo 缩放大小
+                    int targetWidth = (config.getPaperType() == 0) ? 200 : 320;
+                    // 加载 Logo 资源
+                    Bitmap logo = Glide.with(context).asBitmap().load(R.mipmap.pos_ui_logo_01).submit().get();
+                    Bitmap bmp = processBitmapForPrinter(logo, targetWidth);
+                    if (bmp != null) {
+                        buffer.write(ImagePrinter.convertBitmapToEscPos(ImagePrinter.toMonochrome(bmp)));
+                    }
+                } catch (Exception ignored) {
+                    // 如果 Logo 加载失败，至少保证正常打印
+                }
+                // 走纸 5 行再切纸
+                buffer.write(new byte[]{0x1B, 0x64, 0x05});
+            } else {
+                // 不显示 Logo 时，走纸 3 行即可
+                buffer.write(new byte[]{0x1B, 0x64, 0x03});
+            }
+
             buffer.write(CUT_PAPER);
 
         } catch (Exception e) {

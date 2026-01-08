@@ -2793,12 +2793,18 @@ public class MainActivity extends Activity {
 
 
 
-    // 打印尾单并同步修正界面显示逻辑
-    // 专门修复：打印尾单并同步屏幕详情显示
+    // 修正版：直接请求历史订单接口的第一条数据，确保拿到完整明细
     public void getLastOder() {
+        // 1. 准备参数（模仿 HistoryOrderPopupWindow 的请求）
         Map<String, String> params = new HashMap<>();
         params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
-        String url = POSApiSerview.POS_URL + POSApiSerview.getLastOder;
+        params.put("page", "1");
+        params.put("strip", "1"); // 只取最新的一单
+
+        // 使用历史订单接口，这个接口才有 paymentlog
+        String url = POSApiSerview.POS_URL + POSApiSerview.orderList;
+
+        Log.d("PrintDebug", "主界面触发补印：请求历史接口获取最新单据...");
 
         OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
             @Override
@@ -2807,53 +2813,77 @@ public class MainActivity extends Activity {
                     if (TextUtils.isEmpty(response)) return;
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        if (jsonObject.getInt("code") == 1 && !TextUtils.isEmpty(jsonObject.getString("data"))) {
-                            ArrayList<LastOrderBean> list = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<LastOrderBean>>(){}.getType());
-                            LastOrderBean lastOrder = list.get(0);
+                        // 历史订单接口的返回结构是 data -> data -> list
+                        if (jsonObject.optInt("code") == 1 && !jsonObject.isNull("data")) {
+                            JSONObject dataObj = new JSONObject(jsonObject.getString("data"));
+                            ArrayList<LastOrderBean> list = new Gson().fromJson(
+                                    dataObj.getString("data"),
+                                    new TypeToken<ArrayList<LastOrderBean>>() {}.getType()
+                            );
 
-                            // 1. 触发上面修正过的打印逻辑
-                            MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, lastOrder, null);
+                            if (list != null && !list.isEmpty()) {
+                                LastOrderBean lastOrder = list.get(0);
 
-                            // ⭐ 2. 屏幕显示逻辑同步：计算实付 (应付 - 代金券)
-                            BigDecimal total = new BigDecimal(TextUtils.isEmpty(lastOrder.getTotal_amount()) ? "0.00" : lastOrder.getTotal_amount());
-                            BigDecimal coupon = new BigDecimal(TextUtils.isEmpty(lastOrder.getCoupon_fee()) ? "0.00" : lastOrder.getCoupon_fee());
-                            BigDecimal actual = total.subtract(coupon);
-                            if (actual.compareTo(BigDecimal.ZERO) < 0) actual = BigDecimal.ZERO;
-                            String actualStr = actual.setScale(2, RoundingMode.HALF_UP).toString();
+                                Log.d("PrintDebug", "成功抓取最新历史单据: " + lastOrder.getOrder_sn());
 
-                            // 3. 更新 UI 面板显示
-                            zhifuxinxi_view.setVisibility(VISIBLE);
-                            shop_image.setVisibility(GONE);
-                            if (tv_image_placeholder != null) tv_image_placeholder.setVisibility(GONE);
+                                // 1. 触发打印（复用你已经调通的历史订单打印逻辑）
+                                MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, lastOrder, null);
 
-                            yingfu_tv.setText(lastOrder.getTotal_amount());
-                            shifu_tv.setText(actualStr); // 屏幕显示扣除优惠后的钱
-                            youhui_tv.setText("-" + (TextUtils.isEmpty(lastOrder.getDiscount_fee()) ? "0.00" : lastOrder.getDiscount_fee()));
-                            daijinquan_tv.setText("-" + coupon.setScale(2).toString());
+                                // 2. 同步更新收银机主界面的支付详情面板
+                                updateMainPaymentUI(lastOrder);
 
-                            // 重置所有支付项 UI 为 0
-                            xianjin_tv.setText("0.00"); huiyuanka_tv.setText("0.00");
-                            weixin_tv.setText("0.00"); zhifubao_tv.setText("0.00");
-                            if (nets_tv != null) nets_tv.setText("0.00");
-
-                            // 根据 pay_type 字符串匹配，显示对应的实付额
-                            String pType = lastOrder.getPay_type().toLowerCase();
-                            if (pType.contains("cash")) xianjin_tv.setText(actualStr);
-                            if (pType.contains("wechat")) weixin_tv.setText(actualStr);
-                            if (pType.contains("alipay")) zhifubao_tv.setText(actualStr);
-                            if (pType.contains("member") || pType.contains("wallet")) huiyuanka_tv.setText(actualStr);
-                            if (pType.contains("nets") && nets_tv != null) nets_tv.setText(actualStr);
-
-                            zhaolin_tv.setText(TextUtils.isEmpty(lastOrder.getCash_change()) ? "0.00" : lastOrder.getCash_change());
+                                Toast.makeText(MainActivity.this, "已补印上一张小票", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     } catch (Exception e) {
-                        Log.e("ttt", "尾单详情显示异常", e);
+                        Log.e("PrintDebug", "补印数据解析异常", e);
                     }
                 });
             }
-            @Override public void onFailure(IOException e) {}
+
+            @Override
+            public void onFailure(IOException e) {
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "网络异常，无法获取尾单", Toast.LENGTH_SHORT).show());
+            }
         });
     }
+
+    /**
+     * 辅助方法：将获取到的最后一张订单数据同步渲染到主界面左侧面板
+     */
+    private void updateMainPaymentUI(LastOrderBean lastOrder) {
+        zhifuxinxi_view.setVisibility(VISIBLE);
+        shop_image.setVisibility(GONE);
+        if (tv_image_placeholder != null) tv_image_placeholder.setVisibility(GONE);
+
+        yingfu_tv.setText(lastOrder.getTotal_amount());
+        youhui_tv.setText("-" + (TextUtils.isEmpty(lastOrder.getDiscount_fee()) ? "0.00" : lastOrder.getDiscount_fee()));
+        daijinquan_tv.setText("-" + (TextUtils.isEmpty(lastOrder.getCoupon_fee()) ? "0.00" : lastOrder.getCoupon_fee()));
+
+        // 重置面板
+        xianjin_tv.setText("0.00"); weixin_tv.setText("0.00"); zhifubao_tv.setText("0.00");
+        huiyuanka_tv.setText("0.00"); if (nets_tv != null) nets_tv.setText("0.00");
+        zhaolin_tv.setText(TextUtils.isEmpty(lastOrder.getCash_change()) ? "0.00" : lastOrder.getCash_change());
+
+        BigDecimal totalPaid = BigDecimal.ZERO;
+
+        // 遍历 paymentlog 渲染 UI
+        if (lastOrder.getPaymentlog() != null) {
+            for (LastOrderBean.PaymentlogBean log : lastOrder.getPaymentlog()) {
+                String type = log.getPay_type().toLowerCase();
+                String money = log.getReceivedmoney();
+                totalPaid = totalPaid.add(new BigDecimal(money));
+
+                if (type.contains("cash")) xianjin_tv.setText(money);
+                else if (type.contains("wechat")) weixin_tv.setText(money);
+                else if (type.contains("alipay")) zhifubao_tv.setText(money);
+                else if (type.contains("member") || type.contains("wallet")) huiyuanka_tv.setText(money);
+                else if (type.contains("nets") && nets_tv != null) nets_tv.setText(money);
+            }
+        }
+        shifu_tv.setText(totalPaid.setScale(2, RoundingMode.HALF_UP).toString());
+    }
+
 
 
 

@@ -192,7 +192,13 @@ public class ReceiptBitmapGenerator {
         tvBottomText.setText("此单据二维码为开具增值税普通发票\n的唯一凭证，请妥善保管。\n请保留此单据，作为退、换货凭证。");
 
         // 底部 Logo
-        ivBottomLogo.setVisibility(config.showBottomLogo() ? View.VISIBLE : View.GONE);
+        if (config.showBottomLogo()) {
+            ivBottomLogo.setVisibility(View.VISIBLE);
+            // ⭐ 修复点：必须手动设置图片，否则预览也是空的
+            ivBottomLogo.setImageResource(R.mipmap.pos_ui_logo_01);
+        } else {
+            ivBottomLogo.setVisibility(View.GONE);
+        }
 
         // 5. 最终测量与绘制
         view.measure(View.MeasureSpec.makeMeasureSpec(paperWidthPx, View.MeasureSpec.EXACTLY),
