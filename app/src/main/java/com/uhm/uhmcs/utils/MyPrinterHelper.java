@@ -263,7 +263,9 @@ public class MyPrinterHelper {
                 BigDecimal totalReceived = BigDecimal.ZERO;
                 if (data.getTotal() != null) {
                     for (RelieveShiftPrintBean.DataBean.TotalBean item : data.getTotal()) {
-                        String label = getPayTypeLabel(item.getPay_type());
+                        // ⭐ 核心修改：精准匹配 NETS 类型
+                        String label = getDetailedPayTypeLabel(item.getPay_type());
+
                         output.write(formatTwoColumn(label, item.getTotal(), totalWidth).getBytes("GBK"));
                         totalReceived = totalReceived.add(new BigDecimal(item.getTotal()));
                     }
@@ -275,7 +277,9 @@ public class MyPrinterHelper {
                 BigDecimal totalRefund = BigDecimal.ZERO;
                 if (data.getRefund() != null) {
                     for (RelieveShiftPrintBean.DataBean.RefundBean item : data.getRefund()) {
-                        String label = getPayTypeLabel(item.getPay_type()) + "(退款):";
+                        // ⭐ 核心修改：精准匹配 NETS 退款类型
+                        String label = getDetailedPayTypeLabel(item.getPay_type()) + "(退款):";
+
                         output.write(formatTwoColumn(label, item.getTotal(), totalWidth).getBytes("GBK"));
                         totalRefund = totalRefund.add(new BigDecimal(item.getTotal()));
                     }
@@ -296,6 +300,29 @@ public class MyPrinterHelper {
                 sendPrintStatus(context, false);
             }
         });
+    }
+
+    /**
+     * ⭐ 新增/更新的辅助方法，确保区分三种 NETS 支付
+     */
+    private String getDetailedPayTypeLabel(String payType) {
+        if (payType == null) return "未知支付";
+        String type = payType.toLowerCase().trim();
+
+        switch (type) {
+            case "cash":    return "现金收入:";
+            case "wechat":  return "微信收入:";
+            case "alipay":  return "支付宝收入:";
+            case "wallet":  return "会员卡余额:";
+            // --- NETS 细分开始 ---
+            case "netsp":   return "NETSPay(P):";
+            case "netscc":  return "NETS信用卡(CC):";
+            case "netsqr":  return "NETSQR(QR):";
+            // --- NETS 细分结束 ---
+            default:
+                if (type.contains("nets")) return "NETS其他收入:";
+                return payType + "收入:";
+        }
     }
 
     private void printSeparator(ByteArrayOutputStream os, int width) throws IOException {

@@ -2632,6 +2632,9 @@ public class MainActivity extends Activity {
             // 2. 【核心修复】立刻从本地数据库加载数据显示在右侧列表
             loadLocalGoods(0);
 
+            // ⭐ 新增：清理商品选择弹窗的内存缓存
+            com.uhm.uhmcs.popupwindow.ShopPopupWindow.clearStaticCache();
+
             // 3. 弹出同步成功提示
             // new DeleteShopPopupWindow(MainActivity.this, getString(R.string.Sync_completed), true).show();
         });
