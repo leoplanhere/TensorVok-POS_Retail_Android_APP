@@ -153,6 +153,14 @@ public class MainActivity extends Activity {
     private TextView tv_main_shop_name;
     private TextView tv_nickname;
 
+    // 在类成员变量位置定义
+    private BigDecimal totalCash = BigDecimal.ZERO;
+    private BigDecimal totalWallet = BigDecimal.ZERO;
+    private BigDecimal totalWechat = BigDecimal.ZERO;
+    private BigDecimal totalAlipay = BigDecimal.ZERO;
+    private BigDecimal totalNets = BigDecimal.ZERO;
+
+
 
     // --- 新增：NETS POS 状态指示变量 ---
     private View v_pos_status_light;
@@ -247,6 +255,7 @@ public class MainActivity extends Activity {
 
 
     private TextView yingfu_tv,shifu_tv,youhui_tv,daijinquan_tv,xianjin_tv,huiyuanka_tv,weixin_tv,zhifubao_tv,zhaolin_tv;
+    private TextView nets_tv; // ⭐ 新增：NETS 详情显示
     private LinearLayout zhifuxinxi_view;
 
 
@@ -494,6 +503,12 @@ public class MainActivity extends Activity {
         }
 
         yingfu_tv=findViewById(R.id.yingfu_tv);
+
+        zhifubao_tv = findViewById(R.id.zhifubao_tv);
+        nets_tv = findViewById(R.id.nets_tv); // ⭐ 新增：绑定 NETS 的 TextView
+        zhaolin_tv = findViewById(R.id.zhaolin_tv);
+        zhifuxinxi_view = findViewById(R.id.zhifuxinxi_view);
+
         shifu_tv=findViewById(R.id.shifu_tv);
         youhui_tv=findViewById(R.id.youhui_tv);
         daijinquan_tv=findViewById(R.id.daijinquan_tv);
@@ -581,6 +596,9 @@ public class MainActivity extends Activity {
                 /*
                   清空商品
                  */
+                /*
+                  手动清空购物车
+                 */
                 if (id == R.id.qingkong_btn) {
                     if (selectedShopList.isEmpty()) {
                         return;
@@ -588,14 +606,18 @@ public class MainActivity extends Activity {
                     selectedShopList.clear();
                     selectedShopAdapter.notifyDataSetChanged();
                     zongjia = new BigDecimal("0.00");
-                    tv_zongjia.setText(zongjia + "");
+                    tv_zongjia.setText("0.00");
                     tv_zongjian.setText("0");
                     allNum = 0;
                     MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                    MyPresentation.setZongjia(zongjia.toString());
 
+                    // 手动清空时，隐藏支付详情，显示占位图
+                    zhifuxinxi_view.setVisibility(GONE);
                     updatePlaceholderVisibility();
+                    resetOrderState();
                 }
+
+
                 /*
                   挂单
                  */
@@ -804,8 +826,14 @@ public class MainActivity extends Activity {
                     }).show();
                 }
 
+               /*结账*/
+
+
                 /*
-                  结账
+                  结账按钮逻辑 - 支持组合支付与金额自动累加
+                 */
+                /*
+                  结账按钮逻辑 - 修正显示消失问题
                  */
                 if (id == R.id.checkout_btn) {
                     if (selectedShopAdapter.getItemCount() <= 0) {
@@ -814,22 +842,23 @@ public class MainActivity extends Activity {
                     if (Utilis.isFastClick()) {
                         return;
                     }
+
                     CheckoutBean checkoutBean = new CheckoutBean();
                     checkoutBean.setAllNum(allNum);
                     checkoutBean.setUser_id(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId());
-
                     checkoutBean.setTotal_fee(zongjia.toString());
+                    checkoutBean.setOrder_sn(MainActivity.this.order_sn); // 透传单号
+
                     if (is_kuangjie || !NetworkUtils.getInstance().isNetworkConnected(MainActivity.this)) {
                         checkoutBean.setPay_type("cash");
                     } else {
                         checkoutBean.setPay_type("");
                     }
                     is_kuangjie = false;
-//                    checkoutBean.setPay_fee();
+
                     checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
                     BigDecimal discount_fee = new BigDecimal("0.00");
                     ArrayList<CheckoutBean.GoodsJsonBean> goodsJsonBeanArrayList = new ArrayList<>();
-
 
                     for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopList) {
                         if (grouponGoodsModel.getDiscounted_price() != null) {
@@ -848,73 +877,94 @@ public class MainActivity extends Activity {
                         goodsJsonBean.setOnline_type(grouponGoodsModel.getOnline_type());
                         goodsJsonBean.setPay_price(grouponGoodsModel.getHeji().toString());
                         goodsJsonBean.setGoods_sku_price_id(grouponGoodsModel.getGgspid() + "");
-//                        goodsJsonBean.setGoods_sku_text(TextUtils.isEmpty(grouponGoodsModel.getGoods_sku_text()) ? "" : grouponGoodsModel.getGoods_sku_text());
                         goodsJsonBeanArrayList.add(goodsJsonBean);
                     }
-                    Gson gson = new Gson();
 
+                    Gson gson = new Gson();
                     checkoutBean.setGoodsjson(gson.toJson(goodsJsonBeanArrayList));
                     checkoutBean.setDiscount_fee(discount_fee.toString());
                     checkoutBean.setTotal_amount(zongjia.add(discount_fee).toString());
                     checkoutBean.setGoods_original_amount(zongjia.add(discount_fee).toString());
-//                    checkoutBean.setTotal_amount((int) 0.01);
-//                    checkoutBean.setTotal_amount((int) 0.01);
+
                     if (memberBean1 != null) {
                         checkoutBean.setMember_name(memberBean1.getNickname());
                         checkoutBean.setMember_phone(memberBean1.getMobile());
-//                        checkoutBean.setCardnumber(memberBean1.getMobile());
                         checkoutBean.setCoupon_fee(Coupon_fee);
                     }
 
                     CheckoutPopupWindow checkoutPopupWindow = new CheckoutPopupWindow(MainActivity.this, checkoutBean, new PopupWindowOnClickListener.CheckoutOnClickListener() {
                         @Override
-                        public void onClick(CheckoutBean checkoutBean, String xinjin_pice, String weixin_pice, String zhifubao_pice, String huiyuanka_pice) {
-                            have_paid_view.setVisibility(VISIBLE);
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    have_paid_view.setVisibility(GONE);
-                                }
-                            }, 3000);
-                            onClickListener.onClick(qingkong_btn);
-                            onClickListener.onClick(shanchuhuiyuan_btn);
+                        public void onClick(CheckoutBean bean, String xinjin_pice, String weixin_pice, String zhifubao_pice, String huiyuanka_pice) {
 
+                            // 1. 记录单号
+                            MainActivity.this.order_sn = bean.getOrder_sn();
 
-                            BigDecimal shifujine_pice = new BigDecimal("0.00");
-                            if (!TextUtils.isEmpty(xinjin_pice)) {
-                                shifujine_pice = shifujine_pice.add(new BigDecimal(xinjin_pice));
-                            }
-                            if (!TextUtils.isEmpty(weixin_pice)) {
-                                shifujine_pice = shifujine_pice.add(new BigDecimal(weixin_pice));
-                            }
-                            if (!TextUtils.isEmpty(zhifubao_pice)) {
-                                shifujine_pice = shifujine_pice.add(new BigDecimal(zhifubao_pice));
-                            }
-                            if (!TextUtils.isEmpty(huiyuanka_pice)) {
-                                shifujine_pice = shifujine_pice.add(new BigDecimal(huiyuanka_pice));
+                            // 2. 金额累加
+                            String currentType = bean.getPay_type();
+                            BigDecimal currentFee = new BigDecimal(TextUtils.isEmpty(bean.getPay_fee()) ? "0.00" : bean.getPay_fee());
+
+                            if ("cash".equals(currentType)) {
+                                totalCash = totalCash.add(currentFee);
+                            } else if ("wallet".equals(currentType)) {
+                                totalWallet = totalWallet.add(currentFee);
+                            } else if ("wechat".equals(currentType)) {
+                                totalWechat = totalWechat.add(currentFee);
+                            } else if ("alipay".equals(currentType)) {
+                                totalAlipay = totalAlipay.add(currentFee);
+                            } else if (currentType != null && currentType.startsWith("nets")) {
+                                totalNets = totalNets.add(currentFee);
                             }
 
-                            yingfu_tv.setText(checkoutBean.getTotal_amount());
-                            youhui_tv.setText("-"+checkoutBean.getDiscount_fee());
-                            daijinquan_tv.setText("-"+(TextUtils.isEmpty(checkoutBean.getCoupon_fee()) ? "0.00" : checkoutBean.getCoupon_fee()));
-                            shifu_tv.setText(shifujine_pice.toString());
-                            xianjin_tv.setText(TextUtils.isEmpty(xinjin_pice) ? "0.00" : xinjin_pice);
-                            huiyuanka_tv.setText(TextUtils.isEmpty(huiyuanka_pice) ? "0.00" : huiyuanka_pice);
-                            weixin_tv.setText(TextUtils.isEmpty(weixin_pice) ? "0.00" : weixin_pice);
-                            zhifubao_tv.setText(TextUtils.isEmpty(zhifubao_pice) ? "0.00" : zhifubao_pice);
-                            zhaolin_tv.setText(TextUtils.isEmpty(checkoutBean.getCash_change()) ? "0.00" : checkoutBean.getCash_change());
+                            // 3. 计算实付总计
+                            BigDecimal grandTotalPaid = totalCash.add(totalWallet).add(totalWechat).add(totalAlipay).add(totalNets);
+
+                            // 4. ⭐ 核心：显示支付详情面板，并填入累加后的数据
                             zhifuxinxi_view.setVisibility(VISIBLE);
+                            shop_image.setVisibility(GONE);
+                            tv_image_placeholder.setVisibility(GONE);
 
+                            yingfu_tv.setText(bean.getTotal_amount());
+                            shifu_tv.setText(grandTotalPaid.setScale(2, RoundingMode.HALF_UP).toString());
+                            xianjin_tv.setText(totalCash.setScale(2, RoundingMode.HALF_UP).toString());
+                            huiyuanka_tv.setText(totalWallet.setScale(2, RoundingMode.HALF_UP).toString());
+                            weixin_tv.setText(totalWechat.setScale(2, RoundingMode.HALF_UP).toString());
+                            zhifubao_tv.setText(totalAlipay.setScale(2, RoundingMode.HALF_UP).toString());
+                            if (nets_tv != null) {
+                                nets_tv.setText(totalNets.setScale(2, RoundingMode.HALF_UP).toString());
+                            }
+                            zhaolin_tv.setText(TextUtils.isEmpty(bean.getCash_change()) ? "0.00" : bean.getCash_change());
+
+                            // 5. 判断订单是否结束
+                            if (bean.getOrder_status() == 2) {
+                                have_paid_view.setVisibility(VISIBLE);
+                                new Handler().postDelayed(() -> have_paid_view.setVisibility(GONE), 3000);
+
+                                // ⭐ 核心修正：手动清理购物车，而不去调用那个会隐藏 UI 的 qingkong_btn
+                                selectedShopList.clear();
+                                selectedShopAdapter.notifyDataSetChanged();
+                                zongjia = new BigDecimal("0.00");
+                                tv_zongjia.setText("0.00");
+                                tv_zongjian.setText("0");
+                                allNum = 0;
+                                memberBean1 = null; // 清理会员
+                                huiyuan_name.setText(getString(R.string.member_nickname));
+
+                                // 重置本单单号和累加器，但【不隐藏】zhifuxinxi_view
+                                resetOrderState();
+                            } else {
+                                Toast.makeText(MainActivity.this, "已收部分款项，请继续结清", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     });
-                    Log.i("ttt", ">>>>>>>sss>SS>>" + checkoutPopupWindow.isShow());
-                    if (checkoutPopupWindow.isShow()) {
-                        checkoutPopupWindow.dismiss();
-                    } else {
+
+                    if (!checkoutPopupWindow.isShow()) {
                         checkoutPopupWindow.show();
                     }
-
                 }
+
+
+
+
 
                 /*
                   会员查询
@@ -926,43 +976,7 @@ public class MainActivity extends Activity {
                             memberBean1 = memberBean;
                             huiyuan_name.setText(memberBean.getNickname());
                             availableAmount();
-//                            if (memberBean.getVip() == 0) {
-//                                memben_discount = "";
-//                            }
-//                            if (memberBean.getVip() == 17) {//青铜
-//                                memben_discount = "98";
-//                            }
-//                            if (memberBean.getVip() == 18) {//白银
-//                                memben_discount = "95";
-//                            }
-//                            if (memberBean.getVip() == 19) {//黄金
-//                                memben_discount = "90";
-//                            }
-//                            if (selectedShopAdapter.getItemCount() <= 0) {
-//                                return;
-//                            }
-//                            for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopAdapter.getData()) {
-//
-//                                grouponGoodsModel.setDiscount(memben_discount);
-//
-//                                zongjia = zongjia.subtract(grouponGoodsModel.getHeji());
-//                                Log.i("ttt", ">>>>>>" + zongjia);
-//
-//                                BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
-//
-//                                BigDecimal zhehoujia = yuanjia.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal("100"));
-//
-//                                grouponGoodsModel.setDiscounted_price(yuanjia.subtract(zhehoujia));
-//
-//                                grouponGoodsModel.setHeji(zhehoujia);
-//
-//                                zongjia = zongjia.add(zhehoujia);
-//                                tv_zongjia.setText(zongjia + "");
-//                                selectedShopAdapter.notifyDataSetChanged();
-//                                MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-//                                MyPresentation.setZongjia(zongjia.toString());
-//
-//                            }
+
                         }
                     }).show();
                 }
@@ -980,33 +994,7 @@ public class MainActivity extends Activity {
                     memberBean1 = null;
                     huiyuan_name.setText(getString(R.string.member_nickname));
                     Coupon_fee = "";
-//                    memben_discount = "100";
-//
-//                    if (selectedShopAdapter.getItemCount() <= 0) {
-//                        return;
-//                    }
-//                    for (GrouponGoodsBean.GrouponGoodsModel grouponGoodsModel : selectedShopAdapter.getData()) {
-//
-//                        grouponGoodsModel.setDiscount(memben_discount);
-//
-//                        zongjia = zongjia.subtract(grouponGoodsModel.getHeji());
-//                        Log.i("ttt", ">>>>>>" + zongjia);
-//
-//                        BigDecimal yuanjia = new BigDecimal(grouponGoodsModel.getPrice()).multiply(new BigDecimal(grouponGoodsModel.getShuliang()));
-//
-//                        BigDecimal zhehoujia = yuanjia.multiply(new BigDecimal(memben_discount)).divide(new BigDecimal("100"));
-//
-//                        grouponGoodsModel.setDiscounted_price(yuanjia.subtract(zhehoujia));
-//
-//                        grouponGoodsModel.setHeji(zhehoujia);
-//
-//                        zongjia = zongjia.add(zhehoujia);
-//                        tv_zongjia.setText(zongjia + "");
-//                        selectedShopAdapter.notifyDataSetChanged();
-//                        MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-//                        MyPresentation.setZongjia(zongjia.toString());
-//
-//                    }
+
                 }
                 /*
                  * 更多功能
@@ -3621,6 +3609,15 @@ public class MainActivity extends Activity {
         return bean;
     }
 
+    private void resetOrderState() {
+        this.order_sn = "";
+        this.totalCash = BigDecimal.ZERO;
+        this.totalWallet = BigDecimal.ZERO;
+        this.totalWechat = BigDecimal.ZERO;
+        this.totalAlipay = BigDecimal.ZERO;
+        this.totalNets = BigDecimal.ZERO;
+        Log.d("OrderFlow", "数据已重置");
+    }
 
 
 }
