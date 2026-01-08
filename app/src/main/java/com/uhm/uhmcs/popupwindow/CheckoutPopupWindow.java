@@ -2,7 +2,8 @@ package com.uhm.uhmcs.popupwindow;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
-
+import android.widget.ImageView;
+import android.content.SharedPreferences;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -32,6 +33,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
 import com.uhm.uhmcs.R;
+
 import com.uhm.uhmcs.activity.LoginActivity;
 import com.uhm.uhmcs.activity.MainActivity;
 import com.uhm.uhmcs.bean.CategoryListBean;
@@ -83,6 +85,9 @@ public class CheckoutPopupWindow {
     private TextView nets_purchase_btn, nets_qr_btn, nets_cc_btn;
     private EcrSocketManager netsManager = new EcrSocketManager();
 
+
+    private ImageView pay_config_btn;
+    private static final String PREF_PAY_VISIBILITY = "checkout_pay_config";
     private CustomInputTextView shoukuan_tv;
     ClubCardBean.DataBean clubCardData;
     TextView huiyuankahao_tv;
@@ -163,6 +168,11 @@ public class CheckoutPopupWindow {
         nets_purchase_btn = popupView.findViewById(R.id.nets_purchase_btn);
         nets_qr_btn = popupView.findViewById(R.id.nets_qr_btn);
         nets_cc_btn = popupView.findViewById(R.id.nets_cc_btn);
+// 1. 绑定设置按钮
+        pay_config_btn = popupView.findViewById(R.id.pay_config_btn);
+
+
+
 
         // --- 找到这段代码进行替换 ---
         if (!TextUtils.isEmpty(checkoutBean.getCoupon_fee())) {
@@ -449,6 +459,18 @@ public class CheckoutPopupWindow {
         });
         initKey();
         time = new TimeCount(30000, 5000);
+
+        // 2. 初始化时立即应用显隐配置
+
+        applyPaymentVisibility();
+
+
+
+// 3. 点击弹出管理菜单
+
+        pay_config_btn.setOnClickListener(v -> showPayConfigDialog());
+
+
         huiyuanchaxun_btn.setOnClickListener(v -> {
             new ClubCardPopupWindow(context, clubCardBean -> {
                 clubCardData = clubCardBean.getData().get(0);
@@ -592,6 +614,10 @@ public class CheckoutPopupWindow {
 
 
     public void show() {
+
+        applyPaymentVisibility();
+
+
         if (popupWindow.isShowing()) {
             return;
         }
@@ -643,6 +669,58 @@ public class CheckoutPopupWindow {
         nets_qr_btn.setTextColor(Color.parseColor("#FF000000"));
         nets_cc_btn.setTextColor(Color.parseColor("#FF000000"));
     }
+
+
+
+    /**
+     * 核心方法 A：根据存储的配置刷新按钮显隐
+     */
+    private void applyPaymentVisibility() {
+        SharedPreferences sp = context.getSharedPreferences(PREF_PAY_VISIBILITY, Context.MODE_PRIVATE);
+
+        // 默认值都为 true (显示)
+        xianjin_btn.setVisibility(sp.getBoolean("cash", true) ? View.VISIBLE : View.GONE);
+        weixin_btn.setVisibility(sp.getBoolean("wechat", true) ? View.VISIBLE : View.GONE);
+        huiyuanka_btn.setVisibility(sp.getBoolean("wallet", true) ? View.VISIBLE : View.GONE);
+        nets_purchase_btn.setVisibility(sp.getBoolean("netsp", true) ? View.VISIBLE : View.GONE);
+        nets_qr_btn.setVisibility(sp.getBoolean("netsqr", true) ? View.VISIBLE : View.GONE);
+        nets_cc_btn.setVisibility(sp.getBoolean("netscc", true) ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * 核心方法 B：弹出多选对话框进行配置
+     */
+    private void showPayConfigDialog() {
+        String[] payNames = {"现金支付", "扫码支付", "会员卡支付", "NETS消费", "NETS QR", "NETS信用卡"};
+        String[] payKeys = {"cash", "wechat", "wallet", "netsp", "netsqr", "netscc"};
+        boolean[] selectedStates = new boolean[payKeys.length];
+
+        SharedPreferences sp = context.getSharedPreferences(PREF_PAY_VISIBILITY, Context.MODE_PRIVATE);
+        for (int i = 0; i < payKeys.length; i++) {
+            selectedStates[i] = sp.getBoolean(payKeys[i], true);
+        }
+
+        new androidx.appcompat.app.AlertDialog.Builder(context)
+                .setTitle("管理支付方式显示")
+                .setMultiChoiceItems(payNames, selectedStates, (dialog, which, isChecked) -> {
+                    selectedStates[which] = isChecked;
+                })
+                .setPositiveButton("保存设置", (dialog, which) -> {
+                    SharedPreferences.Editor editor = sp.edit();
+                    for (int i = 0; i < payKeys.length; i++) {
+                        editor.putBoolean(payKeys[i], selectedStates[i]);
+                    }
+                    editor.apply();
+
+                    // 立即应用配置
+                    applyPaymentVisibility();
+                    Toast.makeText(context, "设置成功，已更新界面", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
+
 
     public void dismiss() {
         popupWindow.dismiss();
