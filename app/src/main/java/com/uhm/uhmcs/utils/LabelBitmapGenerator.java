@@ -22,12 +22,12 @@ import com.uhm.uhmcs.bean.GrouponGoodsBean;
 import java.util.Hashtable;
 
 /**
- * 标签图片生成器 - 已修正语法错误与字号同步逻辑
+ * 标签图片生成器 - 全球化货币符号更新版
  */
 public class LabelBitmapGenerator {
 
     private static final float MM_TO_DP = 8f;
-    // 这里的常量建议与 DIY 页面保持一致，如果你在 DIY 页面改了，这里也要改
+    // 这里的常量建议与 DIY 页面保持一致
     private static final int BARCODE_FIXED_WIDTH_MM = 30;
     private static final int BARCODE_HEIGHT_MM = 10;
 
@@ -90,7 +90,7 @@ public class LabelBitmapGenerator {
             setViewVisibility(context, tvPoints, "points");
             setViewVisibility(context, tvCoupon, "coupon");
 
-            // 5. 应用 DIY 选定的字号 (重要：同步你在 DIY 页面点击切换的结果)
+            // 5. 应用 DIY 选定的字号
             applyElementStyle(context, tvShop, "shop");
             applyElementStyle(context, tvName, "name");
             applyElementStyle(context, tvPrice, "price");
@@ -101,11 +101,13 @@ public class LabelBitmapGenerator {
             applyElementStyle(context, tvPoints, "points");
             applyElementStyle(context, tvCoupon, "coupon");
 
-            // 条码下方的数字，你之前要求固定大字号加粗
+            // 条码下方的数字
             applyElementStyle(context, tvCode, "barcode");
 
-            // 6. 填充真实数据
+            // 6. 填充真实数据 (全球化符号接入)
             if (goods != null) {
+                String symbol = CurrencyUtils.getSymbol(); // 获取当前动态货币符号
+
                 String shopName = "";
                 try {
                     if (UserUtils.getInstance().getShopDataBean() != null && UserUtils.getInstance().getShopDataBean().getData() != null) {
@@ -115,7 +117,10 @@ public class LabelBitmapGenerator {
                 tvShop.setText(TextUtils.isEmpty(shopName) ? "店铺" : shopName);
 
                 tvName.setText(goods.getTitle());
-                tvPrice.setText(goods.getPrice() + "元");
+
+                // ⭐ 修改点：售价不再硬编码“元”，改用动态符号
+                tvPrice.setText(symbol + goods.getPrice());
+
                 tvSn.setText(goods.getSn());
                 tvSpecs.setText(TextUtils.isEmpty(goods.getSpecs_title()) ? "" : goods.getSpecs_title());
                 tvUnit.setText(TextUtils.isEmpty(goods.getUnit()) ? "1" : goods.getUnit());
@@ -125,8 +130,10 @@ public class LabelBitmapGenerator {
 
                 String points = String.valueOf(goods.getReward_points());
                 tvPoints.setText((TextUtils.isEmpty(points) || "null".equalsIgnoreCase(points)) ? "0.00" : points);
+
+                // ⭐ 修改点：抵扣金额也加上动态货币符号
                 String coupon = String.valueOf(goods.getDeduction_golive());
-                tvCoupon.setText((TextUtils.isEmpty(coupon) || "null".equalsIgnoreCase(coupon)) ? "0.00" : coupon);
+                tvCoupon.setText((TextUtils.isEmpty(coupon) || "null".equalsIgnoreCase(coupon)) ? "0.00" : symbol + coupon);
 
                 String barcodeStr = TextUtils.isEmpty(goods.getSn()) ? goods.getGoods_sn() : goods.getSn();
                 if (!TextUtils.isEmpty(barcodeStr)) {
@@ -190,14 +197,12 @@ public class LabelBitmapGenerator {
         }
     }
 
-    // --- 以下为辅助方法，均在 generateLabelBitmap 方法之外 ---
+    // --- 辅助方法 ---
 
     private static void applyElementStyle(Context context, TextView tv, String key) {
         if (tv == null) return;
-        // 读取保存的字号，默认 16
         int size = UserUtils.getInstance().getElementTextSize(context, key, 16);
         tv.setTextSize(size);
-        // 建议打印时全部强制加粗，热敏打印效果更黑更清晰
         tv.getPaint().setFakeBoldText(true);
     }
 

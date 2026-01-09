@@ -12,6 +12,7 @@
     <string name="barcode">Barcode</string>
     <string name="grand_total">Grand Total:</string>
     <string name="total_items">Total Items:</string>
+    <string name="currency_setting">Currency Setting</string>
     <string name="delete_item">Delete Item</string>
     <string name="clear_all"> Clear All(F5)</string>
     <string name="hold_order">Hold Order(F2)</string>

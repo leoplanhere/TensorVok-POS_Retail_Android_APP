@@ -155,6 +155,27 @@
 
             <LinearLayout
                 android:layout_marginRight="10dp"
+                android:id="@+id/huobishezhi_btn"
+                android:background="@drawable/num_btn_bg1"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="170dp"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:paddingTop="35dp">
+                <TextView
+                    android:drawableTop="@drawable/yuyan_iv"
+                    android:drawablePadding="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FF1359FE"
+                    android:textSize="22dp"
+                    android:text="货币设置"
+                    android:gravity="center" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_marginRight="10dp"
                 android:id="@+id/yuyangshezhi_btn"
                 android:background="@drawable/num_btn_bg1"
                 android:layout_width="0dp"

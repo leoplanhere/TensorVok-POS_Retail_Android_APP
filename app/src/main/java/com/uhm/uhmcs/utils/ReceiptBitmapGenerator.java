@@ -30,9 +30,13 @@ public class ReceiptBitmapGenerator {
 
     /**
      * 生成结账小票的长 Bitmap
+     * 全球化更新：支持动态货币符号预览
      */
     public static Bitmap generateReceiptBitmap(Context context, CheckoutBean bean, String orderSn) {
         ReceiptConfigUtils config = ReceiptConfigUtils.getInstance(context);
+
+        // 获取当前动态货币符号
+        String symbol = CurrencyUtils.getSymbol();
 
         // 1. 确定画布宽度 (58mm ≈ 384px, 80mm ≈ 576px)
         int paperWidthPx = (config.getPaperType() == 0) ? 384 : 576;
@@ -148,18 +152,23 @@ public class ReceiptBitmapGenerator {
 
                     row.addView(createPreviewText(context, item.getTitle(), finalSize, 14, Gravity.START));
                     row.addView(createPreviewText(context, qtyStr, finalSize, 6, Gravity.END));
-                    row.addView(createPreviewText(context, item.getGoods_price(), finalSize, 6, Gravity.END));
-                    row.addView(createPreviewText(context, item.getPay_price(), finalSize, 6, Gravity.END));
+
+                    // ⭐ 修改点：单价加上货币符号
+                    row.addView(createPreviewText(context, symbol + item.getGoods_price(), finalSize, 6, Gravity.END));
+                    // ⭐ 修改点：小计加上货币符号
+                    row.addView(createPreviewText(context, symbol + item.getPay_price(), finalSize, 6, Gravity.END));
 
                     llGoods.addView(row);
                 }
             }
         } catch (Exception e) { e.printStackTrace(); }
 
-        // 金额汇总区
+        // 金额汇总区 (全球化符号接入)
         if (bean != null) {
-            tvTotalLabel.setText(bean.getTotal_amount());
-            tvTotalAmount.setText(bean.getTotal_amount());
+            // ⭐ 修改点：应付文字旁边加上符号
+            tvTotalLabel.setText(symbol + bean.getTotal_amount());
+            // ⭐ 修改点：总金额大字加上符号
+            tvTotalAmount.setText(symbol + bean.getTotal_amount());
 
             String pType = bean.getPay_type();
             String payTitle = "微信支付:";
@@ -169,7 +178,8 @@ public class ReceiptBitmapGenerator {
                 else if (pType.contains("member") || pType.contains("wallet")) payTitle = "会员卡支付:";
             }
             tvPayName.setText(payTitle);
-            tvPayDetail.setText(bean.getTotal_amount());
+            // ⭐ 修改点：支付明细金额加上符号
+            tvPayDetail.setText(symbol + bean.getTotal_amount());
         }
 
         // 底部条码
@@ -194,7 +204,6 @@ public class ReceiptBitmapGenerator {
         // 底部 Logo
         if (config.showBottomLogo()) {
             ivBottomLogo.setVisibility(View.VISIBLE);
-            // ⭐ 修复点：必须手动设置图片，否则预览也是空的
             ivBottomLogo.setImageResource(R.mipmap.pos_ui_logo_01);
         } else {
             ivBottomLogo.setVisibility(View.GONE);

@@ -24,6 +24,7 @@ import java.util.List;
 /**
  * 小票打印指令工具类
  * 修复重点：1. 恢复字体大小设置逻辑  2. 确保底部 Logo 物理打印注入  3. 保持组合支付明细显示
+ * 全球化更新：动态获取货币符号
  */
 public class ReceiptCommandUtils {
 
@@ -39,6 +40,9 @@ public class ReceiptCommandUtils {
         ReceiptConfigUtils config = ReceiptConfigUtils.getInstance(context);
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         final int TOTAL_WIDTH = (config.getPaperType() == 0) ? 32 : 48;
+
+        // 强制使用打印机专用缩写，确保 GBK 编码下不乱码
+        String symbol = CurrencyUtils.getPrinterSymbol();
 
         try {
             buffer.write(RESET);
@@ -101,7 +105,7 @@ public class ReceiptCommandUtils {
             setFontSize(buffer, 0, 0); // 打印结束后恢复标准大小
             printSeparator(buffer, TOTAL_WIDTH);
 
-            /* ========== 5. 金额汇总 ========== */
+            /* ========== 5. 金额汇总 (全球化修改点) ========== */
             if (bean != null) {
                 BigDecimal totalAmount = new BigDecimal(TextUtils.isEmpty(bean.getTotal_amount()) ? "0.00" : bean.getTotal_amount());
                 BigDecimal couponFee = new BigDecimal(TextUtils.isEmpty(bean.getCoupon_fee()) ? "0.00" : bean.getCoupon_fee());
@@ -109,24 +113,24 @@ public class ReceiptCommandUtils {
                 if (actualPaid.compareTo(BigDecimal.ZERO) < 0) actualPaid = BigDecimal.ZERO;
 
                 printTwoColumnRow(buffer, "购买数量:", bean.getAllNum() + "件", TOTAL_WIDTH);
-                printTwoColumnRow(buffer, "应付总计:", "￥" + totalAmount.setScale(2, BigDecimal.ROUND_HALF_UP).toString(), TOTAL_WIDTH);
+                printTwoColumnRow(buffer, "应付总计:", symbol + totalAmount.setScale(2, BigDecimal.ROUND_HALF_UP).toString(), TOTAL_WIDTH);
 
-                if (isGreaterZero(bean.getDiscount_fee())) printTwoColumnRow(buffer, "优惠总计:", "-￥" + bean.getDiscount_fee(), TOTAL_WIDTH);
-                if (couponFee.compareTo(BigDecimal.ZERO) > 0) printTwoColumnRow(buffer, "代金券:", "-￥" + couponFee.setScale(2, BigDecimal.ROUND_HALF_UP).toString(), TOTAL_WIDTH);
+                if (isGreaterZero(bean.getDiscount_fee())) printTwoColumnRow(buffer, "优惠总计:", "-" + symbol + bean.getDiscount_fee(), TOTAL_WIDTH);
+                if (couponFee.compareTo(BigDecimal.ZERO) > 0) printTwoColumnRow(buffer, "代金券:", "-" + symbol + couponFee.setScale(2, BigDecimal.ROUND_HALF_UP).toString(), TOTAL_WIDTH);
 
                 buffer.write(BOLD_ON);
-                printTwoColumnRow(buffer, "实付金额:", "￥" + actualPaid.setScale(2, BigDecimal.ROUND_HALF_UP).toString(), TOTAL_WIDTH);
+                printTwoColumnRow(buffer, "实付金额:", symbol + actualPaid.setScale(2, BigDecimal.ROUND_HALF_UP).toString(), TOTAL_WIDTH);
                 buffer.write(BOLD_OFF);
 
-                /* ========== ⭐ 支付详情 (平铺判断，支持组合支付) ========== */
+                /* ========== ⭐ 支付详情 (平铺判断，支持组合支付，符号全球化) ========== */
                 printText(buffer, "支付详情:\n");
-                if (isGreaterZero(cash))    printTwoColumnRow(buffer, "  - 现金支付:", "￥" + cash.trim(), TOTAL_WIDTH);
-                if (isGreaterZero(wechat))  printTwoColumnRow(buffer, "  - 微信支付:", "￥" + wechat.trim(), TOTAL_WIDTH);
-                if (isGreaterZero(alipay))  printTwoColumnRow(buffer, "  - 支付宝支付:", "￥" + alipay.trim(), TOTAL_WIDTH);
-                if (isGreaterZero(wallet))  printTwoColumnRow(buffer, "  - 会员卡余额:", "￥" + wallet.trim(), TOTAL_WIDTH);
-                if (isGreaterZero(nets))    printTwoColumnRow(buffer, "  - NETS支付:", "￥" + nets.trim(), TOTAL_WIDTH);
+                if (isGreaterZero(cash))    printTwoColumnRow(buffer, "  - 现金支付:", symbol + cash.trim(), TOTAL_WIDTH);
+                if (isGreaterZero(wechat))  printTwoColumnRow(buffer, "  - 微信支付:", symbol + wechat.trim(), TOTAL_WIDTH);
+                if (isGreaterZero(alipay))  printTwoColumnRow(buffer, "  - 支付宝支付:", symbol + alipay.trim(), TOTAL_WIDTH);
+                if (isGreaterZero(wallet))  printTwoColumnRow(buffer, "  - 会员卡余额:", symbol + wallet.trim(), TOTAL_WIDTH);
+                if (isGreaterZero(nets))    printTwoColumnRow(buffer, "  - NETS支付:", symbol + nets.trim(), TOTAL_WIDTH);
 
-                if (isGreaterZero(bean.getCash_change())) printTwoColumnRow(buffer, "找零:", "￥" + bean.getCash_change(), TOTAL_WIDTH);
+                if (isGreaterZero(bean.getCash_change())) printTwoColumnRow(buffer, "找零:", symbol + bean.getCash_change(), TOTAL_WIDTH);
             }
 
             /* ========== 6. 条码 & 二维码 ========== */

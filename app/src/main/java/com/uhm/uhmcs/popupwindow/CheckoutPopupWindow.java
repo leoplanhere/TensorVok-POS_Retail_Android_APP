@@ -132,6 +132,10 @@ public class CheckoutPopupWindow {
     @SuppressLint("SetTextI18n")
     private void initPopup() {
         popupView = LayoutInflater.from(context).inflate(R.layout.popupwindow_checkout, null);
+
+        String symbol = com.uhm.uhmcs.utils.CurrencyUtils.getSymbol(); // 获取当前动态符号
+
+
         popupWindow = new PopupWindow(
                 popupView,
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -174,41 +178,67 @@ public class CheckoutPopupWindow {
 
 
 
-        // --- 找到这段代码进行替换 ---
         if (!TextUtils.isEmpty(checkoutBean.getCoupon_fee())) {
             youhuijuan_view.setVisibility(VISIBLE);
-            youhuijuan_jine.setText(checkoutBean.getCoupon_fee());
-            // 默认不使用，所以这里不需要 subtract 扣除金额
-            youhui_tv.setText("￥" + checkoutBean.getDiscount_fee());
+            // 代金券可用金额也加上符号
+            youhuijuan_jine.setText(symbol + checkoutBean.getCoupon_fee());
+            youhui_tv.setText(symbol + checkoutBean.getDiscount_fee());
         } else {
-            youhui_tv.setText("￥" + checkoutBean.getDiscount_fee());
+            youhui_tv.setText(symbol + checkoutBean.getDiscount_fee());
         }
 
-// 设置“不使用”按钮为选中样式，“使用”按钮为普通样式
+        yishou_tv.setText(symbol + "0.00");
+        yingshou_tv.setText(symbol + checkoutBean.getTotal_amount());
+        shijishou_tv.setText(symbol + checkoutBean.getTotal_fee());
+
+// 建议：给输入框的 Hint 也加上当前币种提示，防止收银员输错
+        shoukuan_tv.setHint(context.getString(R.string.enter_payment_amount) + "(" + symbol + ")");
+
+
+
+
+
         shiyong_btn.setBackgroundResource(R.drawable.blue_line);
         shiyong_btn.setTextColor(Color.parseColor("#FF3B82F6"));
         bushiyong_btn.setBackgroundResource(R.drawable.blue_bg5);
         bushiyong_btn.setTextColor(Color.parseColor("#FFFFFFFF"));
 
-        yishou_tv.setText("￥0.00");
-        yingshou_tv.setText("￥" + checkoutBean.getTotal_amount());
-        shijishou_tv.setText("￥" + checkoutBean.getTotal_fee());
-// -----------------------------
+
+
 
         shiyong_btn.setOnClickListener(v -> {
             if (isyouhuijuan) {
                 return;
             }
+            // 校验代金券金额是否有效，如果为空则提示并返回
+            if (TextUtils.isEmpty(checkoutBean.getCoupon_fee())) {
+                Toast.makeText(context, "代金券金额无效", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             isyouhuijuan = true;
             shiyong_btn.setBackgroundResource(R.drawable.blue_bg5);
             shiyong_btn.setTextColor(Color.parseColor("#FFFFFFFF"));
             bushiyong_btn.setBackgroundResource(R.drawable.blue_line);
             bushiyong_btn.setTextColor(Color.parseColor("#FF3B82F6"));
-            youhui_tv.setText("￥" + new BigDecimal(checkoutBean.getDiscount_fee()).add(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
-            checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
-            shijishou_tv.setText("￥" + checkoutBean.getTotal_fee());
-            shoukuan_tv.setText(checkoutBean.getTotal_fee() + "");
+
+            // 【核心修复】：使用 safeBigDecimal 代替直接 new BigDecimal
+            BigDecimal discount = safeBigDecimal(checkoutBean.getDiscount_fee());
+            BigDecimal coupon = safeBigDecimal(checkoutBean.getCoupon_fee());
+            BigDecimal totalFee = safeBigDecimal(checkoutBean.getTotal_fee());
+
+            // 更新优惠总计显示
+            youhui_tv.setText(symbol + discount.add(coupon).toString());
+
+            // 更新应付金额
+            BigDecimal newTotalFee = totalFee.subtract(coupon);
+            checkoutBean.setTotal_fee(newTotalFee.toString());
+            shijishou_tv.setText(symbol + checkoutBean.getTotal_fee());
+            shoukuan_tv.setText(checkoutBean.getTotal_fee());
         });
+
+
+
         qufen_btn.setOnClickListener(v -> {
             // 原始金额
             BigDecimal original = new BigDecimal(checkoutBean.getTotal_fee());
@@ -217,9 +247,9 @@ public class CheckoutPopupWindow {
             // 计算差额
             BigDecimal diff = original.subtract(truncated);
             checkoutBean.setDiscount_fee(new BigDecimal(checkoutBean.getDiscount_fee()).add(diff).toString());
-            youhui_tv.setText("￥" + checkoutBean.getDiscount_fee());
+            youhui_tv.setText(symbol + checkoutBean.getDiscount_fee());
             checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).subtract(diff).toString());
-            shijishou_tv.setText("￥" + checkoutBean.getTotal_fee());
+            shijishou_tv.setText(symbol + checkoutBean.getTotal_fee());
             shoukuan_tv.setText(checkoutBean.getTotal_fee() + "");
         });
 
@@ -231,11 +261,22 @@ public class CheckoutPopupWindow {
             bushiyong_btn.setTextColor(Color.parseColor("#FFFFFFFF"));
             shiyong_btn.setBackgroundResource(R.drawable.blue_line);
             shiyong_btn.setTextColor(Color.parseColor("#FF3B82F6"));
+
             isyouhuijuan = false;
-            youhui_tv.setText("￥" + checkoutBean.getDiscount_fee());
-            checkoutBean.setTotal_fee(new BigDecimal(checkoutBean.getTotal_fee()).add(new BigDecimal(checkoutBean.getCoupon_fee())).toString());
-            shijishou_tv.setText("￥" + checkoutBean.getTotal_fee());
-            shoukuan_tv.setText(checkoutBean.getTotal_fee() + "");
+
+            // 【核心修复】：使用 safeBigDecimal
+            BigDecimal discount = safeBigDecimal(checkoutBean.getDiscount_fee());
+            BigDecimal coupon = safeBigDecimal(checkoutBean.getCoupon_fee());
+            BigDecimal totalFee = safeBigDecimal(checkoutBean.getTotal_fee());
+
+            youhui_tv.setText(symbol + discount.toString());
+
+            // 恢复金额：应付 = 当前应付 + 代金券金额
+            BigDecimal restoredTotal = totalFee.add(coupon);
+            checkoutBean.setTotal_fee(restoredTotal.toString());
+
+            shijishou_tv.setText(symbol + checkoutBean.getTotal_fee());
+            shoukuan_tv.setText(checkoutBean.getTotal_fee());
         });
 
         shoukuan_tv.addTextChangedListener(new TextWatcher() {
@@ -262,7 +303,7 @@ public class CheckoutPopupWindow {
                 BigDecimal zhaolin;
                 zhaolin = new BigDecimal(TextUtils.isEmpty(s.toString()) ? "0.00" : s.toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee()).subtract(new BigDecimal(yinshou)));
                 if (zhaolin.compareTo(BigDecimal.ZERO) > 0) {
-                    zhaolin_tv.setText(zhaolin.toString());
+                    zhaolin_tv.setText(symbol + zhaolin.setScale(2, RoundingMode.HALF_UP).toString());
                 } else {
                     zhaolin_tv.setText("0.00");
                 }
@@ -444,7 +485,7 @@ public class CheckoutPopupWindow {
             new ClubCardPopupWindow(context, clubCardBean -> {
                 clubCardData = clubCardBean.getData().get(0);
                 huiyuankahao_tv.setText(clubCardData.getNumber());
-                huiyuanyue_tv.setText(clubCardData.getAmount());
+                huiyuanyue_tv.setText(symbol + clubCardData.getAmount());
             }).show();
             qufen_btn.setVisibility(GONE);
         });
@@ -729,6 +770,9 @@ public class CheckoutPopupWindow {
     @SuppressLint("SetTextI18n")
     private void initKey() {
         try {
+            // 提前获取当前货币符号，用于过滤
+            String symbol = com.uhm.uhmcs.utils.CurrencyUtils.getSymbol();
+
             LinearLayout llkeyArea = (LinearLayout) popupView.findViewById(R.id.llkeyArea);
             for (int i = 0; i < llkeyArea.getChildCount(); i++) {
                 // 第一部分：处理 1-9, 0, . , - 等数字按键
@@ -789,7 +833,12 @@ public class CheckoutPopupWindow {
                                     checkoutBean.setPay_type(pay_type);
                                     checkoutBean.setPay_fee(inputAmount);
                                     checkoutBean.setCash_price(inputAmount);
-                                    checkoutBean.setCash_change(zhaolin_tv.getText().toString());
+
+                                    // 【修正】：提取找零并过滤掉货币符号，确保发给后端的是纯数字字符串
+                                    String changeStr = zhaolin_tv.getText().toString();
+                                    String pureChange = changeStr.replace(symbol, "").trim();
+                                    checkoutBean.setCash_change(pureChange);
+
                                     if (!NetworkUtils.getInstance().isNetworkConnected(context)) {
                                         if (new BigDecimal(inputAmount).subtract(new BigDecimal(checkoutBean.getTotal_fee())).compareTo(BigDecimal.ZERO) < 0) {
                                             new DeleteShopPopupWindow(context, context.getString(R.string.Cannot_underpay), true).show();
@@ -798,7 +847,7 @@ public class CheckoutPopupWindow {
                                     }
                                     SubmitCheckout();
                                 }
-                                // 情况 B: 会员卡余额
+                                // 情况 B: 会员卡余额支付
                                 else if (pay_type.equals("wallet")) {
                                     if (clubCardData == null) {
                                         new DeleteShopPopupWindow(context, "请先查询会员信息", true).show();
@@ -815,13 +864,18 @@ public class CheckoutPopupWindow {
                                     checkoutBean.setPay_type(pay_type);
                                     checkoutBean.setPay_fee(inputAmount);
                                     checkoutBean.setCash_price(inputAmount);
-                                    checkoutBean.setCash_change(zhaolin_tv.getText().toString());
+
+                                    // 【修正】：过滤掉货币符号，只留纯数字发给服务器
+                                    String changeStr = zhaolin_tv.getText().toString();
+                                    String pureNumber = changeStr.replace(symbol, "").trim();
+                                    checkoutBean.setCash_change(pureNumber);
+
                                     checkoutBean.setCardnumber(clubCardData.getNumber());
                                     SubmitCheckout();
                                 }
                                 // 情况 C: NETS 系列支付 (netsp, netsqr, netscc)
                                 else if (pay_type.equals("netsp") || pay_type.equals("netsqr") || pay_type.equals("netscc")) {
-                                    // ✅ 这里改为：虚拟键盘点确认后，正式调起 NETS
+                                    // ✅ 虚拟键盘点确认后，正式调起 NETS
                                     startNetsTransaction(pay_type);
                                 }
                                 // 情况 D: 其他扫码支付 (微信/支付宝)
@@ -840,9 +894,11 @@ public class CheckoutPopupWindow {
                 }
             }
         } catch (Exception ex) {
-            Log.i("错误返回", ex.getMessage() + "");
+            Log.e("CheckoutError", "initKey 异常: " + ex.getMessage());
         }
     }
+
+
 
 
 
@@ -884,7 +940,7 @@ public class CheckoutPopupWindow {
         }
 
         if (!isyouhuijuan) {
-            checkoutBean.setCoupon_fee("");
+            checkoutBean.setCoupon_fee("0.00");
         }
         checkoutBean.setXf_type("1");
         checkoutBean.setOrder_status(order_status);
@@ -1350,7 +1406,9 @@ public class CheckoutPopupWindow {
 
                 String currentPayAmount = shoukuan_tv.getText().toString();
                 yinshou = new BigDecimal(yinshou).add(new BigDecimal(currentPayAmount)).toString();
-                yishou_tv.setText("￥" + yinshou);
+                // 这里的 symbol 需要在方法内重新获取一下，或者提升为成员变量
+                String currentSymbol = com.uhm.uhmcs.utils.CurrencyUtils.getSymbol();
+                yishou_tv.setText(currentSymbol + yinshou);
 
                 if (order_status == 2) {
                     // ⭐ 核心修正：只有当 order_sn 确实为空时，才从 code 尝试获取单号。
@@ -1389,6 +1447,22 @@ public class CheckoutPopupWindow {
             }
         } catch (Exception e) {
             Log.e("ttt", "处理后端响应异常", e);
+        }
+    }
+
+
+
+    /**
+     * 安全地将 String 转换为 BigDecimal，防止空字符串导致崩溃
+     */
+    private BigDecimal safeBigDecimal(String val) {
+        if (TextUtils.isEmpty(val)) {
+            return BigDecimal.ZERO;
+        }
+        try {
+            return new BigDecimal(val);
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
         }
     }
 

@@ -10,6 +10,8 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 
+import com.uhm.uhmcs.utils.CurrencyUtils;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -212,6 +214,8 @@ public class MainActivity extends Activity {
     private CustomInputTextView et_tiaoxingma;
     private Animation animation;
     private TextView tv_zongjia, tv_zongjian, qingkong_btn, qudan_btn, guadan_btn, dazhe_one_btn, dazhe_all_btn, checkout_btn, daying_btn;
+
+    private TextView tv_main_symbol; // 主界面大总价左边的货币符号
     private LinearLayout huiyuan_btn;
     private TextView huiyuan_name;
 
@@ -572,8 +576,8 @@ public class MainActivity extends Activity {
                             // ... 原有的删除逻辑 ...
                             if (!selectedShopList.get(selectedShopIndex).isIs_zengsong()) {
                                 zongjia = zongjia.subtract(selectedShopList.get(selectedShopIndex).getHeji()).setScale(2, RoundingMode.DOWN);
-                                tv_zongjia.setText(zongjia + "");
-                                MyPresentation.setZongjia(zongjia.toString());
+                                tv_zongjia.setText(zongjia.setScale(2, RoundingMode.DOWN).toString());
+                                MyPresentation.setZongjia(CurrencyUtils.format(zongjia));
                             }
                             allNum = allNum - selectedShopList.get(selectedShopIndex).getShuliang();
                             selectedShopList.remove(selectedShopIndex.intValue());
@@ -652,11 +656,11 @@ public class MainActivity extends Activity {
                     selectedShopList.clear();
                     selectedShopAdapter.setNewData(selectedShopList);
                     zongjia = new BigDecimal("0.00");
-                    tv_zongjia.setText(zongjia + "");
+                    tv_zongjia.setText(zongjia.setScale(2, RoundingMode.DOWN).toString());
                     tv_zongjian.setText("0");
                     allNum = 0;
                     MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                    MyPresentation.setZongjia(zongjia.toString());
+                    MyPresentation.setZongjia(CurrencyUtils.format(zongjia));
 
                     updatePlaceholderVisibility();
 
@@ -676,14 +680,14 @@ public class MainActivity extends Activity {
                                     Log.i("ttt", ">>>>>>>>>>>>取单");
                                     selectedShopAdapter.setNewData(new ArrayList<>());
                                     zongjia = registrationShopBean.getTotal_price();
-                                    tv_zongjia.setText(zongjia + "");
+                                    tv_zongjia.setText(zongjia.setScale(2, RoundingMode.DOWN).toString());
                                     selectedShopList = new ArrayList<>();
                                     selectedShopList = registrationShopBean.getRegistrationShopList();
                                     tv_zongjian.setText(registrationShopBean.getAllNum() + "");
                                     allNum = registrationShopBean.getAllNum();
                                     selectedShopAdapter.setNewData(selectedShopList);
                                     MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                                    MyPresentation.setZongjia(zongjia.toString());
+                                    MyPresentation.setZongjia(CurrencyUtils.format(zongjia));
                                     availableAmount();
 
                                     // ★★★ 核心修复：在这里调用，数据恢复后立刻隐藏占位符 ★★★
@@ -758,10 +762,10 @@ public class MainActivity extends Activity {
 
                             }
                             Log.i("ttt", ">>sss>>>>" + zongjia);
-                            tv_zongjia.setText(zongjia + "");
+                            tv_zongjia.setText(zongjia.setScale(2, RoundingMode.DOWN).toString());
                             selectedShopAdapter.notifyItemChanged(selectedShopIndex);
                             MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                            MyPresentation.setZongjia(zongjia.toString());
+                            MyPresentation.setZongjia(CurrencyUtils.format(zongjia));
                             availableAmount();
 
                         }
@@ -816,10 +820,10 @@ public class MainActivity extends Activity {
 
                             }
                             Log.i("ttt", ">>sss>>>>" + zongjia);
-                            tv_zongjia.setText(zongjia + "");
+                            tv_zongjia.setText(zongjia.setScale(2, RoundingMode.DOWN).toString());
                             selectedShopAdapter.notifyDataSetChanged();
                             MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                            MyPresentation.setZongjia(zongjia.toString());
+                            MyPresentation.setZongjia(CurrencyUtils.format(zongjia));
                             availableAmount();
 
                         }
@@ -914,17 +918,23 @@ public class MainActivity extends Activity {
                             shop_image.setVisibility(GONE);
                             tv_image_placeholder.setVisibility(GONE);
 
-                            yingfu_tv.setText(bean.getTotal_amount());
-                            shifu_tv.setText(shifujine_pice.setScale(2, RoundingMode.HALF_UP).toString());
-                            youhui_tv.setText("-" + bean.getDiscount_fee());
-                            daijinquan_tv.setText("-" + (TextUtils.isEmpty(bean.getCoupon_fee()) ? "0.00" : bean.getCoupon_fee()));
 
-                            xianjin_tv.setText(totalCash.toString());
-                            huiyuanka_tv.setText(totalWallet.toString());
-                            weixin_tv.setText(totalWechat.toString());
-                            zhifubao_tv.setText(totalAlipay.toString());
-                            if (nets_tv != null) nets_tv.setText(totalNets.toString());
-                            zhaolin_tv.setText(TextUtils.isEmpty(bean.getCash_change()) ? "0.00" : bean.getCash_change());
+
+                            // 替换 yingfu_tv 开始到 zhaolin_tv 结束的部分
+                            yingfu_tv.setText(CurrencyUtils.format(bean.getTotal_amount()));
+                            shifu_tv.setText(CurrencyUtils.format(shifujine_pice.setScale(2, RoundingMode.HALF_UP)));
+                            youhui_tv.setText("-" + CurrencyUtils.getSymbol() + bean.getDiscount_fee());
+                            daijinquan_tv.setText("-" + CurrencyUtils.getSymbol() + (TextUtils.isEmpty(bean.getCoupon_fee()) ? "0.00" : bean.getCoupon_fee()));
+
+                            xianjin_tv.setText(CurrencyUtils.format(totalCash));
+                            huiyuanka_tv.setText(CurrencyUtils.format(totalWallet));
+                            weixin_tv.setText(CurrencyUtils.format(totalWechat));
+                            zhifubao_tv.setText(CurrencyUtils.format(totalAlipay));
+                            if (nets_tv != null) nets_tv.setText(CurrencyUtils.format(totalNets));
+                            zhaolin_tv.setText(CurrencyUtils.format(TextUtils.isEmpty(bean.getCash_change()) ? "0.00" : bean.getCash_change()));
+
+
+
 
                             // 5. 判断订单是否彻底付清
                             if (bean.getOrder_status() == 2) {
@@ -1124,10 +1134,10 @@ public class MainActivity extends Activity {
                                                         grouponGoodsModel.setHeji(zhehoujia);
 
                                                         zongjia = zongjia.add(zhehoujia);
-                                                        tv_zongjia.setText(zongjia + "");
+                                                        tv_zongjia.setText(zongjia.setScale(2, RoundingMode.DOWN).toString());
                                                         selectedShopAdapter.notifyDataSetChanged();
                                                         MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                                                        MyPresentation.setZongjia(zongjia.toString());
+                                                        MyPresentation.setZongjia(CurrencyUtils.format(zongjia));
 
                                                     }
                                                 }
@@ -1162,6 +1172,25 @@ public class MainActivity extends Activity {
                                         }
                                     }).show();
                                     break;
+
+                                /*
+                                 * 货币设置 (新增)
+                                 * 放在语言设置 (Case 13) 逻辑之前
+                                 */
+                                case 16:
+                                    new com.lxj.xpopup.XPopup.Builder(MainActivity.this)
+                                            .asCustom(new com.uhm.uhmcs.popupwindow.CurrencySelectPopupWindow(MainActivity.this, new com.uhm.uhmcs.popupwindow.CurrencySelectPopupWindow.OnCurrencySelectedListener() {
+                                                @Override
+                                                public void onSelected(String currencyCode) {
+                                                    // 切换货币后，重写 Activity 以刷新所有 UI 界面上的符号
+                                                    recreate();
+                                                }
+                                            }))
+                                            .show();
+                                    break;
+
+
+
                                 /*
                                  * 语言设置
                                  */
@@ -1255,8 +1284,8 @@ public class MainActivity extends Activity {
                             selected_LinearLayoutManager.scrollToPosition(0);  // 立即滚动，无动画效果
                             tv_zongjian.setText(allNum + "");
                             zongjia = zongjia.add(price).setScale(2, RoundingMode.DOWN);
-                            tv_zongjia.setText(zongjia + "");
-                            MyPresentation.setZongjia(zongjia.toString());
+                            tv_zongjia.setText(zongjia.setScale(2, RoundingMode.DOWN).toString());
+                            MyPresentation.setZongjia(CurrencyUtils.format(zongjia));
                             availableAmount();
                         }
                     }).show();
@@ -1369,6 +1398,14 @@ public class MainActivity extends Activity {
 
 
         tv_zongjia = findViewById(R.id.tv_zongjia);
+
+        // 绑定 XML 中总价左边的符号 TextView (根据你之前的 XML，它没有 ID，建议你在 XML 里给那个写着“￥”的 TextView 加一个 id: tv_main_symbol)
+        tv_main_symbol = findViewById(R.id.tv_main_symbol);
+        if (tv_main_symbol != null) {
+            tv_main_symbol.setText(CurrencyUtils.getSymbol());
+        }
+
+
         tv_zongjian = findViewById(R.id.tv_zongjian);
 
         animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.scale_click);
@@ -1432,6 +1469,17 @@ public class MainActivity extends Activity {
                     }
                 }
             });
+
+// 1. 绑定总价旁边的符号 TextView
+            tv_main_symbol = findViewById(R.id.tv_main_symbol);
+
+// 2. 初始化显示当前货币符号
+            if (tv_main_symbol != null) {
+                tv_main_symbol.setText(CurrencyUtils.getSymbol());
+            }
+
+
+
         }); // <--- 注意：在这里就结束了，后面不准再写方法定义
 
 
@@ -1510,8 +1558,8 @@ public class MainActivity extends Activity {
                                     }
 
                                     zongjia = zongjia.subtract(price).setScale(2, RoundingMode.DOWN);
-                                    tv_zongjia.setText(zongjia + "");
-                                    MyPresentation.setZongjia(zongjia.toString());
+                                    tv_zongjia.setText(zongjia.setScale(2, RoundingMode.DOWN).toString());
+                                    MyPresentation.setZongjia(CurrencyUtils.format(zongjia));
                                 }
                                 selectedShopList.remove(position);
                                 selectedShopAdapter.setNewData(selectedShopList);
@@ -1565,10 +1613,10 @@ public class MainActivity extends Activity {
                     }
 
                 }
-                tv_zongjia.setText(zongjia + "");
+                tv_zongjia.setText(zongjia.setScale(2, RoundingMode.DOWN).toString());
                 tv_zongjian.setText(allNum + "");
                 MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-                MyPresentation.setZongjia(zongjia.toString());
+                MyPresentation.setZongjia(CurrencyUtils.format(zongjia));
                 selectedShopAdapter.notifyItemChanged(position);
                 if (selectedShopAdapter.getItemCount() > 0) {
                     availableAmount();
@@ -1742,7 +1790,7 @@ public class MainActivity extends Activity {
                 tv_zongjia.setText(zongjia.setScale(2, RoundingMode.DOWN).toString());
                 tv_zongjian.setText(String.valueOf(allNum));
                 MyPresentation.setShopArrayList(selectedShopList, allNum);
-                MyPresentation.setZongjia(zongjia.toString());
+                MyPresentation.setZongjia(CurrencyUtils.format(zongjia));
                 availableAmount();
 
 
@@ -2859,33 +2907,40 @@ public class MainActivity extends Activity {
         shop_image.setVisibility(GONE);
         if (tv_image_placeholder != null) tv_image_placeholder.setVisibility(GONE);
 
-        yingfu_tv.setText(lastOrder.getTotal_amount());
-        youhui_tv.setText("-" + (TextUtils.isEmpty(lastOrder.getDiscount_fee()) ? "0.00" : lastOrder.getDiscount_fee()));
-        daijinquan_tv.setText("-" + (TextUtils.isEmpty(lastOrder.getCoupon_fee()) ? "0.00" : lastOrder.getCoupon_fee()));
+        // 1. 设置顶层金额（带符号）
+        yingfu_tv.setText(CurrencyUtils.format(lastOrder.getTotal_amount()));
+        youhui_tv.setText("-" + CurrencyUtils.getSymbol() + (TextUtils.isEmpty(lastOrder.getDiscount_fee()) ? "0.00" : lastOrder.getDiscount_fee()));
+        daijinquan_tv.setText("-" + CurrencyUtils.getSymbol() + (TextUtils.isEmpty(lastOrder.getCoupon_fee()) ? "0.00" : lastOrder.getCoupon_fee()));
 
-        // 重置面板
-        xianjin_tv.setText("0.00"); weixin_tv.setText("0.00"); zhifubao_tv.setText("0.00");
-        huiyuanka_tv.setText("0.00"); if (nets_tv != null) nets_tv.setText("0.00");
-        zhaolin_tv.setText(TextUtils.isEmpty(lastOrder.getCash_change()) ? "0.00" : lastOrder.getCash_change());
+        // 2. 初始化支付详情面板符号
+        xianjin_tv.setText(CurrencyUtils.getSymbol() + "0.00");
+        weixin_tv.setText(CurrencyUtils.getSymbol() + "0.00");
+        zhifubao_tv.setText(CurrencyUtils.getSymbol() + "0.00");
+        huiyuanka_tv.setText(CurrencyUtils.getSymbol() + "0.00");
+        if (nets_tv != null) nets_tv.setText(CurrencyUtils.getSymbol() + "0.00");
 
         BigDecimal totalPaid = BigDecimal.ZERO;
 
-        // 遍历 paymentlog 渲染 UI
+        // 3. 遍历计算并显示各支付方式（带符号）
         if (lastOrder.getPaymentlog() != null) {
             for (LastOrderBean.PaymentlogBean log : lastOrder.getPaymentlog()) {
                 String type = log.getPay_type().toLowerCase();
                 String money = log.getReceivedmoney();
                 totalPaid = totalPaid.add(new BigDecimal(money));
 
-                if (type.contains("cash")) xianjin_tv.setText(money);
-                else if (type.contains("wechat")) weixin_tv.setText(money);
-                else if (type.contains("alipay")) zhifubao_tv.setText(money);
-                else if (type.contains("member") || type.contains("wallet")) huiyuanka_tv.setText(money);
-                else if (type.contains("nets") && nets_tv != null) nets_tv.setText(money);
+                if (type.contains("cash")) xianjin_tv.setText(CurrencyUtils.format(money));
+                else if (type.contains("wechat")) weixin_tv.setText(CurrencyUtils.format(money));
+                else if (type.contains("alipay")) zhifubao_tv.setText(CurrencyUtils.format(money));
+                else if (type.contains("member") || type.contains("wallet")) huiyuanka_tv.setText(CurrencyUtils.format(money));
+                else if (type.contains("nets") && nets_tv != null) nets_tv.setText(CurrencyUtils.format(money));
             }
         }
-        shifu_tv.setText(totalPaid.setScale(2, RoundingMode.HALF_UP).toString());
+
+        // 4. 设置实付和找零（带符号）
+        shifu_tv.setText(CurrencyUtils.format(totalPaid.setScale(2, RoundingMode.HALF_UP)));
+        zhaolin_tv.setText(CurrencyUtils.format(TextUtils.isEmpty(lastOrder.getCash_change()) ? "0.00" : lastOrder.getCash_change()));
     }
+
 
 
 
@@ -3499,9 +3554,9 @@ public class MainActivity extends Activity {
         selectedShopAdapter.setNewData(selectedShopList);
         selected_LinearLayoutManager.scrollToPosition(0);
         tv_zongjian.setText(String.valueOf(allNum));
-        tv_zongjia.setText(zongjia.toString());
+        tv_zongjia.setText(zongjia.setScale(2, RoundingMode.DOWN).toString());
         MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-        MyPresentation.setZongjia(zongjia.toString());
+        MyPresentation.setZongjia(CurrencyUtils.format(zongjia));
         availableAmount();
         updatePlaceholderVisibility();
 

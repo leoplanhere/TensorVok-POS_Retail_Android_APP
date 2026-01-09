@@ -10,6 +10,7 @@
     <string name="delete">删除</string>
     <string name="barcode">条形码</string>
     <string name="grand_total">总价:</string>
+    <string name="currency_setting">货币设置</string>
     <string name="qfrsp">请放入商品</string>
     <string name="zlyc">重量异常</string>
     <string name="zlbwd">重量不稳定</string>
