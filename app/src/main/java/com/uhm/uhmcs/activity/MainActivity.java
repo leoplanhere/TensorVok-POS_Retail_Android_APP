@@ -200,9 +200,6 @@ public class MainActivity extends Activity {
         }
     };
 
-
-
-
     private Integer selectedShopIndex;
     private RecyclerView rv_choose_menu3, shop_rv, selected_shop_rv;
     private LinearLayoutManager selected_LinearLayoutManager;
@@ -225,15 +222,12 @@ public class MainActivity extends Activity {
     private BigDecimal zongjia = new BigDecimal("0.00");
     ;
 
-
     // --- 数据库与同步相关 (新增) ---
 // 使用单线程池执行数据库操作，避免卡顿主线程
     private final java.util.concurrent.ExecutorService dbExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
     private static final int SYNC_PAGE_SIZE = 1000; // 接口每页抓取数量
     private boolean is_tongbu = false; // 同步状态锁
     private com.uhm.uhmcs.popupwindow.SyncLoadingPopup loadingPopup; // 自定义同步弹窗
-
-
 
     private ArrayList<GrouponGoodsBean.GrouponGoodsModel> historySelectedShopList = new ArrayList<>();
 
@@ -274,11 +268,6 @@ public class MainActivity extends Activity {
             "/dev/ttyS12", "/dev/ttyS13", "/dev/ttyS14", "/dev/ttyS15",
             "/dev/ttyAMA0", "/dev/ttyAMA1", "/dev/ttyAMA2", "/dev/ttyAMA3"
     };
-
-
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -379,9 +368,6 @@ public class MainActivity extends Activity {
             }
         });
     }
-
-
-
 
 
 
@@ -1860,21 +1846,9 @@ public class MainActivity extends Activity {
         }
 
 // --- 搜索框逻辑结束 ---
-
-
-
-
-
-
-
-
         time = new TimeCount(30000, 5000);//一共执行30000毫秒，每2000执行一次。
 
-
     }
-
-
-
 
 
     private void checkPosConnection() {
@@ -2118,12 +2092,11 @@ public class MainActivity extends Activity {
                                         } else if (checkoutBean.getPay_type().equals("alipay")) {
                                             order_sn = jsonObject.getString("order_sn");
                                         }
-// 初始化MediaPlayer
+
                                         MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.yidong);
                                         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                                         mediaPlayer.setOnCompletionListener(mp -> mp.release());
-//                    mediaPlayer.pause();  // 暂停
-//                    mediaPlayer.stop();   // 停止(需重新prepare)
+
 
                                         // 播放控制
                                         mediaPlayer.start();  // 开始播放
@@ -2511,7 +2484,6 @@ public class MainActivity extends Activity {
      * 步骤 B: 递归分页下载并写入库
      * @param requestPage 当前请求的页码
      */
-
 
     /**
      * 递归分页下载商品数据并保存至库
