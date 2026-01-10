@@ -36,15 +36,16 @@ public class CurrencyUtils {
     public static List<CurrencyBean> getCurrencyList() {
         List<CurrencyBean> list = new ArrayList<>();
         //                   显示名称          代码    UI符号   打印缩写
-        list.add(new CurrencyBean("人民币 (CNY)",   "CNY",  "￥",   "￥"));
+        list.add(new CurrencyBean("美元 (USD)",     "USD",  "$",    "$"));
         list.add(new CurrencyBean("迪拉姆 (AED)",   "AED",  "AED",  "AED"));
         list.add(new CurrencyBean("泰铢 (THB)",     "THB",  "฿",    "THB"));
         list.add(new CurrencyBean("卢布 (RUB)",     "RUB",  "₽",    "RUB"));
-        list.add(new CurrencyBean("美元 (USD)",     "USD",  "$",    "$"));
         list.add(new CurrencyBean("新加坡元 (SGD)", "SGD",  "S$",   "S$"));
         list.add(new CurrencyBean("马币 (MYR)",     "MYR",  "RM",   "MYR"));
         list.add(new CurrencyBean("欧元 (EUR)",     "EUR",  "€",    "EUR"));
         list.add(new CurrencyBean("英镑 (GBP)",     "GBP",  "£",    "GBP"));
+        list.add(new CurrencyBean("人民币 (CNY)",   "CNY",  "￥",   "￥"));
+
 
         // 示例：未来新增日元
         // list.add(new CurrencyBean("日元 (JPY)", "JPY", "¥", "JPY"));

@@ -63,8 +63,8 @@ public class UserUtils {
         serialPortName = pref.getString("serialPortName", "");
         licenseNo = pref.getString(LICENSE_NO_KEY, "");
 
-        // --- 初始化全球化货币参数 (默认人民币 CNY) ---
-        currencyType = pref.getString("currencyType", "CNY");
+        // --- 初始化全球化货币参数 (默认人民币 USD) ---
+        currencyType = pref.getString("currencyType", "USD");
 
         // --- 初始化 NETS POS 参数 ---
         ecrIp = pref.getString("ecrIp", "192.168.110.112");
@@ -74,7 +74,7 @@ public class UserUtils {
     // ================== 全球化货币设置 ==================
 
     public String getCurrencyType() {
-        return TextUtils.isEmpty(currencyType) ? "CNY" : currencyType;
+        return TextUtils.isEmpty(currencyType) ? "USD" : currencyType;
     }
 
     public void setCurrencyType(Context context, String type) {
