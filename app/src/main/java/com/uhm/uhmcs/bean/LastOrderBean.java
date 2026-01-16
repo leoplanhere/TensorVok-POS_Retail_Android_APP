@@ -258,14 +258,28 @@ public class LastOrderBean {
         @SerializedName(value = "title", alternate = {"goods_name", "name", "product_name", "goods_title"})
         public String title;
 
+        // ★★★ 新增：在线类型字段 (用于区分计重还是计件) ★★★
+        public String online_type;
+
+        public String getOnline_type() {
+            return online_type == null ? "normal" : online_type;
+        }
+
+        public void setOnline_type(String online_type) {
+            this.online_type = online_type;
+        }
+
         public String goods_sn;
         public String sn;
+
         public String discount;
 
         public String discounted_price;
 
         public String goods_price;
         public int goods_num;
+
+
 
         public String goods_weight;
         public String weigh_id;

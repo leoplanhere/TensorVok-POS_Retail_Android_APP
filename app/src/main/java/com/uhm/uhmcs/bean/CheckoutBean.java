@@ -1,13 +1,22 @@
 package com.uhm.uhmcs.bean;
 
-import com.google.gson.annotations.SerializedName; // ★★★ 必须导入这个包 ★★★
+import com.google.gson.annotations.SerializedName;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
 public class CheckoutBean {
     public String member_name;
-    public String cardnumber;
 
+    public String cashierName; // ★ 新增：专门用于显示的收银员名字
+
+    public String getCashierName() {
+        return cashierName == null ? "" : cashierName;
+    }
+
+    public void setCashierName(String cashierName) {
+        this.cashierName = cashierName;
+    }
+    public String cardnumber;
     public String member_phone;
     public String goodsjson;
     public int user_id;
@@ -23,20 +32,14 @@ public class CheckoutBean {
     public String shop_id;
 
     public String cash_change;
-
     public String cash_price;
 
     public int type;
-
     public int order_status;
     public String order_sn;
-
     public int allNum;
-
     public String transaction_id;
-
     public String pay_time;
-
 
     public String getPay_time() {
         return pay_time;
@@ -125,7 +128,6 @@ public class CheckoutBean {
     public void setMember_phone(String member_phone) {
         this.member_phone = member_phone;
     }
-
 
     public void setGoodsjson(String goodsjson) {
         this.goodsjson = goodsjson;
@@ -223,30 +225,34 @@ public class CheckoutBean {
         this.shop_id = shop_id;
     }
 
-    public static class GoodsJsonBean{
+    public static class GoodsJsonBean {
         public int goods_id;
 
-        // ★★★ 修改重点：添加注解，兼容所有可能的字段名 ★★★
         @SerializedName(value = "title", alternate = {"goods_name", "name", "product_name", "goods_title"})
         public String title;
 
         public String goods_sn;
         public String sn;
         public String discount;
-
         public String discounted_price;
-
         public String goods_price;
         public int goods_num;
-
         public int goods_weight;
         public int weigh_id;
         public String pay_price;
         public String goods_sku_price_id;
-
         private String goods_sku_text;
 
+        // ★★★ 新增字段：用于区分计重还是计件 ★★★
+        public String online_type;
 
+        public String getOnline_type() {
+            return (online_type == null || online_type.isEmpty()) ? "normal" : online_type;
+        }
+
+        public void setOnline_type(String online_type) {
+            this.online_type = online_type;
+        }
 
         public int getGoods_id() {
             return goods_id;
@@ -257,18 +263,13 @@ public class CheckoutBean {
         }
 
         public String getTitle() {
-            // 1. 如果 title 有值，直接返回
             if (title != null && !title.isEmpty()) {
                 return title;
             }
-
-            // 2. ★★★ 兜底策略：如果 title 是空的，尝试拼接其他信息，或者返回默认值 ★★★
-            // 这样至少你能看出是哪个商品出了问题，而不是一片空白
             if (goods_sn != null && !goods_sn.isEmpty()) {
                 return "商品(" + goods_sn + ")";
             }
-
-            return "未知商品"; // 最后防线
+            return "未知商品";
         }
 
         public void setTitle(String title) {
@@ -290,7 +291,6 @@ public class CheckoutBean {
         public void setSn(String sn) {
             this.sn = sn;
         }
-
 
         public int getGoods_num() {
             return goods_num;

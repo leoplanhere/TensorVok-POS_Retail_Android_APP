@@ -81,92 +81,28 @@ public class MyPrinterHelper {
     /**
      * 异步打印结账单
      */
+    /**
+     * 结账打印 - 切换为 DIY 模板引擎版
+     */
     public void asyncPrintCheckout(Activity context, CheckoutBean bean, PrintDataBean printDataBean, String xinjin_pice, String weixin_pice, String zhifubao_pice, String order_sn) {
         MyPresentation.showHavePaidView();
         printExecutor.execute(() -> {
             try {
-                output = new ByteArrayOutputStream();
+                // ⭐ 核心修改：不再自己写 output.write，而是让 CommandUtils 根据 DIY 配置生成指令
+                byte[] commands = ReceiptCommandUtils.getReceiptCommands(
+                        context,
+                        bean,
+                        order_sn,
+                        xinjin_pice,
+                        weixin_pice,
+                        zhifubao_pice,
+                        "0.00", // 兼容会员卡
+                        "0.00"  // 兼容NETS
+                );
 
-                // ▼▼▼▼▼▼ 移除 CMD_INIT，防止先切纸 ▼▼▼▼▼▼
-                // output.write(CMD_INIT);
-                // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-
-                output.write(CMD_ALIGN_CENTER);
-
-                // 1. 打印头部信息 (Logo, 标题, 描述, 图片)
-                printHeaderInfo(context, printDataBean);
-
-                // 2. 打印店铺信息
-                printShopInfo(false);
-
-                // 3. 打印收银时间
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-                String formattedTime = sdf.format(System.currentTimeMillis());
-                printTextLine("收银时间:" + formattedTime);
-                printDivider();
-
-                // 4. 打印商品列表头
-                printTableTitle();
-                printDivider();
-
-                // 5. 打印商品列表
-                Gson gson = new Gson();
-                ArrayList<CheckoutBean.GoodsJsonBean> goodsList = gson.fromJson(bean.getGoodsjson(), new TypeToken<ArrayList<CheckoutBean.GoodsJsonBean>>() {
-                }.getType());
-
-                for (int j = 0; j < goodsList.size(); j++) {
-                    CheckoutBean.GoodsJsonBean goods = goodsList.get(j);
-                    String displayName = (j + 1) + " " + goods.getTitle();
-                    if (calculateDisplayWidth(displayName) > 14) {
-                        List<String> strings = splitByGbkUnits(displayName, 14);
-                        for (int i = 0; i < strings.size(); i++) {
-                            if (i == strings.size() - 1) {
-                                buildCheckoutLine(goods, strings.get(i));
-                            } else {
-                                printTextLine(strings.get(i));
-                            }
-                        }
-                    } else {
-                        buildCheckoutLine(goods, "");
-                    }
+                if (commands != null) {
+                    executePrint(context, commands);
                 }
-                printDivider();
-
-                // 6. 打印统计金额信息
-                printSummaryLine("购买商品数量:", bean.getAllNum() + "件", 13);
-                printSummaryLine("应付总计:", bean.getTotal_amount() + "", 9);
-                printSummaryLine("优惠总计:", bean.getDiscount_fee() + "", 9);
-
-                BigDecimal shifujine_pice = new BigDecimal("0.00");
-                if (!TextUtils.isEmpty(xinjin_pice)) shifujine_pice = shifujine_pice.add(new BigDecimal(xinjin_pice));
-                if (!TextUtils.isEmpty(weixin_pice)) shifujine_pice = shifujine_pice.add(new BigDecimal(weixin_pice));
-                if (!TextUtils.isEmpty(zhifubao_pice)) shifujine_pice = shifujine_pice.add(new BigDecimal(zhifubao_pice));
-
-                printSummaryLine("实付金额:", shifujine_pice.toString(), 9);
-
-                if (!TextUtils.isEmpty(xinjin_pice)) printPaymentLine("现金:", xinjin_pice);
-                if (!TextUtils.isEmpty(weixin_pice)) printPaymentLine("微信:", weixin_pice);
-                if (!TextUtils.isEmpty(zhifubao_pice)) printPaymentLine("支付宝:", zhifubao_pice);
-
-                if (new BigDecimal(bean.getCash_change()).compareTo(BigDecimal.ZERO) > 0) {
-                    printSummaryLine("找零:", bean.getCash_change(), 5);
-                }
-
-                // 7. 打印条形码和单号
-                output.write(CMD_ALIGN_CENTER);
-                output.write(CMD_LINE_FEED);
-                if (!TextUtils.isEmpty(order_sn)) {
-                    printBarcode(order_sn);
-                    printTextLine(order_sn);
-                }
-                output.write(CMD_LINE_FEED);
-
-                // 8. 打印页脚备注
-                printFooter(printDataBean);
-
-                // 9. 切纸并发送
-                finalizePrint(context);
-
             } catch (Exception e) {
                 Log.e(TAG, "打印失败", e);
                 sendPrintStatus(context, false);
@@ -175,11 +111,136 @@ public class MyPrinterHelper {
     }
 
     /**
+     * 必须补全这个方法，否则 DIY 弹窗的“测试打印”会崩溃
+     */
+    public void printCommand(Activity context, byte[] commands) {
+        printExecutor.execute(() -> {
+            try {
+                executePrint(context, commands);
+            } catch (Exception e) {
+                sendPrintStatus(context, false);
+            }
+        });
+    }
+
+    /**
+     * 统一执行 bulkTransfer
+     */
+    private void executePrint(Activity context, byte[] data) throws IOException {
+        if (usbConnection == null || endpointOut == null) return;
+        int transfer = usbConnection.bulkTransfer(endpointOut, data, data.length, 5000);
+        if (transfer >= 0) {
+            sendPrintStatus(context, true);
+        } else {
+            throw new IOException("USB 传输失败");
+        }
+    }
+
+
+    /**
      * 异步打印尾单 (重打)
      */
-    public void asyncPrintLastOrder(Activity context, LastOrderBean bean, PrintDataBean printDataBean) {
-        asyncPrintLastOrderInternal(context, bean, printDataBean);
+
+    /**
+     * 异步打印尾单 (重打上一单或历史单)
+     * 统一走 DIY 模板引擎
+     */
+    public void asyncPrintLastOrder(Activity context, LastOrderBean lastOrder, PrintDataBean printDataBean) {
+        if (lastOrder == null) return;
+
+        printExecutor.execute(() -> {
+            try {
+                // 1. 将 LastOrderBean 转换为 CheckoutBean 格式
+                CheckoutBean cb = new CheckoutBean();
+                // ★ 修改：优先取 lastOrder 里的 cash_user_sn（因为你历史订单显示正常是靠这个字段）
+                cb.setCashierName(lastOrder.getCash_user_sn());
+                cb.setMachineNumber("001"); // 补打时的机器号也固定为数字
+                cb.setOrder_sn(lastOrder.getOrder_sn());
+                cb.setMember_name(lastOrder.getMember_name());
+                cb.setMember_phone(lastOrder.getMember_phone());
+                cb.setTotal_amount(lastOrder.getTotal_amount());
+                cb.setPay_fee(lastOrder.getPay_fee());
+                cb.setDiscount_fee(lastOrder.getDiscount_fee());
+                cb.setCoupon_fee(lastOrder.getCoupon_fee());
+                cb.setCash_change(lastOrder.getCash_change());
+                cb.setMachineNumber(lastOrder.getMachineNumber());
+                cb.setPay_type(lastOrder.getPay_type());
+
+                // 2. 转换商品明细
+                ArrayList<CheckoutBean.GoodsJsonBean> newList = new ArrayList<>();
+                int totalCount = 0;
+                if (lastOrder.getOrder_item() != null) {
+                    for (LastOrderBean.GoodsJsonBean oldItem : lastOrder.getOrder_item()) {
+                        CheckoutBean.GoodsJsonBean newItem = new CheckoutBean.GoodsJsonBean();
+                        newItem.setTitle(oldItem.getTitle());
+                        newItem.setGoods_num(oldItem.getGoods_num());
+                        newItem.setGoods_price(oldItem.getGoods_price());
+                        newItem.setPay_price(oldItem.getPay_price());
+
+                        // ★★★ 核心修复点 1：安全处理 online_type ★★★
+                        // 由于 LastOrderBean 可能没有 online_type 字段，我们根据重量是否存在来判定类型
+                        String weightStr = oldItem.getGoods_weight();
+                        if (!TextUtils.isEmpty(weightStr) && !weightStr.equals("0") && !weightStr.equals("0.00")) {
+                            newItem.setOnline_type("weight");
+
+                            // ★★★ 核心修复点 2：处理重量转换 (String -> int) ★★★
+                            try {
+                                // 先转 double 处理可能存在的 "500.0" 这种格式，再转 int
+                                double weightVal = Double.parseDouble(weightStr);
+                                newItem.setGoods_weight((int) weightVal);
+                            } catch (Exception e) {
+                                newItem.setGoods_weight(0);
+                            }
+                        } else {
+                            newItem.setOnline_type("normal");
+                            newItem.setGoods_weight(0);
+                        }
+
+                        newList.add(newItem);
+                        totalCount += oldItem.getGoods_num();
+                    }
+                }
+                cb.setAllNum(totalCount);
+                cb.setGoodsjson(new Gson().toJson(newList));
+
+                // 3. 获取支付方式详情 (现金、微信、支付宝等)
+                String cash = "0.00", wechat = "0.00", alipay = "0.00";
+                List<LastOrderBean.PaymentlogBean> logs = new ArrayList<>();
+                if (lastOrder.getPayment() != null) logs.addAll(lastOrder.getPayment());
+                if (lastOrder.getPaymentlog() != null) logs.addAll(lastOrder.getPaymentlog());
+
+                for (LastOrderBean.PaymentlogBean log : logs) {
+                    String type = log.getPay_type();
+                    String money = log.getReceivedmoney();
+                    if (TextUtils.isEmpty(money)) continue;
+
+                    if ("cash".equals(type)) cash = money;
+                    else if ("wechat".equals(type)) wechat = money;
+                    else if ("alipay".equals(type)) alipay = money;
+                }
+
+                // 4. 调用 DIY 打印指令引擎
+                byte[] commands = ReceiptCommandUtils.getReceiptCommands(
+                        context,
+                        cb,
+                        lastOrder.getOrder_sn() + " (补打)",
+                        cash, wechat, alipay, "0.00", "0.00"
+                );
+
+                if (commands != null) {
+                    executePrint(context, commands);
+                }
+
+            } catch (Exception e) {
+                Log.e("PrintHelper", "重打失败: " + e.getMessage(), e);
+                sendPrintStatus(context, false);
+            }
+        });
     }
+
+
+
+
 
     public void asyncPrintLastOrderInternal(Activity context, LastOrderBean bean, PrintDataBean printDataBean) {
         printExecutor.execute(() -> {

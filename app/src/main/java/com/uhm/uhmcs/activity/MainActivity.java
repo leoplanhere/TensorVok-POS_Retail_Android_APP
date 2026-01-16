@@ -1155,6 +1155,16 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     UserUtils.getInstance().setDianji(this, !UserUtils.getInstance().isDianji());
                     shop_mocheng.setVisibility(!UserUtils.getInstance().isDianji() ? VISIBLE : GONE);
                     break;
+
+
+                // ★ 新增：处理小票样式设置弹窗
+                case 13:
+                    new ReceiptDiyPopupWindow(this).show();
+                    break;
+
+
+
+
             }
         }).show();
     }
@@ -1192,6 +1202,20 @@ public class MainActivity extends Activity implements View.OnClickListener {
             checkoutBean.setUser_id(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId());
         }
         checkoutBean.setMachineNumber("001");
+
+        // ★ 新增：设置专门显示的收银员名字
+        String nickname = "管理员";
+        try {
+            if (UserUtils.getInstance().getLoginBase() != null) {
+                nickname = UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
+            }
+        } catch (Exception e) {}
+        checkoutBean.setCashierName(nickname); // 存入新字段
+
+
+
+
+
         checkoutBean.setTotal_fee(zongjia.toString());
         checkoutBean.setPay_type((is_kuangjie || !NetworkUtils.getInstance().isNetworkConnected(this)) ? "cash" : "");
         checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
@@ -2115,7 +2139,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         JSONObject jsonObject = new JSONObject(response);
                         if (jsonObject.optInt("code") == 1) {
                             ArrayList<LastOrderBean> list = new Gson().fromJson(jsonObject.getString("data"), new TypeToken<ArrayList<LastOrderBean>>() {}.getType());
-                            MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, list.get(0), null);
+                            if (list != null && !list.isEmpty()) {
+                                // ★ 核心：这里调用更新后的 asyncPrintLastOrder
+                                MyPrinterHelper.getInstance().asyncPrintLastOrder(MainActivity.this, list.get(0), null);
+                            }
                         }
                     } catch (JSONException e) { e.printStackTrace(); }
                 });
@@ -2123,6 +2150,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
             @Override public void onFailure(IOException e) {}
         });
     }
+
+
+
+
     public void operateDetails(CheckoutBean checkoutBean) {
         Map<String, String> params = new HashMap<>();
         params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());

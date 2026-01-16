@@ -62,6 +62,15 @@ public class MorefunctionPopupWindow {
         popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
             popupWindow.dismiss();
         });
+
+
+        popupView.findViewById(R.id.xiaopiaodiy_btn).setOnClickListener(v -> {
+            morefunctionOnClickListener.onClick(13); // 这里的 13 是我们定义给 DIY 设置的代号
+            popupWindow.dismiss();
+        });
+
+
+
         popupView.findViewById(R.id.tongbushuju_btn).setOnClickListener(v -> {
             v.startAnimation(animation);
             morefunctionOnClickListener.onClick(1);
