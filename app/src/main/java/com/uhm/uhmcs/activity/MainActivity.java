@@ -1322,21 +1322,41 @@ public class MainActivity extends Activity {
         tv_tareWeight = findViewById(R.id.tv_tare_weight); // 皮重
         View btn_qupi = findViewById(R.id.btn_qupi); // 去皮按钮
 
-        btn_qupi.setOnClickListener(v -> {
+
+        // --- 称重 UI 绑定逻辑 (唯一合并版) ---
+        weight_id = findViewById(R.id.tv_real_weight);
+        tv_tareWeight = findViewById(R.id.tv_tare_weight);
+        View btn_qupi_view = findViewById(R.id.btn_qupi);
+
+        btn_qupi_view.setOnClickListener(v -> {
             if (isScaleConnected) {
-                // 情况 A：已连接，执行去皮
-                if (m_scaler != null && m_weight != null && m_weight.isStable) {
-                    m_scaler.AclasTare();
-                } else if (m_weight != null && !m_weight.isStable) {
-                    Toast.makeText(MainActivity.this, "重量不稳定", Toast.LENGTH_SHORT).show();
+                if (m_scaler != null && m_weight != null) {
+                    // 关键逻辑判断
+                    if (!m_weight.isStable) {
+                        Toast.makeText(MainActivity.this, "重量不稳定，请稍后", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // 如果当前净重已经是 0，且有皮重，则执行“置零”操作来清除皮重
+                    // 如果当前净重大于 0，则执行“去皮”操作
+                    if (m_weight.netWeight <= 0.0001 && m_weight.tareWeight > 0) {
+                        Log.i("Scale", "执行置零(Zero)以清空皮重");
+                        m_scaler.AclasZero();
+                    } else {
+                        Log.i("Scale", "执行去皮(Tare)");
+                        m_scaler.AclasTare();
+                    }
                 }
             } else {
-                // 情况 B：未连接，启动扫描
+                // 未连接时触发扫描
                 Log.i("ScaleScan", "用户手动触发秤盘重连...");
-                Toast.makeText(MainActivity.this, "正在搜索秤盘，可能需要20秒，请稍候...", Toast.LENGTH_SHORT).show();
-                OpenScale(); // 调用扫描方法
+                Toast.makeText(MainActivity.this, "正在搜索秤盘，请稍候...", Toast.LENGTH_SHORT).show();
+                OpenScale();
             }
         });
+
+
+
 
 
 

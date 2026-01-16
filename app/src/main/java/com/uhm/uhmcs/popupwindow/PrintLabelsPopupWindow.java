@@ -161,7 +161,17 @@ public class PrintLabelsPopupWindow {
                         if (bmp != null) {
                             try {
                                 // 调用打印机Helper
-                                MyLabeksPrinterHelper.getInstance().printBitmapLabel(context, bmp, copies);
+                                // 1. 先获取保存的标签宽高（mm）
+                                int savedW = com.uhm.uhmcs.utils.UserUtils.getInstance().getLabelWidth(context);
+                                int savedH = com.uhm.uhmcs.utils.UserUtils.getInstance().getLabelHeight(context);
+
+// 2. 如果获取不到，设置一个默认值（例如 100x40 或 40x30）
+                                if (savedW <= 0) savedW = 100;
+                                if (savedH <= 0) savedH = 40;
+
+// 3. 使用新的 5 参数方法进行调用
+                                MyLabeksPrinterHelper.getInstance().printBitmapLabel(context, bmp, savedW, savedH, copies);
+
                                 successCount++;
 
                                 // 【关键修复】批量打印必须增加等待时间，防止打印机固件死机

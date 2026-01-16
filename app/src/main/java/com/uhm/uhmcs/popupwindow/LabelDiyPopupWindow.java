@@ -232,35 +232,61 @@ public class LabelDiyPopupWindow {
 
         // 10. 底部按钮事件
         view.findViewById(R.id.btn_cancel).setOnClickListener(v -> popupWindow.dismiss());
+
+
+        // 在 init() 方法中找到这个监听器并替换
         view.findViewById(R.id.btn_apply_size).setOnClickListener(v -> {
             String wStr = etWidth.getText().toString();
             String hStr = etHeight.getText().toString();
             if (!TextUtils.isEmpty(wStr) && !TextUtils.isEmpty(hStr)) {
-                updateCanvasSize(Integer.parseInt(wStr), Integer.parseInt(hStr));
+                int newW = Integer.parseInt(wStr);
+                int newH = Integer.parseInt(hStr);
+
+                // 1. 保存新的宽高配置到本地
+                UserUtils.getInstance().setLabelWidth(context, newW);
+                UserUtils.getInstance().setLabelHeight(context, newH);
+
+                // 2. 更新 UI 画布的大小预览
+                updateCanvasSize(newW, newH);
+
+                // 3. 【核心修复】自动重置元素位置，防止元素“掉到”画布外面
+                resetElementPositions();
+
+                Toast.makeText(context, "尺寸已应用，元素位置已重置到左上角", Toast.LENGTH_SHORT).show();
             }
         });
 
+
+
+
         view.findViewById(R.id.btn_print_preview).setOnClickListener(v -> {
-            String w = etWidth.getText().toString();
-            String h = etHeight.getText().toString();
-            if (TextUtils.isEmpty(w) || TextUtils.isEmpty(h)) {
+            String wStr = etWidth.getText().toString();
+            String hStr = etHeight.getText().toString();
+            if (TextUtils.isEmpty(wStr) || TextUtils.isEmpty(hStr)) {
                 Toast.makeText(context, "请输入宽高", Toast.LENGTH_SHORT).show();
                 return;
             }
-            UserUtils.getInstance().setLabelWidth(context, Integer.parseInt(w));
-            UserUtils.getInstance().setLabelHeight(context, Integer.parseInt(h));
+
+            // 1. 获取并保存当前设置的物理尺寸
+            int currentW = Integer.parseInt(wStr);
+            int currentH = Integer.parseInt(hStr);
+            UserUtils.getInstance().setLabelWidth(context, currentW);
+            UserUtils.getInstance().setLabelHeight(context, currentH);
             saveAllConfigs();
 
-            // 打印前强制隐藏底图
+            // 2. 打印前处理 UI 样式（隐藏底图和选中框）
             if (ivPaperBackground != null) ivPaperBackground.setVisibility(View.GONE);
             layoutPreview.setBackgroundColor(Color.WHITE);
             clearFocusBackground(draggableElements);
 
-            Bitmap originalBitmap = viewToBitmap(layoutPreview);
-            if (originalBitmap != null) {
-                Bitmap printerBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, false);
-                MyLabeksPrinterHelper.getInstance().printBitmapLabel(context, printerBitmap, 1);
-                // 打印后恢复底图状态
+            // 3. 生成 1:1 比例的打印位图（核心：确保像素与打印机点阵一致）
+            Bitmap printerBitmap = generateBitmapForPrinter(layoutPreview, currentW, currentH);
+
+            if (printerBitmap != null) {
+                // 4. 调用 Helper 的新方法，传入动态尺寸和位图
+                MyLabeksPrinterHelper.getInstance().printBitmapLabel(context, printerBitmap, currentW, currentH, 1);
+
+                // 5. 打印后恢复底图显示状态并关闭窗口
                 if (ivPaperBackground != null) {
                     boolean bgState = UserUtils.getInstance().getLabelConfig(context, "show_background", true);
                     ivPaperBackground.setVisibility(bgState ? View.VISIBLE : View.GONE);
@@ -268,6 +294,8 @@ public class LabelDiyPopupWindow {
                 popupWindow.dismiss();
             }
         });
+
+
     }
 
     private String getElementKey(int id) {
@@ -282,6 +310,89 @@ public class LabelDiyPopupWindow {
         if (id == R.id.tv_preview_points) return "points";
         if (id == R.id.tv_preview_coupon) return "coupon";
         return "default";
+    }
+
+    private Bitmap viewToBitmapCustom(View view) {
+        // 打印机通常是 203DPI，即 1mm = 8 dots
+        // 我们直接以这个比例创建 Bitmap，不再受手机屏幕密度影响
+        int savedW = UserUtils.getInstance().getLabelWidth(context);
+        int savedH = UserUtils.getInstance().getLabelHeight(context);
+
+        int dotW = savedW * 8;
+        int dotH = savedH * 8;
+
+        Bitmap bitmap = Bitmap.createBitmap(dotW, dotH, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+
+        // 暂时取消 View 的缩放，按照原始比例绘制到画布上
+        float oldScaleX = view.getScaleX();
+        float oldScaleY = view.getScaleY();
+        view.setScaleX(1.0f);
+        view.setScaleY(1.0f);
+
+        view.draw(canvas);
+
+        // 恢复 View 在界面上的缩放预览
+        view.setScaleX(oldScaleX);
+        view.setScaleY(oldScaleY);
+
+        return bitmap;
+    }
+
+
+    /**
+     * 核心方法：按打印机物理点阵生成位图 (203 DPI: 1mm = 8 dots)
+     */
+    private Bitmap generateBitmapForPrinter(View view, int mmW, int mmH) {
+        // 计算打印机需要的像素尺寸
+        int dotW = mmW * 8;
+        int dotH = mmH * 8;
+
+        Bitmap bitmap = Bitmap.createBitmap(dotW, dotH, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+
+        // 关键：在绘制前暂时取消 View 的缩放(Scale)，确保 1:1 绘制
+        float originalScaleX = view.getScaleX();
+        float originalScaleY = view.getScaleY();
+        view.setScaleX(1.0f);
+        view.setScaleY(1.0f);
+
+        // 强制 View 按照计算出的 dot 尺寸进行布局测量，防止拉伸偏移
+        int widthSpec = View.MeasureSpec.makeMeasureSpec(dotW, View.MeasureSpec.EXACTLY);
+        int heightSpec = View.MeasureSpec.makeMeasureSpec(dotH, View.MeasureSpec.EXACTLY);
+        view.measure(widthSpec, heightSpec);
+        view.layout(0, 0, dotW, dotH);
+
+        // 绘制到画布
+        view.draw(canvas);
+
+        // 绘制完成后恢复预览状态的缩放
+        view.setScaleX(originalScaleX);
+        view.setScaleY(originalScaleY);
+        updateCanvasSize(mmW, mmH); // 重新恢复预览容器的正确布局
+
+        return bitmap;
+    }
+
+
+    /**
+     * 将所有可拖动元素重置到画布左上角，并清理保存的旧坐标
+     */
+    private void resetElementPositions() {
+        View[] draggableElements = {tvShop, tvName, tvPrice, layoutBarcodeGroup, tvSn, tvSpecs, tvUnit, tvStaff, tvLevel, tvOrigin, tvPoints, tvCoupon};
+        for (View v : draggableElements) {
+            if (v != null) {
+                // 1. UI 归零
+                v.setX(0);
+                v.setY(0);
+
+                // 2. 立即持久化保存归零后的坐标，防止下次打开又是旧位置
+                String key = getElementKey(v.getId());
+                UserUtils.getInstance().setElementX(context, key, 0);
+                UserUtils.getInstance().setElementY(context, key, 0);
+            }
+        }
+        Toast.makeText(context, "尺寸已应用，元素位置已重置", Toast.LENGTH_SHORT).show();
     }
 
     private void fillGoodsData() {

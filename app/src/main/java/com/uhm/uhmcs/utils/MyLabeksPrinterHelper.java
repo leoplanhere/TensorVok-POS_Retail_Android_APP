@@ -344,10 +344,11 @@ public class MyLabeksPrinterHelper {
 
 
     /**
-     * 【新功能】直接打印 Bitmap 图片 (所见即所得) - 修复黑底白字问题
-     * @param count 打印份数
+     * 【修复版】直接打印 Bitmap 图片 (所见即所得)
+     * @param mmW 用户在UI设置的宽度 (mm)
+     * @param mmH 用户在UI设置的高度 (mm)
      */
-    public void printBitmapLabel(Activity context, Bitmap bitmap, int count) {
+    public void printBitmapLabel(Activity context, Bitmap bitmap, int mmW, int mmH, int count) {
         printExecutor.execute(() -> {
             try {
                 if (usbConnection == null || endpointOut == null) {
@@ -358,11 +359,11 @@ public class MyLabeksPrinterHelper {
                 int width = bitmap.getWidth();
                 int height = bitmap.getHeight();
 
+                // TSPL 指令要求宽度字节数必须是整数：每行字节数 = (像素宽 + 7) / 8
                 int rowBytes = (width + 7) / 8;
                 byte[] data = new byte[rowBytes * height];
 
-                // 填充全白
-                java.util.Arrays.fill(data, (byte) 0xFF);
+                java.util.Arrays.fill(data, (byte) 0xFF); // 初始化为全白（TSPL中0为黑，1为白）
 
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
@@ -372,11 +373,9 @@ public class MyLabeksPrinterHelper {
                         int b = pixel & 0xFF;
                         int gray = (int) (0.299 * r + 0.587 * g + 0.114 * b);
 
-                        // ---------------------------------------------------------
-                        // 【关键修改】将阈值 128 改为 200 (与批量打印逻辑保持一致)
-                        // 作用：加粗字体和条码，防止线条因抗锯齿变细消失
-                        // ---------------------------------------------------------
+                        // 阈值处理：这里的灰度判断决定了打印的清晰度
                         if (gray < 200) {
+                            // 将该点设为黑色 (Bit 置 0)
                             data[y * rowBytes + x / 8] &= ~(128 >> (x % 8));
                         }
                     }
@@ -384,31 +383,25 @@ public class MyLabeksPrinterHelper {
 
                 ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-                // 2. 初始化指令 (40mm x 30mm)
-                buffer.write("SIZE 40 mm,30 mm\n".getBytes());
+                // --- 核心修复点 ---
+                // 1. 使用动态传入的 mm 尺寸
+                buffer.write(("SIZE " + mmW + " mm," + mmH + " mm\n").getBytes());
                 buffer.write("GAP 2 mm,0 mm\n".getBytes());
-                buffer.write("CLS\n".getBytes());
                 buffer.write("DIRECTION 1\n".getBytes());
-                buffer.write("REFERENCE 0,0\n".getBytes()); // 原点归零
+                buffer.write("REFERENCE 0,0\n".getBytes()); // 强制原点归零，防止偏移
+                buffer.write("CLS\n".getBytes());
 
-                // 3. 发送图片指令
-                // BITMAP X,Y,Width(Byte),Height,Mode,Data
-                // Mode 0: OVERWRITE
+                // 2. 发送图片指令 (从 0,0 坐标开始绘制)
                 String cmd = "BITMAP 0,0," + rowBytes + "," + height + ",0,";
                 buffer.write(cmd.getBytes());
-                buffer.write(data); // 写入图片二进制数据
-                buffer.write("\n".getBytes()); // 结束符
+                buffer.write(data);
+                buffer.write("\n".getBytes());
 
-                // 4. 打印指令
+                // 3. 打印
                 buffer.write(("PRINT " + count + ",1\n").getBytes());
 
-                // 发送
-                int transfer = usbConnection.bulkTransfer(endpointOut, buffer.toByteArray(), buffer.size(), 5000);
-                if (transfer >= 0) {
-                    sendPrintStatus(context, true);
-                } else {
-                    sendPrintStatus(context, false);
-                }
+                int transfer = usbConnection.bulkTransfer(endpointOut, buffer.toByteArray(), buffer.size(), 10000);
+                sendPrintStatus(context, transfer >= 0);
 
             } catch (Exception e) {
                 Log.e("PrintError", "图片打印失败", e);
@@ -416,6 +409,9 @@ public class MyLabeksPrinterHelper {
             }
         });
     }
+
+
+
 
 
     /**
