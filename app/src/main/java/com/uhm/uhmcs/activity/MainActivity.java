@@ -1210,8 +1210,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 nickname = UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
             }
         } catch (Exception e) {}
-        checkoutBean.setCashierName(nickname); // 存入新字段
-
+        checkoutBean.setCashierName(nickname); // 存入新字段sql
 
 
 
