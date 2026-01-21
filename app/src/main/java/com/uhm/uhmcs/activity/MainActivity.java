@@ -863,6 +863,18 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private void addGoodsToCart(GrouponGoodsBean.GrouponGoodsModel goods) {
 
+
+        // 【新增拦截逻辑】
+        // 如果商品 subtitle 是数字，说明它是系统自动发放的赠品，禁止手动/扫码加入
+        if (goods.getSubtitle() != null && goods.getSubtitle().matches("\\d+")) {
+            // 播放失败音效并提示
+            playErrorSound();
+            Toast.makeText(this, "该商品为系统满赠礼品，不可手动加购", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
+
         hideLastOrderInfo();
 
 
@@ -947,47 +959,35 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void updateCartSummary() {
+        // 1. 运行赠品核算逻辑（它会修改 selectedShopList）
+        autoProcessGifts();
+
         zongjia = BigDecimal.ZERO;
-
-
-        // ★★★ 新增：每次更新摘要时，重新根据列表计算总件数 ★★★
         int realAllNum = 0;
 
-
-
+        // 2. 重新统计总价和总件数
         for (GrouponGoodsBean.GrouponGoodsModel model : selectedShopList) {
             zongjia = zongjia.add(model.getHeji());
-            // 累加每个商品的实际购买数量
             realAllNum += model.getShuliang();
-
-
         }
 
-// ★★★ 更新全局变量 allNum，确保它和列表一致 ★★★
+        // 3. 更新 UI
         this.allNum = realAllNum;
-
-
         zongjia = zongjia.setScale(2, RoundingMode.UP);
         tv_zongjia.setText(zongjia.toString());
-
         tv_zongjian.setText(String.valueOf(allNum));
-        MyPresentation.setShopArrayList(selectedShopAdapter.getData(), allNum);
-        MyPresentation.setZongjia(zongjia.toString());
 
-        // ▼▼▼▼▼▼ 【新增逻辑开始】 ▼▼▼▼▼▼
-        if (isShowingLastOrder) {
-            if (tv_empty_cart != null) tv_empty_cart.setVisibility(View.GONE);
-            if (selected_shop_rv != null) selected_shop_rv.setVisibility(View.GONE);
-            if (llLastOrderInfo != null) {
-                llLastOrderInfo.setVisibility(View.VISIBLE);
-                llLastOrderInfo.bringToFront();
-            }
-            return; // 阻止后续逻辑
+        // 【重要：必须刷新适配器】
+        if (selectedShopAdapter != null) {
+            // 使用 setNewData 或 notifyDataSetChanged 确保列表刷新
+            selectedShopAdapter.notifyDataSetChanged();
         }
 
-        if (llLastOrderInfo != null) llLastOrderInfo.setVisibility(View.GONE);
-        // ▲▲▲▲▲▲ 【新增逻辑结束】 ▲▲▲▲▲▲
+        // 更新副屏显示
+        MyPresentation.setShopArrayList(selectedShopList, allNum);
+        MyPresentation.setZongjia(zongjia.toString());
 
+        // 控制空购物车显示逻辑...
         if (selectedShopList == null || selectedShopList.isEmpty()) {
             if (tv_empty_cart != null) tv_empty_cart.setVisibility(View.VISIBLE);
             if (selected_shop_rv != null) selected_shop_rv.setVisibility(View.GONE);
@@ -996,6 +996,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
             if (selected_shop_rv != null) selected_shop_rv.setVisibility(View.VISIBLE);
         }
     }
+
+
 
 
 
@@ -1191,55 +1193,71 @@ public class MainActivity extends Activity implements View.OnClickListener {
     // ----------------- 支付逻辑 -----------------
 
     private void handleCheckout() {
-        // 1. 防重复弹窗检查 (修复弹窗关不掉的问题)
+        // 1. 防重复弹窗检查
         if (currentCheckoutPopup != null && currentCheckoutPopup.isShowing()) {
             currentCheckoutPopup.dismiss();
         }
 
         checkoutBean = new CheckoutBean();
         checkoutBean.setAllNum(allNum);
+
+        // 获取用户登录信息
         if (UserUtils.getInstance().getLoginBase() != null && UserUtils.getInstance().getLoginBase().getData() != null) {
             checkoutBean.setUser_id(UserUtils.getInstance().getLoginBase().getData().getUserinfo().getUserId());
         }
         checkoutBean.setMachineNumber("001");
 
-        // ★ 新增：设置专门显示的收银员名字
+        // 设置收银员名字
         String nickname = "管理员";
         try {
             if (UserUtils.getInstance().getLoginBase() != null) {
                 nickname = UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
             }
         } catch (Exception e) {}
-        checkoutBean.setCashierName(nickname); // 存入新字段sql
-
-
-
+        checkoutBean.setCashierName(nickname);
 
         checkoutBean.setTotal_fee(zongjia.toString());
         checkoutBean.setPay_type((is_kuangjie || !NetworkUtils.getInstance().isNetworkConnected(this)) ? "cash" : "");
         checkoutBean.setShop_id(UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
         is_kuangjie = false;
 
-        // 2. 【关键】定义 discount_fee 变量 (解决找不到符号报错)
+        // 2. 定义变量：优惠总额
         BigDecimal discount_fee = BigDecimal.ZERO;
         ArrayList<CheckoutBean.GoodsJsonBean> goodsJsonList = new ArrayList<>();
 
-        // 3. 循环构建商品数据 (包含防空指针和默认值逻辑)
+        // 3. 循环构建商品数据 (核心修改：增加赠品处理逻辑)
         for (GrouponGoodsBean.GrouponGoodsModel model : selectedShopList) {
+
+            // 统计普通商品的优惠金额
             if (model.getDiscounted_price() != null) {
                 discount_fee = discount_fee.add(model.getDiscounted_price());
             }
 
             CheckoutBean.GoodsJsonBean jsonBean = new CheckoutBean.GoodsJsonBean();
             jsonBean.setGoods_id(model.getPid());
-            jsonBean.setTitle(model.getTitle() != null ? model.getTitle() : "未知商品");
+
+            // --- 赠品特殊处理开始 ---
+            if (model.isIs_zengsong()) {
+                // 标题增加[赠品]前缀，打印和小票预览都会显示
+                jsonBean.setTitle("[赠品]" + (model.getTitle() != null ? model.getTitle() : "未知商品"));
+                // 赠品价格强制设为 0
+                jsonBean.setGoods_price("0.00");
+                jsonBean.setPay_price("0.00");
+                jsonBean.setDiscount("0");
+                jsonBean.setDiscounted_price("0.00");
+            } else {
+                // 普通商品逻辑
+                jsonBean.setTitle(model.getTitle() != null ? model.getTitle() : "未知商品");
+                jsonBean.setGoods_price(model.getPrice());
+                jsonBean.setPay_price(model.getHeji() != null ? model.getHeji().toString() : "0.00");
+                jsonBean.setDiscount(TextUtils.isEmpty(model.getDiscount()) ? "100" : model.getDiscount());
+                jsonBean.setDiscounted_price(model.getDiscounted_price() == null ? "0.00" : model.getDiscounted_price().toString());
+            }
+            // --- 赠品特殊处理结束 ---
+
+            jsonBean.setGoods_num(model.getShuliang());
             jsonBean.setGoods_sn(model.getGoods_sn() != null ? model.getGoods_sn() : "");
             jsonBean.setSn(model.getSn() != null ? model.getSn() : "");
-            jsonBean.setDiscount(TextUtils.isEmpty(model.getDiscount()) ? "100" : model.getDiscount());
-            jsonBean.setDiscounted_price(model.getDiscounted_price() == null ? "0.00" : model.getDiscounted_price().toString());
-            jsonBean.setGoods_price(model.getPrice());
-            jsonBean.setGoods_num(model.getShuliang());
-            jsonBean.setPay_price(model.getHeji() != null ? model.getHeji().toString() : "0.00");
             jsonBean.setGoods_sku_price_id(String.valueOf(model.getGgspid()));
 
             // 修复 goods_sku_text 为空导致 500 错误的问题
@@ -1254,21 +1272,23 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         checkoutBean.setGoodsjson(new Gson().toJson(goodsJsonList));
 
-        // 4. 设置金额 (现在 discount_fee 已经定义了，不会报错)
+        // 4. 设置金额
         checkoutBean.setDiscount_fee(discount_fee.toString());
         checkoutBean.setTotal_amount(zongjia.add(discount_fee).toString());
         checkoutBean.setGoods_original_amount(zongjia.add(discount_fee).toString());
 
-        // 5. 创建弹窗并赋值给全局变量
+        // 5. 创建结账弹窗
         currentCheckoutPopup = new CheckoutPopupWindow(this, checkoutBean, () -> {
             have_paid_view.setVisibility(VISIBLE);
             new Handler(Looper.getMainLooper()).postDelayed(() -> have_paid_view.setVisibility(GONE), 3000);
+
+            // 结账完成清空购物车
             is_jiezhang_qingkong = true;
             onClick(qingkong_btn);
 
-            // ▼▼▼▼▼▼ 【插入显示逻辑】 ▼▼▼▼▼▼
+            // ▼▼▼▼▼▼ 【插入显示逻辑：上一单详情回显】 ▼▼▼▼▼▼
             String pType = checkoutBean.getPay_type();
-            if (TextUtils.isEmpty(pType)) pType = "cash"; // 默认为现金
+            if (TextUtils.isEmpty(pType)) pType = "cash";
 
             int cCount = checkoutBean.getAllNum();
             String cTotal = checkoutBean.getTotal_amount();
@@ -1286,17 +1306,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 showLastOrderInfo(fPType, cCount, cTotal, fDiscount, fRealPay);
             }, 200);
             // ▲▲▲▲▲▲ 【插入结束】 ▲▲▲▲▲▲
-
-
-
-
-
-
-
-
         });
         currentCheckoutPopup.show();
     }
+
+
 
 
 
@@ -2268,5 +2282,87 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         });
     }
+
+
+    private void autoProcessGifts() {
+        // 1. 先把当前购物车的“普通商品”取出来存着
+        List<GrouponGoodsBean.GrouponGoodsModel> normalList = new ArrayList<>();
+        for (GrouponGoodsBean.GrouponGoodsModel m : selectedShopList) {
+            if (!m.isIs_zengsong()) {
+                normalList.add(m);
+            }
+        }
+
+        // 2. 清空主列表，准备重新排序
+        selectedShopList.clear();
+        if (normalList.isEmpty()) return;
+
+        // 3. 统计分类金额（基于普通商品）
+        Map<String, BigDecimal> catMap = new HashMap<>();
+        for (GrouponGoodsBean.GrouponGoodsModel m : normalList) {
+            if (!TextUtils.isEmpty(m.getCategory_ids())) {
+                catMap.put(m.getCategory_ids(), catMap.getOrDefault(m.getCategory_ids(), BigDecimal.ZERO).add(m.getHeji()));
+            }
+        }
+
+        // 4. 汇总赠品数量（Map去重逻辑）
+        Map<Integer, Integer> giftQtyMap = new HashMap<>();
+        Map<Integer, GrouponGoodsBean.GrouponGoodsModel> giftTempMap = new HashMap<>();
+
+        for (Map.Entry<String, BigDecimal> entry : catMap.entrySet()) {
+            // 这里是你查数据库匹配赠品的逻辑
+            List<GrouponGoodsBean.GrouponGoodsModel> gifts = LitePal
+                    .where("category_ids like ? and subtitle != ?", "%" + entry.getKey() + "%", "")
+                    .find(GrouponGoodsBean.GrouponGoodsModel.class);
+
+            for (GrouponGoodsBean.GrouponGoodsModel g : gifts) {
+                String sub = g.getSubtitle();
+                if (sub != null && sub.matches("\\d+")) {
+                    BigDecimal threshold = new BigDecimal(sub);
+                    giftTempMap.put(g.getGgspid(), g);
+                    if (threshold.compareTo(BigDecimal.ONE) == 0) {
+                        giftQtyMap.put(g.getGgspid(), 1); // 袋子逻辑
+                    } else {
+                        int num = entry.getValue().divide(threshold, 0, RoundingMode.DOWN).intValue();
+                        if (num > 0) {
+                            giftQtyMap.put(g.getGgspid(), giftQtyMap.getOrDefault(g.getGgspid(), 0) + num);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 5. 【关键】：先往 selectedShopList 里塞入所有计算出来的赠品
+        for (Map.Entry<Integer, Integer> giftEntry : giftQtyMap.entrySet()) {
+            GrouponGoodsBean.GrouponGoodsModel template = giftTempMap.get(giftEntry.getKey());
+            if (template != null) {
+                GrouponGoodsBean.GrouponGoodsModel gift = SerializableUtils.deepCopy(template);
+                gift.setShuliang(giftEntry.getValue());
+                gift.setIs_zengsong(true);
+                gift.setHeji(BigDecimal.ZERO);
+                gift.setDiscount("0");
+                selectedShopList.add(gift); // 赠品加入，索引 0, 1, 2...
+            }
+        }
+
+        // 6. 【关键】：再把刚才存的普通商品全部接在后面
+        selectedShopList.addAll(normalList);
+    }
+
+
+
+    /**
+     * 辅助方法：将赠品安全克隆入库
+     */
+    private void addGiftToCart(GrouponGoodsBean.GrouponGoodsModel template, int count) {
+        GrouponGoodsBean.GrouponGoodsModel autoGift = SerializableUtils.deepCopy(template);
+        autoGift.setShuliang(count);
+        autoGift.setIs_zengsong(true);
+        autoGift.setHeji(BigDecimal.ZERO);
+        autoGift.setDiscount("0");
+        selectedShopList.add(autoGift);
+    }
+
+
 
 }

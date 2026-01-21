@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
@@ -22,12 +23,12 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 小票打印指令工具类 - 极致紧凑省纸版
+ * 小票打印指令工具类 - 极致紧凑省纸版 (集成赠品识别逻辑)
  */
 public class ReceiptCommandUtils {
 
     private static final byte[] RESET = {0x1B, 0x40};
-    private static final byte[] LINE_SPACING_20 = {0x1B, 0x33, 20}; // 设置紧凑行间距 (n=20)
+    private static final byte[] LINE_SPACING_20 = {0x1B, 0x33, 20}; // 紧凑行间距
     private static final byte[] ALIGN_CENTER = {0x1B, 0x61, 0x01};
     private static final byte[] ALIGN_LEFT = {0x1B, 0x61, 0x00};
     private static final byte[] BOLD_ON = {0x1B, 0x45, 0x01};
@@ -39,14 +40,15 @@ public class ReceiptCommandUtils {
         ReceiptConfigUtils config = ReceiptConfigUtils.getInstance(context);
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         final int TOTAL_WIDTH = (config.getPaperType() == 0) ? 32 : 48;
-        String symbol = CurrencyUtils.getPrinterSymbol();
+        // 获取货币符号，如 ￥
+        String symbol = "￥";
 
         try {
-            // 1. 初始化并立即设置紧凑行距
+            // 1. 初始化
             buffer.write(RESET);
-            buffer.write(LINE_SPACING_20); // 关键：缩减全局垂直间距
+            buffer.write(LINE_SPACING_20);
 
-            // 2. 补打标识 (置顶紧凑显示)
+            // 2. 重打标识
             if (orderSn != null && orderSn.contains("补打")) {
                 buffer.write(ALIGN_CENTER);
                 buffer.write(BOLD_ON);
@@ -54,7 +56,7 @@ public class ReceiptCommandUtils {
                 buffer.write(BOLD_OFF);
             }
 
-            /* ========== 3. 顶部 Logo (紧凑) ========== */
+            // 3. 顶部 Logo
             if (config.showTopLogo()) {
                 buffer.write(ALIGN_CENTER);
                 try {
@@ -65,7 +67,7 @@ public class ReceiptCommandUtils {
                 } catch (Exception ignored) {}
             }
 
-            /* ========== 4. 店铺信息 ========== */
+            // 4. 店铺信息
             buffer.write(ALIGN_CENTER);
             buffer.write(BOLD_ON);
             printText(buffer, getShopName() + "\n");
@@ -75,13 +77,13 @@ public class ReceiptCommandUtils {
                 printText(buffer, "客服热线:" + config.getHotline() + "\n");
             }
 
-            /* ========== 5. 基础信息 ========== */
+            // 5. 基础信息
             buffer.write(ALIGN_LEFT);
             applyUserFontSize(buffer, config.getFontSize());
 
             if (config.showMember() && bean != null && !TextUtils.isEmpty(bean.getMember_name())) {
                 printText(buffer, "会员名称:" + bean.getMember_name() + "\n");
-                printText(buffer, "会员手机:" + Utilis.maskPhone(bean.getMember_phone()) + "\n");
+                printText(buffer, "会员手机:" + maskPhone(bean.getMember_phone()) + "\n");
             }
 
             if (config.showCashier()) {
@@ -94,7 +96,7 @@ public class ReceiptCommandUtils {
             setFontSize(buffer, 0, 0);
             printSeparator(buffer, TOTAL_WIDTH);
 
-            /* ========== 6. 商品明细 ========== */
+            // 6. 商品明细 (含赠品处理)
             buffer.write(BOLD_ON);
             printRowStrict(buffer, "商品名称", "数量", "单价", "金额", TOTAL_WIDTH);
             buffer.write(BOLD_OFF);
@@ -106,14 +108,24 @@ public class ReceiptCommandUtils {
                 if (goodsList != null) {
                     for (CheckoutBean.GoodsJsonBean item : goodsList) {
                         String qty = "weight".equals(item.getOnline_type()) ? formatQty(String.valueOf(item.getGoods_weight())) + "g" : "x" + item.getGoods_num();
-                        printRowStrict(buffer, item.getTitle(), qty, item.getGoods_price(), item.getPay_price(), TOTAL_WIDTH);
+
+                        String price = item.getGoods_price();
+                        String total = item.getPay_price();
+
+                        // --- 核心逻辑：识别赠品并美化小票显示 ---
+                        if (item.getTitle() != null && item.getTitle().contains("[赠品]")) {
+                            price = "0.00";
+                            total = "0.00";
+                        }
+
+                        printRowStrict(buffer, item.getTitle(), qty, price, total, TOTAL_WIDTH);
                     }
                 }
             }
             setFontSize(buffer, 0, 0);
             printSeparator(buffer, TOTAL_WIDTH);
 
-            /* ========== 7. 金额汇总 ========== */
+            // 7. 金额汇总
             if (bean != null) {
                 BigDecimal totalAmount = new BigDecimal(TextUtils.isEmpty(bean.getTotal_amount()) ? "0.00" : bean.getTotal_amount());
                 BigDecimal couponFee = new BigDecimal(TextUtils.isEmpty(bean.getCoupon_fee()) ? "0.00" : bean.getCoupon_fee());
@@ -139,7 +151,7 @@ public class ReceiptCommandUtils {
                 if (isGreaterZero(bean.getCash_change())) printTwoColumnRow(buffer, "找零:", symbol + bean.getCash_change(), TOTAL_WIDTH);
             }
 
-            /* ========== 8. 条码 & 二维码 (零间距) ========== */
+            // 8. 条码 & 二维码
             buffer.write(ALIGN_CENTER);
             if (config.showBarcode() && !TextUtils.isEmpty(orderSn) && orderSn.length() > 5) {
                 String cleanSn = orderSn.replaceAll("[^a-zA-Z0-9-]", "");
@@ -153,12 +165,12 @@ public class ReceiptCommandUtils {
                 printQRCode(buffer, config.getQrUrl());
             }
 
-            /* ========== 9. 底部欢迎语 (紧凑) ========== */
+            // 9. 底部欢迎语
             if (config.showBottomText()) {
                 printText(buffer, config.getFooterNote() + "\n");
             }
 
-            /* ========== 10. 底部 Logo & 切纸 (极致压缩间距) ========== */
+            // 10. 底部 Logo & 切纸
             if (config.showBottomLogo()) {
                 buffer.write(ALIGN_CENTER);
                 try {
@@ -167,9 +179,9 @@ public class ReceiptCommandUtils {
                     Bitmap bmp = processBitmapForPrinter(logo, targetWidth);
                     if (bmp != null) buffer.write(ImagePrinter.convertBitmapToEscPos(ImagePrinter.toMonochrome(bmp)));
                 } catch (Exception ignored) {}
-                buffer.write(new byte[]{0x1B, 0x64, 0x02}); // 打印完 Logo 后仅走 2 行纸 (最小安全距离)
+                buffer.write(new byte[]{0x1B, 0x64, 0x02});
             } else {
-                buffer.write(new byte[]{0x1B, 0x64, 0x01}); // 不印 Logo 仅走 1 行纸
+                buffer.write(new byte[]{0x1B, 0x64, 0x01});
             }
 
             buffer.write(CUT_PAPER);
@@ -180,7 +192,8 @@ public class ReceiptCommandUtils {
         return buffer.toByteArray();
     }
 
-    // ---------------- 字体/换行 ----------------
+    // ---------------- 打印辅助方法 ----------------
+
     private static void setFontSize(ByteArrayOutputStream buffer, int w, int h) {
         try { buffer.write(new byte[]{0x1D, 0x21, (byte) ((w << 4) | h)}); } catch (IOException ignored) {}
     }
@@ -200,7 +213,7 @@ public class ReceiptCommandUtils {
     }
 
     private static void printBarcode(ByteArrayOutputStream buffer, String content) throws IOException {
-        buffer.write(new byte[]{0x1D, 0x68, (byte) 55}); // 高度降低到 55 让单行更紧凑
+        buffer.write(new byte[]{0x1D, 0x68, (byte) 55});
         buffer.write(new byte[]{0x1D, 0x77, (byte) 1});
         buffer.write(new byte[]{0x1D, 0x48, (byte) 0x00});
         buffer.write(new byte[]{0x1D, 0x6B, 73, (byte) content.length()});
@@ -208,27 +221,30 @@ public class ReceiptCommandUtils {
     }
 
     private static void printQRCode(ByteArrayOutputStream buffer, String content) throws IOException {
+        if (TextUtils.isEmpty(content)) return;
         byte[] bytes = content.getBytes();
         int length = bytes.length + 3;
-        buffer.write(new byte[]{0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x05}); // 模块大小降到 05
+        buffer.write(new byte[]{0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x05});
         buffer.write(new byte[]{0x1D, 0x28, 0x6B, (byte) (length % 256), (byte) (length / 256), 0x31, 0x50, 0x30});
         buffer.write(bytes);
         buffer.write(new byte[]{0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30});
     }
 
-    // ---------------- 辅助处理 (略) ----------------
-    private static String formatQty(String value) {
-        if (TextUtils.isEmpty(value)) return "0";
-        try { return new BigDecimal(value).stripTrailingZeros().toPlainString(); } catch (Exception e) { return value; }
-    }
-
     private static void printRowStrict(ByteArrayOutputStream buffer, String name, String qty, String price, String total, int totalWidth) throws IOException {
-        final int NAME_W = (totalWidth == 32) ? 14 : 24;
-        final int COL_W = (totalWidth == 32) ? 6 : 8;
+        // 设置列宽比例
+        final int NAME_W = (totalWidth == 32) ? 12 : 20;
+        final int QTY_W = (totalWidth == 32) ? 6 : 8;
+        final int PRICE_W = (totalWidth == 32) ? 7 : 10;
+        final int TOTAL_W = (totalWidth == 32) ? 7 : 10;
+
         List<String> nameLines = splitByGbkUnits(name, NAME_W);
         for (int i = 0; i < nameLines.size(); i++) {
             StringBuilder line = new StringBuilder(padRight(nameLines.get(i), NAME_W));
-            if (i == nameLines.size() - 1) line.append(padLeft(qty, COL_W)).append(padLeft(price, COL_W)).append(padLeft(total, COL_W));
+            if (i == nameLines.size() - 1) {
+                line.append(padLeft(qty, QTY_W))
+                        .append(padLeft(price, PRICE_W))
+                        .append(padLeft(total, TOTAL_W));
+            }
             line.append("\n");
             printText(buffer, line.toString());
         }
@@ -251,6 +267,7 @@ public class ReceiptCommandUtils {
 
     private static List<String> splitByGbkUnits(String s, int max) {
         List<String> list = new ArrayList<>();
+        if (TextUtils.isEmpty(s)) { list.add(""); return list; }
         int len = 0, start = 0;
         for (int i = 0; i < s.length(); i++) {
             int u = (s.charAt(i) < 128) ? 1 : 2;
@@ -274,7 +291,10 @@ public class ReceiptCommandUtils {
 
     private static boolean isGreaterZero(String val) {
         if (TextUtils.isEmpty(val)) return false;
-        try { return new BigDecimal(val.replace("COMBINED:", "").trim()).compareTo(BigDecimal.ZERO) > 0; } catch (Exception e) { return false; }
+        try {
+            String cleanVal = val.replace("￥", "").replace("$", "").replace("COMBINED:", "").trim();
+            return new BigDecimal(cleanVal).compareTo(BigDecimal.ZERO) > 0;
+        } catch (Exception e) { return false; }
     }
 
     private static Bitmap processBitmapForPrinter(Bitmap src, int w) {
@@ -292,24 +312,18 @@ public class ReceiptCommandUtils {
     }
 
     private static String getCashierName(CheckoutBean bean) {
-        // 1. 优先读取专门的显示字段 cashierName
-        if (bean != null && !TextUtils.isEmpty(bean.getCashierName())) {
-            return bean.getCashierName();
-        }
-
-        // 2. 备选：如果 machineNumber 不是 001，说明可能存的是名字
-        if (bean != null && !TextUtils.isEmpty(bean.getMachineNumber()) && !bean.getMachineNumber().equals("001")) {
-            return bean.getMachineNumber();
-        }
-
-        // 3. 兜底：取当前登录的昵称
-        try {
-            String nickname = UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname();
-            if (!TextUtils.isEmpty(nickname)) return nickname;
-        } catch (Exception ignored) {}
-
+        if (bean != null && !TextUtils.isEmpty(bean.getCashierName())) return bean.getCashierName();
+        try { return UserUtils.getInstance().getLoginBase().getData().getUserinfo().getNickname(); } catch (Exception ignored) {}
         return "管理员";
     }
 
+    private static String maskPhone(String phone) {
+        if (TextUtils.isEmpty(phone) || phone.length() < 7) return phone;
+        return phone.substring(0, 3) + "****" + phone.substring(phone.length() - 4);
+    }
 
+    private static String formatQty(String value) {
+        if (TextUtils.isEmpty(value)) return "0";
+        try { return new BigDecimal(value).stripTrailingZeros().toPlainString(); } catch (Exception e) { return value; }
+    }
 }

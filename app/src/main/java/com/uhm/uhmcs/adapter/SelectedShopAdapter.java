@@ -28,42 +28,72 @@ public class SelectedShopAdapter extends BaseQuickAdapter<GrouponGoodsBean.Group
 
     @Override
     protected void convert(BaseViewHolder helper, GrouponGoodsBean.GrouponGoodsModel item) {
-//        helper.setText(R.id.shop_type,item.getName());
-//        if (item.isSelected()){
-//            helper.setBackgroundRes(R.id.item_shop_type_view,R.drawable.shop_bg);
-//            helper.setTextColor(R.id.shop_type,context.getResources().getColor(R.color.white));
-//        }else {
-//            helper.setTextColor(R.id.shop_type,context.getResources().getColor(R.color.black));
-//            helper.setBackgroundRes(R.id.item_shop_type_view,R.drawable.menu_bg);
-//        }
-        helper.setGone(R.id.zengsong, UserUtils.getInstance().isDazhe());
-        helper.setText(R.id.xuhao,(helper.getLayoutPosition()+1)+"");
-        helper.setText(R.id.pinming,item.getTitle());
-        helper.setText(R.id.guige,"暂无规格");
+        // 1. 基础文字赋值
+        helper.setText(R.id.xuhao, (helper.getLayoutPosition() + 1) + "");
+        helper.setText(R.id.pinming, item.getTitle());
+        helper.setText(R.id.shuliang, item.getShuliang() + "");
+        helper.setText(R.id.heji, item.getHeji() + "");
+        helper.setText(R.id.guige, "暂无规格");
 
-        helper.setText(R.id.heji,item.getHeji()+"");
-        helper.setText(R.id.shuliang,item.getShuliang()+"");
-        helper.setText(R.id.zengsong,item.isIs_zengsong()?context.getString(R.string.cancel_give_away):context.getString(R.string.give_away));
+        // 2. 获取 UI 控件
+        TextView tvXuhao = helper.getView(R.id.xuhao);
+        TextView tvPinming = helper.getView(R.id.pinming);
+        TextView tvShuliang = helper.getView(R.id.shuliang);
+        TextView tvHeji = helper.getView(R.id.heji);
+        TextView tvZhekou = helper.getView(R.id.zhekou_view);
 
-        helper.addOnClickListener(R.id.shuliang_jia);
-        helper.addOnClickListener(R.id.shuliang_jian);
-        helper.addOnClickListener(R.id.zengsong);
+        // 3. 【核心分支逻辑】
+        if (item.isIs_zengsong()) {
+            // ======= 赠品模式 =======
+            int red = Color.RED;
+            // (1) 文字变红
+            tvXuhao.setTextColor(red);
+            tvPinming.setTextColor(red);
+            tvShuliang.setTextColor(red);
+            tvHeji.setTextColor(red);
 
-        TextView zhekou_view=helper.getView(R.id.zhekou_view);
-        if (TextUtils.isEmpty(item.getDiscount())||item.getDiscount().equals("100")){
-            zhekou_view.setVisibility(GONE);
-        }else {
-            zhekou_view.setVisibility(VISIBLE);
-            zhekou_view.setText(context.getString(R.string.fold)+item.getDiscount()+"%");
+            // (2) 隐藏加减号 (使用 INVISIBLE 保持数量文字在中间不偏移)
+            helper.getView(R.id.shuliang_jia).setVisibility(android.view.View.INVISIBLE);
+            helper.getView(R.id.shuliang_jian).setVisibility(android.view.View.INVISIBLE);
+
+            // (3) 隐藏折扣信息和赠送按钮
+            tvZhekou.setVisibility(android.view.View.GONE);
+            helper.setGone(R.id.zengsong, false); // 强制隐藏
+
+        } else {
+            // ======= 普通商品模式 =======
+            int black = Color.BLACK;
+            tvXuhao.setTextColor(Color.parseColor("#333333"));
+            tvPinming.setTextColor(black);
+            tvShuliang.setTextColor(black);
+            tvHeji.setTextColor(black);
+
+            // (1) 显示加减号
+            helper.getView(R.id.shuliang_jia).setVisibility(android.view.View.VISIBLE);
+            helper.getView(R.id.shuliang_jian).setVisibility(android.view.View.VISIBLE);
+
+            // (2) 恢复你原本的“赠送按钮”显示逻辑
+            helper.setGone(R.id.zengsong, UserUtils.getInstance().isDazhe());
+
+            // (3) 恢复你原本的“折扣文字”显示逻辑
+            if (TextUtils.isEmpty(item.getDiscount()) || item.getDiscount().equals("100")) {
+                tvZhekou.setVisibility(android.view.View.GONE);
+            } else {
+                tvZhekou.setVisibility(android.view.View.VISIBLE);
+                tvZhekou.setText(context.getString(R.string.fold) + item.getDiscount() + "%");
+            }
         }
 
-        if (item.isSelected()){
-
-            helper.setBackgroundColor(R.id.all_view,Color.parseColor("#757fa4"));
-        }else {
+        // 4. 选中背景逻辑（保持不变）
+        if (item.isSelected()) {
+            helper.setBackgroundColor(R.id.all_view, Color.parseColor("#757fa4"));
+        } else {
             helper.getView(R.id.all_view).setBackgroundColor(Color.TRANSPARENT);
         }
 
-
+        // 5. 注册点击事件
+        helper.addOnClickListener(R.id.shuliang_jia);
+        helper.addOnClickListener(R.id.shuliang_jian);
+        helper.addOnClickListener(R.id.zengsong);
     }
 }
