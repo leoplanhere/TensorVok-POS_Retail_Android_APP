@@ -44,7 +44,7 @@ public class MyPrinterHelper {
     private UsbDeviceConnection usbConnection;
     private UsbEndpoint endpointOut;
     private static MyPrinterHelper instance;
-
+    private UsbInterface mCurrentInterface; // 新增全局变量
     // 常量定义
     private static final String CHARSET_GBK = "GBK";
     // private static final byte[] CMD_INIT = {0x1B, 0x40}; // 屏蔽初始化指令，防止多余切纸
@@ -64,13 +64,23 @@ public class MyPrinterHelper {
      * 连接设备
      */
     public void connectAndPrint(UsbDevice device, UsbDeviceConnection usbConnection) {
-        Log.i(TAG, ">>>>>>>connectAndPrint>>>>>>");
         this.usbConnection = usbConnection;
-        UsbInterface usbInterface = device.getInterface(0);
-        this.usbConnection.claimInterface(usbInterface, true);
+        mCurrentInterface = null;
+        endpointOut = null;
 
-        for (int i = 0; i < usbInterface.getEndpointCount(); i++) {
-            UsbEndpoint ep = usbInterface.getEndpoint(i);
+        // 寻找打印机接口
+        for (int i = 0; i < device.getInterfaceCount(); i++) {
+            UsbInterface ui = device.getInterface(i);
+            if (ui.getInterfaceClass() == 7) { // 打印机类
+                mCurrentInterface = ui;
+                break;
+            }
+        }
+        if (mCurrentInterface == null) mCurrentInterface = device.getInterface(0);
+
+        // 寻找输出端点
+        for (int i = 0; i < mCurrentInterface.getEndpointCount(); i++) {
+            UsbEndpoint ep = mCurrentInterface.getEndpoint(i);
             if (ep.getDirection() == UsbConstants.USB_DIR_OUT) {
                 endpointOut = ep;
                 break;
@@ -126,13 +136,52 @@ public class MyPrinterHelper {
     /**
      * 统一执行 bulkTransfer
      */
+    /**
+     * 统一执行 bulkTransfer - 增加分段传输逻辑防止大图传输失败
+     */
     private void executePrint(Activity context, byte[] data) throws IOException {
-        if (usbConnection == null || endpointOut == null) return;
-        int transfer = usbConnection.bulkTransfer(endpointOut, data, data.length, 5000);
-        if (transfer >= 0) {
+        if (usbConnection == null || endpointOut == null || mCurrentInterface == null) {
+            throw new IOException("USB 连接未就绪");
+        }
+
+        // --- 核心修复：强制认领 ---
+        // 第二个参数 true 非常关键，它会尝试强行从其他潜在占用者手中夺取控制权
+        boolean isClaimed = usbConnection.claimInterface(mCurrentInterface, true);
+        Log.d(TAG, "Attempting to claim interface: " + isClaimed);
+
+        if (!isClaimed) {
+            // 如果认领失败，尝试先释放再认领（某些主板固件的 Bug 修复方案）
+            usbConnection.releaseInterface(mCurrentInterface);
+            isClaimed = usbConnection.claimInterface(mCurrentInterface, true);
+        }
+
+        if (!isClaimed) {
+            throw new IOException("无法认领 USB 接口，可能被其他版本 App 占用");
+        }
+        // -----------------------
+
+        final int chunkSize = 512;
+        int offset = 0;
+
+        try {
+            while (offset < data.length) {
+                int length = Math.min(chunkSize, data.length - offset);
+                byte[] chunk = new byte[length];
+                System.arraycopy(data, offset, chunk, 0, length);
+
+                int transfer = usbConnection.bulkTransfer(endpointOut, chunk, length, 5000);
+
+                if (transfer < 0) {
+                    // 如果传输失败，记录当前的错误状态
+                    Log.e(TAG, "传输失败，位置: " + offset);
+                    throw new IOException("USB BulkTransfer 返回失败: " + transfer);
+                }
+                offset += length;
+            }
             sendPrintStatus(context, true);
-        } else {
-            throw new IOException("USB 传输失败");
+        } finally {
+            // 注意：不要在 finally 里立即 releaseInterface，
+            // 否则连续打印（如连打两张）时会因为频繁释放/认领导致通讯中断。
         }
     }
 
@@ -502,18 +551,11 @@ public class MyPrinterHelper {
 
     private void finalizePrint(Activity context) throws IOException {
         output.write(CMD_CUT_PAPER);
-        int transfer = usbConnection.bulkTransfer(
-                endpointOut,
-                output.toByteArray(),
-                output.toByteArray().length,
-                5000
-        );
-        if (transfer >= 0) {
-            sendPrintStatus(context, true);
-        } else {
-            throw new IOException("打印数据传输失败");
-        }
+        // 直接复用 executePrint 的逻辑，因为它已经处理了分段和状态反馈
+        executePrint(context, output.toByteArray());
     }
+
+
 
     private int calculateDisplayWidth(String str) {
         if (str == null) return 0; // 修复空指针

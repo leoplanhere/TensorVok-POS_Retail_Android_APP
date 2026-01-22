@@ -28,7 +28,7 @@ import java.util.List;
 public class ReceiptCommandUtils {
 
     private static final byte[] RESET = {0x1B, 0x40};
-    private static final byte[] LINE_SPACING_20 = {0x1B, 0x33, 20}; // 紧凑行间距
+    private static final byte[] LINE_SPACING_20 = {0x1B, 0x33, 30}; // 紧凑行间距
     private static final byte[] ALIGN_CENTER = {0x1B, 0x61, 0x01};
     private static final byte[] ALIGN_LEFT = {0x1B, 0x61, 0x00};
     private static final byte[] BOLD_ON = {0x1B, 0x45, 0x01};
@@ -156,7 +156,9 @@ public class ReceiptCommandUtils {
             if (config.showBarcode() && !TextUtils.isEmpty(orderSn) && orderSn.length() > 5) {
                 String cleanSn = orderSn.replaceAll("[^a-zA-Z0-9-]", "");
                 if (!TextUtils.isEmpty(cleanSn)) {
-                    printBarcode(buffer, cleanSn);
+                    // 调用图片打印方式
+                    printBarcodeAsImage(buffer, cleanSn, config.getPaperType());
+                    // 下方依然打印数字文本，方便人工核对
                     printText(buffer, cleanSn + "\n");
                 }
             }
@@ -228,6 +230,58 @@ public class ReceiptCommandUtils {
         buffer.write(new byte[]{0x1D, 0x28, 0x6B, (byte) (length % 256), (byte) (length / 256), 0x31, 0x50, 0x30});
         buffer.write(bytes);
         buffer.write(new byte[]{0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30});
+    }
+
+
+    /**
+     * 将条码生成 Bitmap 位图
+     */
+    private static Bitmap generateBarcodeBitmap(String content, int width, int height) {
+        try {
+            com.google.zxing.MultiFormatWriter writer = new com.google.zxing.MultiFormatWriter();
+            // 使用 CODE_128 格式
+            com.google.zxing.common.BitMatrix bitMatrix = writer.encode(content,
+                    com.google.zxing.BarcodeFormat.CODE_128, width, height);
+
+            int[] pixels = new int[width * height];
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    pixels[y * width + x] = bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF;
+                }
+            }
+            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
+            return bitmap;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * 以图片形式打印条码的方法
+     */
+    private static void printBarcodeAsImage(ByteArrayOutputStream buffer, String content, int paperType) throws IOException {
+        if (TextUtils.isEmpty(content)) return;
+
+        // 根据纸张类型设置图片宽度
+        // 58mm 建议宽度 320 像素左右，80mm 建议 480 像素
+        int targetWidth = (paperType == 0) ? 320 : 480;
+        int targetHeight = 64; // 条码高度
+
+        Bitmap barcodeBmp = generateBarcodeBitmap(content, targetWidth, targetHeight);
+
+        if (barcodeBmp != null) {
+            // 使用你项目中已有的 ImagePrinter 工具类进行转换
+            // 1. 转为黑白二值化图
+            Bitmap grayBmp = ImagePrinter.toMonochrome(barcodeBmp);
+            // 2. 转为 ESC/POS 图片指令并写入 buffer
+            byte[] imageCmd = ImagePrinter.convertBitmapToEscPos(grayBmp);
+            buffer.write(imageCmd);
+
+            // 打印完图片后手动加一个换行，防止跟后面的文字重叠
+            buffer.write(new byte[]{0x0A});
+        }
     }
 
     private static void printRowStrict(ByteArrayOutputStream buffer, String name, String qty, String price, String total, int totalWidth) throws IOException {
