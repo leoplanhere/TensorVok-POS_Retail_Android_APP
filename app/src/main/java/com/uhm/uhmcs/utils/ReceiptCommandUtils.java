@@ -119,6 +119,21 @@ public class ReceiptCommandUtils {
                         }
 
                         printRowStrict(buffer, item.getTitle(), qty, price, total, TOTAL_WIDTH);
+
+
+                        try {
+                            // A. 临时将行间距设为一个很小的值（例如 10 像素点）
+                            // 0x1B, 0x33, n (n 越小，间距越窄)
+                            buffer.write(new byte[]{0x1B, 0x33, 10});
+
+                            // B. 打印一个换行符，这时它只会跳过 10 像素的高度
+                            buffer.write(new byte[]{0x0A});
+
+                            // C. 立即恢复你原本设置的全局行间距（你代码里是 30）
+                            buffer.write(new byte[]{0x1B, 0x33, 30});
+
+                        } catch (IOException ignored) {}
+
                     }
                 }
             }
@@ -302,6 +317,9 @@ public class ReceiptCommandUtils {
             line.append("\n");
             printText(buffer, line.toString());
         }
+
+
+
     }
 
     private static String padRight(String s, int w) {
