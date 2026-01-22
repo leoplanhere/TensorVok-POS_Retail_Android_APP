@@ -8,7 +8,7 @@ android {
     compileSdk 35
 
     defaultConfig {
-        applicationId "com.uhm.uhmcs.sgtest"
+        applicationId "com.uhm.uhmcs.sdtest"
         minSdk 24
         targetSdk 35
 

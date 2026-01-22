@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.uhm.uhmcs.test",
+  "applicationId": "com.uhm.uhmcs.sdtest",
   "variantName": "release",
   "elements": [
     {
