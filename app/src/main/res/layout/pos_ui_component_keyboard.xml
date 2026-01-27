@@ -1,202 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/llkeyArea"
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/glKeyboard"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:ignore="MissingDefaultResource"
-    android:padding="2dp">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-        <androidx.appcompat.widget.AppCompatButton
-            android:gravity="center"
-            android:id="@+id/btnNum_01"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:textSize="@dimen/pos_key_button_font_size_01"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
-            android:stateListAnimator="@null"
-            android:tag="1"
-            android:text="1" />
-        <androidx.appcompat.widget.AppCompatButton
-            android:gravity="center"
-            android:stateListAnimator="@null"
-            android:id="@+id/btnNum_02"
-            android:layout_width="0dp"
-            android:textColor="@color/black"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:textSize="@dimen/pos_key_button_font_size_01"
-            android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
-            android:tag="2"
-            android:text="2" />
-        <androidx.appcompat.widget.AppCompatButton
-            android:gravity="center"
-            android:stateListAnimator="@null"
-            android:id="@+id/btnNum_03"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textColor="@color/black"
-            android:textSize="@dimen/pos_key_button_font_size_01"
-            android:tag="3"
-            android:text="3" />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
-        android:layout_weight="1">
-        <androidx.appcompat.widget.AppCompatButton
-            android:stateListAnimator="@null"
-            android:id="@+id/btnNum_04"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:textSize="@dimen/pos_key_button_font_size_01"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:gravity="center"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
-            android:tag="4"
-            android:text="4"
-            tools:ignore="NestedWeights" />
-        <androidx.appcompat.widget.AppCompatButton
-            android:stateListAnimator="@null"
-            android:id="@+id/btnNum_05"
-            android:gravity="center"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:textColor="@color/black"
-            android:textSize="@dimen/pos_key_button_font_size_01"
-            android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
-            android:tag="5"
-            android:text="5" />
-        <androidx.appcompat.widget.AppCompatButton
-            android:stateListAnimator="@null"
-            android:id="@+id/btnNum_06"
-            android:layout_width="0dp"
-            android:gravity="center"
-            android:layout_height="match_parent"
-            android:textColor="@color/black"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="@dimen/pos_key_button_font_size_01"
-            android:tag="6"
-            android:text="6" />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginBottom="5dp"
-        android:layout_weight="1">
-        <androidx.appcompat.widget.AppCompatButton
-            android:stateListAnimator="@null"
-            android:id="@+id/btnNum_07"
-            android:layout_width="0dp"
-            android:gravity="center"
-            android:textColor="@color/black"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:textSize="@dimen/pos_key_button_font_size_01"
-            android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
-            android:tag="7"
-            android:text="7"
-            tools:ignore="NestedWeights" />
-        <androidx.appcompat.widget.AppCompatButton
+    android:layout_height="wrap_content"
+    android:alignmentMode="alignMargins"
+    android:columnCount="3"
+    android:columnOrderPreserved="false"
+    android:rowCount="4"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
-            android:stateListAnimator="@null"
-            android:id="@+id/btnNum_08"
-            android:textColor="@color/black"
-            android:layout_width="0dp"
-            android:gravity="center"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:textSize="@dimen/pos_key_button_font_size_01"
-            android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
-            android:tag="8"
-            android:text="8" />
-        <androidx.appcompat.widget.AppCompatButton
-            android:stateListAnimator="@null"
-            android:textColor="@color/black"
-            android:id="@+id/btnNum_09"
-            android:layout_width="0dp"
-            android:gravity="center"
-            android:layout_height="match_parent"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
-            android:layout_weight="1"
-            android:textSize="@dimen/pos_key_button_font_size_01"
-            android:textStyle="bold"
-            android:tag="9"
-            android:text="9" />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-        <androidx.appcompat.widget.AppCompatButton
-            android:stateListAnimator="@null"
-            android:id="@+id/btnNum_00"
-            android:layout_width="0dp"
-            android:textColor="@color/black"
-            android:gravity="center"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:textSize="@dimen/pos_key_button_font_size_01"
-            android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
-            android:tag="0"
-            android:text="0"
-            tools:ignore="NestedWeights" />
-        <androidx.appcompat.widget.AppCompatButton
-            android:stateListAnimator="@null"
-            android:id="@+id/btnNum_C"
-            android:layout_width="0dp"
-            android:textColor="@color/black"
-            android:gravity="center"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:textSize="@dimen/pos_key_button_font_size_01"
-            android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
-            android:tag="c"
-            android:text="@string/clear" />
-        <androidx.appcompat.widget.AppCompatButton
-            android:stateListAnimator="@null"
-            android:id="@+id/btnNum_D"
-            android:layout_width="0dp"
-            android:textColor="@color/black"
-            android:gravity="center"
-            android:layout_height="match_parent"
-            android:background="@drawable/pos_drawable_key_button_change_color_01"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="@dimen/pos_key_button_font_size_01"
-            android:tag="D"
-            android:text="@string/delete" />
-    </LinearLayout>
-</LinearLayout>
+    <Button style="@style/KeyButtonStyle.Num" android:id="@+id/key1" android:text="1" />
+    <Button style="@style/KeyButtonStyle.Num" android:id="@+id/key2" android:text="2" />
+    <Button style="@style/KeyButtonStyle.Num" android:id="@+id/key3" android:text="3" />
+    <Button style="@style/KeyButtonStyle.Num" android:id="@+id/key4" android:text="4" />
+    <Button style="@style/KeyButtonStyle.Num" android:id="@+id/key5" android:text="5" />
+    <Button style="@style/KeyButtonStyle.Num" android:id="@+id/key6" android:text="6" />
+    <Button style="@style/KeyButtonStyle.Num" android:id="@+id/key7" android:text="7" />
+    <Button style="@style/KeyButtonStyle.Num" android:id="@+id/key8" android:text="8" />
+    <Button style="@style/KeyButtonStyle.Num" android:id="@+id/key9" android:text="9" />
+
+    <Button style="@style/KeyButtonStyle.Num" android:id="@+id/key0" android:text="0" />
+
+    <Button
+        style="@style/KeyButtonStyle.Action"
+        android:id="@+id/keyClear"
+        android:text="C" />
+
+    <Button
+        style="@style/KeyButtonStyle.Action"
+        android:id="@+id/keyDelete"
+        android:text="←" />
+
+</GridLayout>

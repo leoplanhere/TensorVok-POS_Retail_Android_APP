@@ -103,7 +103,7 @@ public class GrouponGoodsBean implements Serializable {
 
         // LitePal 默认本地主键，保持自增即可，不要手动干预
         @SerializedName("litepal_id")
-        private int id;
+        private int local_db_id;
 
         // ★ 后台数字 ID (如 54142)
         @SerializedName("id")
@@ -159,11 +159,11 @@ public class GrouponGoodsBean implements Serializable {
         // --- Getters and Setters ---
 
         public int getId() {
-            return id;
+            return local_db_id;
         }
 
         public void setId(int id) {
-            this.id = id;
+            this.local_db_id = local_db_id;
         }
 
         public int getPid() {
@@ -278,13 +278,9 @@ public class GrouponGoodsBean implements Serializable {
             this.ggspid = ggspid;
         }
 
-        public int getGoods_sku_price_id() {
-            return ggspid;
-        }
+        public int getGoods_sku_price_id() { return goods_sku_price_id; }
 
-        public String getPay_price() {
-            return price;
-        }
+        public String getPay_price() { return pay_price; }
 
         public String getDiscount() {
             return discount;

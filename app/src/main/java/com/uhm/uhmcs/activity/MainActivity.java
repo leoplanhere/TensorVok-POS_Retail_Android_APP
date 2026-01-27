@@ -792,13 +792,17 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         .find(GrouponGoodsBean.GrouponGoodsModel.class);
 
                 if (results != null && !results.isEmpty()) {
-                    GrouponGoodsBean.GrouponGoodsModel finalGoods = results.get(0);
-                    Log.i("Scan", "查询成功: " + finalGoods.getTitle());
+                    // 1. 【新增这一行】定义变量名并赋值
+                    GrouponGoodsBean.GrouponGoodsModel testItem = results.get(0);
 
-                    // ★★★ 修改：播放成功音效
+                    // 2. 打印日志（就是你刚才报错的那行）
+                    Log.e("SCAN_ID_CHECK", "商品名称: " + testItem.getTitle() + " | 业务PID: " + testItem.getPid());
+
+                    // 3. 原有的逻辑保持不变
+                    Log.i("Scan", "查询成功: " + testItem.getTitle());
                     runOnUiThread(() -> {
                         playSuccessSound();
-                        addGoodsToCart(finalGoods);
+                        addGoodsToCart(testItem);
                     });
                 } else {
                     // 2. 没查到，尝试模糊
@@ -881,7 +885,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         allNum++;
         for (int i = 0; i < selectedShopList.size(); i++) {
             GrouponGoodsBean.GrouponGoodsModel model = selectedShopList.get(i);
-            if (model.getId() == goods.getId() && model.getGgspid() == goods.getGgspid()) {
+            if (model.getPid() == goods.getPid() && model.getGgspid() == goods.getGgspid()){
                 model.setShuliang(model.getShuliang() + 1);
                 updateCartItemPrice(model);
                 selectedShopAdapter.notifyItemChanged(i);

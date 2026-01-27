@@ -528,6 +528,11 @@ public class CheckoutPopupWindow {
         if (Utilis.isFastClick()){
             return;
         }
+
+        // ★ 新增日志打印：查看整个订单对象的 JSON
+        Log.e("SUBMIT_DEBUG", "提交给后端的全量数据: " + new Gson().toJson(checkoutBean));
+
+
         buildBean.show();
         checkoutBean.setOrder_sn(order_sn);
         if (new BigDecimal(shoukuan_tv.getText().toString()).subtract(new BigDecimal(checkoutBean.getTotal_fee())).add(new BigDecimal(yinshou)).compareTo(BigDecimal.ZERO)<0){
