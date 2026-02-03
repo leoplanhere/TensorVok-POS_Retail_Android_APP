@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_preview"
+    android:layout_width="400dp"
+    android:layout_height="160dp"
+    android:background="@color/white"
+    android:padding="0dp">
+
+    <TextView
+        android:id="@+id/tv_preview_shop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="店铺名称"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tv_preview_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="3"
+        android:singleLine="false"
+        android:ellipsize="none"
+        android:includeFontPadding="false"
+        android:text="商品名称"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tv_preview_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0.00元"
+        android:textStyle="bold"
+        android:includeFontPadding="false"
+        android:textColor="@color/black"
+        android:textSize="24sp" />
+
+    <LinearLayout
+        android:id="@+id/layout_barcode_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center">
+        <ImageView
+            android:id="@+id/iv_preview_barcode"
+            android:layout_width="180dp"
+            android:layout_height="40dp"
+            android:scaleType="fitXY" />
+        <TextView
+            android:id="@+id/tv_preview_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="6932898737864"
+            android:textColor="@color/black"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_preview_sn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="12345678"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:padding="2dp" />
+
+    <TextView
+        android:id="@+id/tv_preview_specs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="规格"
+        android:textColor="@color/black"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tv_preview_unit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="单位"
+        android:textColor="@color/black"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tv_preview_staff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="物价员"
+        android:textColor="@color/black"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tv_preview_level"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="合格品"
+        android:textColor="@color/black"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tv_preview_origin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="产地"
+        android:textColor="@color/black"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tv_preview_points"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0.00"
+        android:textColor="@color/black"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tv_preview_coupon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0.00"
+        android:textColor="@color/black"
+        android:textSize="14sp" />
+
+</FrameLayout>

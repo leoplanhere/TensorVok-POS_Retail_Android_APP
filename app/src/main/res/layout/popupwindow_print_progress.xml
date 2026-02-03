@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#CC000000"
+    android:gravity="center">
+
+    <LinearLayout
+        android:layout_width="500dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="40dp"
+        android:background="@drawable/white_bg"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="正在打印标签，请稍候..."
+            android:textSize="24sp"
+            android:textColor="@color/black"
+            android:textStyle="bold" />
+
+        <ProgressBar
+            android:id="@+id/print_progress_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginTop="30dp"
+            android:max="100" />
+
+        <TextView
+            android:id="@+id/print_status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="正在处理: 0 / 0"
+            android:textSize="18sp"
+            android:textColor="@color/text_gray" />
+    </LinearLayout>
+</LinearLayout>

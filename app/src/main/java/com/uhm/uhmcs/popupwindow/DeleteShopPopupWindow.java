@@ -34,54 +34,70 @@ public class DeleteShopPopupWindow {
     private Context context;
     private PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener;
     private String hint_content;
-    private boolean is_dismiss=false;
-    private boolean is_shouBtn=true;
+    private boolean is_dismiss = false;
+    private boolean is_shouBtn = true;
     private CustomInputTextView pay_password;
-    private boolean is_edit=false;
+    private boolean is_edit = false;
 
+    // --- 新增：用于控制自动消失的时间，默认为老代码的 500ms ---
+    private int dismiss_time = 500;
 
-    public DeleteShopPopupWindow(Context context,PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
+    public DeleteShopPopupWindow(Context context, PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
         this.context = context;
-        this.deleteShopOnClickListener=deleteShopOnClickListener;
+        this.deleteShopOnClickListener = deleteShopOnClickListener;
         initPopup();
     }
-    public DeleteShopPopupWindow(Context context,String hint_content) {
+
+    public DeleteShopPopupWindow(Context context, String hint_content) {
         this.context = context;
-        this.hint_content=hint_content;
+        this.hint_content = hint_content;
         initPopup();
     }
-    public DeleteShopPopupWindow(Context context,String hint_content,boolean is_shouBtn,PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
+
+    public DeleteShopPopupWindow(Context context, String hint_content, boolean is_shouBtn, PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
         this.context = context;
-        this.is_shouBtn=is_shouBtn;
-        this.hint_content=hint_content;
-        this.deleteShopOnClickListener=deleteShopOnClickListener;
+        this.is_shouBtn = is_shouBtn;
+        this.hint_content = hint_content;
+        this.deleteShopOnClickListener = deleteShopOnClickListener;
         initPopup();
     }
-    public DeleteShopPopupWindow(boolean is_edit,Context context,String hint_content,PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
+
+    public DeleteShopPopupWindow(boolean is_edit, Context context, String hint_content, PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
         this.context = context;
-        this.is_edit=is_edit;
-        this.hint_content=hint_content;
-        this.deleteShopOnClickListener=deleteShopOnClickListener;
+        this.is_edit = is_edit;
+        this.hint_content = hint_content;
+        this.deleteShopOnClickListener = deleteShopOnClickListener;
         initPopup();
     }
-    public DeleteShopPopupWindow(Context context,String hint_content,boolean is_dismiss) {
+
+    public DeleteShopPopupWindow(Context context, String hint_content, boolean is_dismiss) {
         this.context = context;
-        this.hint_content=hint_content;
-        this.is_dismiss=is_dismiss;
+        this.hint_content = hint_content;
+        this.is_dismiss = is_dismiss;
         initPopup();
     }
-    public DeleteShopPopupWindow(Context context,String hint_content,PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
+
+    public DeleteShopPopupWindow(Context context, String hint_content, PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
         this.context = context;
-        this.hint_content=hint_content;
-        this.deleteShopOnClickListener=deleteShopOnClickListener;
+        this.hint_content = hint_content;
+        this.deleteShopOnClickListener = deleteShopOnClickListener;
         initPopup();
     }
-    public DeleteShopPopupWindow(Context context,boolean is_dismiss,String hint_content,PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
+
+    public DeleteShopPopupWindow(Context context, boolean is_dismiss, String hint_content, PopupWindowOnClickListener.DeleteShopOnClickListener deleteShopOnClickListener) {
         this.context = context;
-        this.hint_content=hint_content;
-        this.is_dismiss=is_dismiss;
-        this.deleteShopOnClickListener=deleteShopOnClickListener;
+        this.hint_content = hint_content;
+        this.is_dismiss = is_dismiss;
+        this.deleteShopOnClickListener = deleteShopOnClickListener;
         initPopup();
+    }
+
+    /**
+     * 新增方法：允许外部设置自动消失的时间
+     * @param ms 毫秒数
+     */
+    public void setDismissTime(int ms) {
+        this.dismiss_time = ms;
     }
 
     private void initPopup() {
@@ -95,7 +111,6 @@ public class DeleteShopPopupWindow {
         popupWindow.setFocusable(true);
         popupWindow.setTouchable(true);
         popupWindow.setOutsideTouchable(false);
-//        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         popupView.setBackgroundColor(context.getColor(R.color.black60));
 
         // 计算居中位置
@@ -104,118 +119,119 @@ public class DeleteShopPopupWindow {
             ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(metrics);
             int x = (metrics.widthPixels - popupView.getWidth()) / 2;
             int y = (metrics.heightPixels - popupView.getHeight()) / 2;
-            popupWindow.update(x, y, -1, -1); // 更新位置
+            popupWindow.update(x, y, -1, -1);
         });
-        TextView hint_tv=popupView.findViewById(R.id.hint_tv);
-        if (!TextUtils.isEmpty(hint_content)){
+
+        TextView hint_tv = popupView.findViewById(R.id.hint_tv);
+        if (!TextUtils.isEmpty(hint_content)) {
             hint_tv.setText(hint_content);
         }
-        // 绑定子 View 事件
+
+        // 绑定按钮事件
         popupView.findViewById(R.id.btn_quxiao).setOnClickListener(v -> {
             popupWindow.dismiss();
         });
-        popupView.findViewById(R.id.btn_queren).setOnClickListener(v -> {
 
-            if (deleteShopOnClickListener!=null){
-                if (is_edit){
-                    if (pay_password.getText().toString().equals(UserUtils.getInstance().getLoginPassword())){
+        popupView.findViewById(R.id.btn_queren).setOnClickListener(v -> {
+            if (deleteShopOnClickListener != null) {
+                if (is_edit) {
+                    if (pay_password.getText().toString().equals(UserUtils.getInstance().getLoginPassword())) {
                         deleteShopOnClickListener.onClick(pay_password.getText().toString());
-                    }else {
+                    } else {
                         hint_tv.setText(context.getString(R.string.Password_error));
                         hint_tv.setTextColor(Color.RED);
                         return;
                     }
-                }else {
+                } else {
                     deleteShopOnClickListener.onClick("");
                 }
-
             }
             popupWindow.dismiss();
-
         });
-        btn_view=popupView.findViewById(R.id.btn_view);
-        if (is_dismiss){
+
+        btn_view = popupView.findViewById(R.id.btn_view);
+        if (is_dismiss) {
             btn_view.setVisibility(GONE);
         }
-        if (!is_shouBtn){
+        if (!is_shouBtn) {
             btn_view.setVisibility(GONE);
         }
+
         popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
-            if (deleteShopOnClickListener!=null&&!is_edit){
+            if (deleteShopOnClickListener != null && !is_edit) {
                 deleteShopOnClickListener.onClick("");
             }
             popupWindow.dismiss();
         });
-        pay_code=popupView.findViewById(R.id.pay_code);
 
+        pay_code = popupView.findViewById(R.id.pay_code);
         pay_code.setOnInputCompleteListener(text -> {
             pay_code.setText("");
-            Log.i("ttt",">>>>>>>支付码>"+text);
-//            popupWindow.dismiss();
-            if (deleteShopOnClickListener!=null){
-                if (is_shouBtn){
+            Log.i("ttt", ">>>>>>>支付码>" + text);
+            if (deleteShopOnClickListener != null) {
+                if (is_shouBtn) {
                     deleteShopOnClickListener.onClick("");
                     popupWindow.dismiss();
-                }else {
+                } else {
                     deleteShopOnClickListener.onClick(text);
                 }
-
             }
-
         });
-        pay_password=popupView.findViewById(R.id.pay_password);
 
+        pay_password = popupView.findViewById(R.id.pay_password);
         pay_password.setOnInputCompleteListener(text -> {
-            Log.i("ttt",">>>>>>>支付码>"+text);
-//            popupWindow.dismiss();
-            if (deleteShopOnClickListener!=null){
-                if (text.equals(UserUtils.getInstance().getLoginPassword())){
+            Log.i("ttt", ">>>>>>>支付码>" + text);
+            if (deleteShopOnClickListener != null) {
+                if (text.equals(UserUtils.getInstance().getLoginPassword())) {
                     popupWindow.dismiss();
                     deleteShopOnClickListener.onClick(text);
-                }else {
+                } else {
                     hint_tv.setText(context.getString(R.string.Password_error));
                     hint_tv.setTextColor(Color.RED);
                 }
-
             }
-
         });
-
-
     }
+
     CustomInputTextView pay_code;
     LinearLayout btn_view;
+
     public void show() {
-        if (popupWindow.isShowing()){
+        if (popupWindow.isShowing()) {
             return;
         }
 
         View rootView = ((Activity) context).getWindow().getDecorView();
         popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
-        if (is_edit){
-            // 自动获取焦点
+
+        if (is_edit) {
             pay_password.setVisibility(VISIBLE);
             pay_password.postDelayed(() -> pay_password.requestFocus(), 100);
-
-        }else {
-            // 自动获取焦点
+        } else {
             pay_code.postDelayed(() -> pay_code.requestFocus(), 100);
         }
 
-        if (is_dismiss){
+        // --- 核心修复部分：根据 dismiss_time 进行延时自动关闭 ---
+        if (is_dismiss) {
             btn_view.setVisibility(GONE);
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    popupWindow.dismiss();
-                    if (deleteShopOnClickListener!=null){
-                        deleteShopOnClickListener.onClick("");
+                    // 增加 isShowing 判断，防止重复关闭报错
+                    if (popupWindow != null && popupWindow.isShowing()) {
+                        popupWindow.dismiss();
+                        if (deleteShopOnClickListener != null) {
+                            deleteShopOnClickListener.onClick("");
+                        }
                     }
                 }
-            }, 500);
+            }, dismiss_time); // 使用动态时间
         }
     }
-    public void dismiss(){
-        popupWindow.dismiss();
+
+    public void dismiss() {
+        if (popupWindow != null && popupWindow.isShowing()) {
+            popupWindow.dismiss();
+        }
     }
 }

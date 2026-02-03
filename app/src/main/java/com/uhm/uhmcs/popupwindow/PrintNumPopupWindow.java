@@ -1,107 +1,122 @@
 package com.uhm.uhmcs.popupwindow;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.text.TextUtils;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.uhm.uhmcs.R;
 import com.uhm.uhmcs.view.CustomInputTextView;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class PrintNumPopupWindow {
     private PopupWindow popupWindow;
     private Context context;
-
     private PopupWindowOnClickListener.DiscountOnClickListener discountOnClickListener;
-
     private View popupView;
     private CustomInputTextView pint_num;
 
-    public PrintNumPopupWindow(Context context,  PopupWindowOnClickListener.DiscountOnClickListener discountOnClickListener) {
+    public PrintNumPopupWindow(Context context, PopupWindowOnClickListener.DiscountOnClickListener discountOnClickListener) {
         this.context = context;
-        this.discountOnClickListener=discountOnClickListener;
+        this.discountOnClickListener = discountOnClickListener;
         initPopup();
     }
 
     private void initPopup() {
+        // 1. 确保正确加载布局
         popupView = LayoutInflater.from(context).inflate(R.layout.popupwindow_print_num, null);
+
+        if (popupView == null) {
+            Toast.makeText(context, "加载打印数量布局失败", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         popupWindow = new PopupWindow(
                 popupView,
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 true
         );
-//        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
         popupView.setBackgroundColor(context.getColor(R.color.black60));
         popupWindow.setOutsideTouchable(true);
-        // 计算居中位置
+
+        // 居中适配
         popupView.post(() -> {
             DisplayMetrics metrics = new DisplayMetrics();
             ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(metrics);
             int x = (metrics.widthPixels - popupView.getWidth()) / 2;
             int y = (metrics.heightPixels - popupView.getHeight()) / 2;
-            popupWindow.update(x, y, -1, -1); // 更新位置
+            popupWindow.update(x, y, -1, -1);
         });
 
+        // 2. 绑定控件（注意：必须在 inflate 之后）
+        pint_num = popupView.findViewById(R.id.print_num);
+        View btnMinus = popupView.findViewById(R.id.btn_minus);
+        View btnPlus = popupView.findViewById(R.id.btn_plus);
+        View btnPrint = popupView.findViewById(R.id.print_btn);
+        View btnClose = popupView.findViewById(R.id.guanbi_btn);
 
+        // --- 加减逻辑 ---
+        if (btnMinus != null) {
+            btnMinus.setOnClickListener(v -> {
+                int current = getCurrentNum();
+                if (current > 1) {
+                    pint_num.setText(String.valueOf(current - 1));
+                }
+            });
+        }
 
-        popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
-            popupWindow.dismiss();
-        });
+        if (btnPlus != null) {
+            btnPlus.setOnClickListener(v -> {
+                int current = getCurrentNum();
+                pint_num.setText(String.valueOf(current + 1));
+            });
+        }
 
-        popupView.findViewById(R.id.print_btn).setOnClickListener(v -> {
-            if (!isInteger(pint_num.getText().toString())){
-                new DeleteShopPopupWindow(context,context.getString(R.string.Enter_valid_number),true).show();
-                return;
-            }
-            discountOnClickListener.onClick(pint_num.getText().toString());
-            popupWindow.dismiss();
-        });
-        pint_num=popupView.findViewById(R.id.print_num);
-        pint_num.setOnInputCompleteListener(text -> {
-            if (!isInteger(text)){
-                new DeleteShopPopupWindow(context,context.getString(R.string.Enter_valid_number),true).show();
-                return;
-            }
-            discountOnClickListener.onClick(text);
-            popupWindow.dismiss();
-        });
+        // --- 打印按钮 ---
+        if (btnPrint != null) {
+            btnPrint.setOnClickListener(v -> {
+                String num = pint_num.getText().toString();
+                if (!isInteger(num)) {
+                    Toast.makeText(context, "请输入有效数字", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                discountOnClickListener.onClick(num);
+                popupWindow.dismiss();
+            });
+        }
+
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> popupWindow.dismiss());
+        }
+
         pint_num.postDelayed(() -> pint_num.requestFocus(), 100);
+    }
 
+    private int getCurrentNum() {
+        try {
+            String text = pint_num.getText().toString();
+            return Integer.parseInt(text);
+        } catch (Exception e) {
+            return 1;
+        }
     }
 
     public void show() {
-        View rootView = ((Activity) context).getWindow().getDecorView();
-        popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
+        if (context instanceof Activity && !((Activity) context).isFinishing()) {
+            View rootView = ((Activity) context).getWindow().getDecorView();
+            popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
+        }
     }
 
     public static boolean isInteger(String str) {
         if (str == null || str.isEmpty()) return false;
-        if (!str.matches("^\\d+$")) return false;  // 格式校验
-        try {
-            int num = Integer.parseInt(str);  // 范围校验（避免溢出）
-            if (num>0){
-                return true;
-            }else {
-                return false;
-            }
-
-        } catch (NumberFormatException e) {
-            return false;
-        }
+        return str.matches("^\\d+$") && Integer.parseInt(str) > 0;
     }
-
-
 }

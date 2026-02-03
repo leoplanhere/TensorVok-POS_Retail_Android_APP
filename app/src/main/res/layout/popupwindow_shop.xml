@@ -114,6 +114,21 @@
                         android:gravity="center"
                         android:background="@drawable/rounded_border"
                         android:layout_marginLeft="20dp"/>
+
+                    <TextView
+                        android:id="@+id/btn_refresh"
+                        android:layout_width="100dp"
+                        android:layout_height="match_parent"
+                        android:text="同步"
+                        android:textColor="@color/mr_blue"
+                        android:textSize="20dp"
+                        android:gravity="center"
+                        android:background="@drawable/rounded_border"
+                        android:layout_marginLeft="20dp"/>
+
+
+
+
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"

@@ -144,6 +144,19 @@ public class GrouponGoodsBean implements Serializable {
         private String subtitle;
         private String updatetime;
 
+        // --- 标签打印新增属性 ---
+        @SerializedName("specs_title")
+        private String specs_title;      // 规格
+
+        @SerializedName("unit")
+        private String unit;             // 单位
+
+        @SerializedName("reward_points")
+        private double reward_points;    // 积分
+
+        @SerializedName("deduction_golive")
+        private double deduction_golive; // 抵扣金额/券
+
         @Column(ignore = true)
         private BigDecimal heji = new BigDecimal("0.00");
 
@@ -373,5 +386,42 @@ public class GrouponGoodsBean implements Serializable {
         public void setImage(String image) {
             this.image = image;
         }
+
+
+        // --- 标签打印属性的 Getter 和 Setter ---
+
+        public String getSpecs_title() {
+            return TextUtils.isEmpty(specs_title) ? "" : specs_title;
+        }
+
+        public void setSpecs_title(String specs_title) {
+            this.specs_title = specs_title;
+        }
+
+        public String getUnit() {
+            return TextUtils.isEmpty(unit) ? "1" : unit;
+        }
+
+        public void setUnit(String unit) {
+            this.unit = unit;
+        }
+
+        public double getReward_points() {
+            return reward_points;
+        }
+
+        public void setReward_points(double reward_points) {
+            this.reward_points = reward_points;
+        }
+
+        public double getDeduction_golive() {
+            return deduction_golive;
+        }
+
+        public void setDeduction_golive(double deduction_golive) {
+            this.deduction_golive = deduction_golive;
+        }
+
+
     }
 }

@@ -7,7 +7,10 @@
 
     <style name="Theme.UHMCS" parent="Base.Theme.UHMCS" />
 
-    <style name="KeyButtonStyle" parent="KeyButtonStyle.Num" />
+    <style name="KeyButtonStyle" parent="Widget.AppCompat.Button">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
 
     <style name="KeyButtonStyle.Num">
         <item name="android:layout_width">0dp</item>
@@ -19,7 +22,9 @@
         <item name="android:textSize">26sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">false</item>
-        <item name="android:stateListAnimator">@null</item> <item name="android:elevation">6dp</item> </style>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:elevation">6dp</item>
+    </style>
 
     <style name="KeyButtonStyle.Action">
         <item name="android:layout_width">0dp</item>
@@ -32,6 +37,7 @@
         <item name="android:textStyle">normal</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:stateListAnimator">@null</item>
-        <item name="android:elevation">2dp</item> </style>
+        <item name="android:elevation">2dp</item>
+    </style>
 
 </resources>

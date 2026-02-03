@@ -55,6 +55,7 @@ public class ShopPopupWindow {
     private EditText sousuo_tv;     // 搜索框
     private TextView all_select;
     private LinearLayout all_select_btn;
+    private TextView btn_refresh;   // 同步按钮
 
     private String category_ids = "";
     private boolean is_all_select = false;
@@ -82,9 +83,19 @@ public class ShopPopupWindow {
         sousuo_tv = popupView.findViewById(R.id.sousuo_tv);
         all_select = popupView.findViewById(R.id.all_select);
         all_select_btn = popupView.findViewById(R.id.all_select_btn);
+        btn_refresh = popupView.findViewById(R.id.btn_refresh); // 绑定新按钮
 
         popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> popupWindow.dismiss());
         popupView.findViewById(R.id.btn_quxiao).setOnClickListener(v -> popupWindow.dismiss());
+
+        // 同步按钮点击事件
+        if (btn_refresh != null) {
+            btn_refresh.setOnClickListener(v -> {
+                if (Utilis.isFastClick()) return;
+                clearCache(); // 清除内存缓存
+                loadDataFromDb(true); // 强制重新从数据库加载
+            });
+        }
 
         // 2. 初始化左侧分类列表
         shop_type_rv = popupView.findViewById(R.id.shop_type_rv);
@@ -205,6 +216,59 @@ public class ShopPopupWindow {
         if (sousuo_tv != null) sousuo_tv.setText("");
     }
 
+    /**
+     * 从数据库加载数据的核心方法
+     * @param isManualRefresh 是否是手动点击同步触发的
+     */
+    private void loadDataFromDb(boolean isManualRefresh) {
+        if (loading_pb != null) loading_pb.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {
+            // 1. 加载分类
+            if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
+                try {
+                    Gson gson = new Gson();
+                    CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
+                    if (categoryListBean != null && categoryListBean.getData() != null) {
+                        staticCategoryList = categoryListBean.getData();
+                    }
+                } catch (Exception e) { e.printStackTrace(); }
+            }
+
+            // 2. 加载商品（LitePal）
+            staticGoodsList = LitePal.findAll(GrouponGoodsBean.GrouponGoodsModel.class);
+            if (staticGoodsList != null) {
+                for (GrouponGoodsBean.GrouponGoodsModel model : staticGoodsList) {
+                    model.setSelected(false);
+                }
+            } else {
+                staticGoodsList = new ArrayList<>();
+            }
+
+            if (staticCategoryList == null) staticCategoryList = new ArrayList<>();
+
+            this.allGrouponGoodsModelList = staticGoodsList;
+            this.categoryListModelArrayList = staticCategoryList;
+
+            ((Activity) context).runOnUiThread(() -> {
+                shopTypeAdapter1.setNewData(categoryListModelArrayList);
+                shopTypeAdapter1.setIndex(0);
+                shopAdapter.setNewData(allGrouponGoodsModelList);
+
+                // 如果是手动同步，重置搜索状态和全选状态
+                if (isManualRefresh) {
+                    category_ids = "";
+                    is_all_select = false;
+                    if (all_select != null) all_select.setBackgroundResource(R.mipmap.checkbox_1);
+                    if (sousuo_tv != null) sousuo_tv.setText("");
+                }
+
+                // 隐藏转圈圈
+                if (loading_pb != null) loading_pb.setVisibility(View.GONE);
+            });
+        }).start();
+    }
+
     public void show() {
         View rootView = ((Activity) context).getWindow().getDecorView();
         popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
@@ -224,9 +288,6 @@ public class ShopPopupWindow {
         if (all_select != null) all_select.setBackgroundResource(R.mipmap.checkbox_1);
         category_ids = "";
 
-        // 显示加载动画
-        if (loading_pb != null) loading_pb.setVisibility(View.VISIBLE);
-
         if (staticGoodsList != null && !staticGoodsList.isEmpty() && staticCategoryList != null) {
             // 使用缓存加速
             this.allGrouponGoodsModelList = staticGoodsList;
@@ -244,42 +305,8 @@ public class ShopPopupWindow {
             if (loading_pb != null) loading_pb.setVisibility(View.GONE);
 
         } else {
-            // 异步加载
-            new Thread(() -> {
-                // 1. 加载分类
-                if (!TextUtils.isEmpty(UserUtils.getInstance().getCategoryListBeanJson())) {
-                    try {
-                        Gson gson = new Gson();
-                        CategoryListBean categoryListBean = gson.fromJson(UserUtils.getInstance().getCategoryListBeanJson(), CategoryListBean.class);
-                        if (categoryListBean != null && categoryListBean.getData() != null) {
-                            staticCategoryList = categoryListBean.getData();
-                        }
-                    } catch (Exception e) { e.printStackTrace(); }
-                }
-
-                // 2. 加载商品（LitePal）
-                staticGoodsList = LitePal.findAll(GrouponGoodsBean.GrouponGoodsModel.class);
-                if (staticGoodsList != null) {
-                    for (GrouponGoodsBean.GrouponGoodsModel model : staticGoodsList) {
-                        model.setSelected(false);
-                    }
-                } else {
-                    staticGoodsList = new ArrayList<>();
-                }
-
-                if (staticCategoryList == null) staticCategoryList = new ArrayList<>();
-
-                this.allGrouponGoodsModelList = staticGoodsList;
-                this.categoryListModelArrayList = staticCategoryList;
-
-                ((Activity) context).runOnUiThread(() -> {
-                    shopTypeAdapter1.setNewData(categoryListModelArrayList);
-                    shopTypeAdapter1.setIndex(0);
-                    shopAdapter.setNewData(allGrouponGoodsModelList);
-                    // 隐藏转圈圈
-                    if (loading_pb != null) loading_pb.setVisibility(View.GONE);
-                });
-            }).start();
+            // 第一次进入，执行异步加载
+            loadDataFromDb(false);
         }
     }
 
