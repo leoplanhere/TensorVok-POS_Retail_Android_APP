@@ -999,7 +999,16 @@ public class MainActivity extends Activity {
                                  * 同步数据
                                  */
                                 case 1:
+
+                                    // 1. 彻底清空当前 UI 上的分类，给用户一个刷新的视觉反馈
+                                    shopTypeAdapter.setNewData(new ArrayList<>());
+
+
+                                   // 1. 执行新写的分类刷新（它是异步的，不会卡住下面的逻辑）
+                                    forceRefreshCategories();
+
                                     syncGoodsData();
+
                                     break;
                                 /*
                                  * 标签打印
@@ -3719,6 +3728,76 @@ public class MainActivity extends Activity {
         this.totalNets = BigDecimal.ZERO;
         Log.d("OrderFlow", "数据已重置");
     }
+
+
+    /**
+     * 专门用于强制刷新下方分类条的方法
+     */
+    private void forceRefreshCategories() {
+        Map<String, String> params = new HashMap<>();
+        try {
+            params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+        } catch (Exception e) {
+            return;
+        }
+
+        // 加上随机时间戳，防止请求被运营商或中间件缓存
+        String url = POSApiSerview.POS_URL + POSApiSerview.getGrouponCategory + "?t=" + System.currentTimeMillis();
+
+        OkHttpUtil.postFormAsync(url, params, this, new OkHttpUtil.OkHttpCallback() {
+            @Override
+            public void onSuccess(String response) {
+
+                Log.e("CategoryCheck", "收到分类原始数据: " + response);
+
+
+                if (TextUtils.isEmpty(response)) return;
+
+                runOnUiThread(() -> {
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        if (jsonObject.optInt("code") == 1) {
+                            // 直接解析 data 数组，不经过复杂的 Bean
+                            String dataJson = jsonObject.optString("data");
+                            ArrayList<CategoryListBean.CategoryListModel> newList = new Gson().fromJson(
+                                    dataJson, new TypeToken<ArrayList<CategoryListBean.CategoryListModel>>(){}.getType()
+                            );
+
+                            if (newList != null) {
+                                // 1. 手动添加“全部”
+                                CategoryListBean.CategoryListModel all = new CategoryListBean.CategoryListModel();
+                                all.setName(getString(R.string.all));
+                                all.setId("");
+                                newList.add(0, all);
+
+                                // 2. 【关键】先清空 Adapter 里的旧数据，再塞新数据
+                                shopTypeAdapter.getData().clear();
+                                shopTypeAdapter.setNewData(newList);
+
+                                // 3. 【暴力刷新】强制 RecyclerView 重新布局
+                                shopTypeAdapter.notifyDataSetChanged();
+
+                                // 4. (可选) 如果你希望刷新后滚动到最左边
+                                rv_choose_menu3.scrollToPosition(0);
+
+
+                                Log.d("CategoryDebug", "分类已强制刷新，当前第一项：" + newList.get(1).getName());
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(IOException e) {
+                // 失败了也不报错，不影响商品同步的流程
+            }
+        });
+    }
+
+
 
 
 }

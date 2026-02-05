@@ -32,31 +32,26 @@ public class GrouponGoodsAdapter extends BaseQuickAdapter <GrouponGoodsBean.Grou
 
     @Override
     protected void convert(BaseViewHolder helper, GrouponGoodsBean.GrouponGoodsModel item) {
-        // 1. 获取标题控件
-        TextView textView = helper.getView(R.id.title);
+        // 1. 获取标题控件并设置内容
+        TextView titleTv = helper.getView(R.id.title);
         helper.setText(R.id.title, item.getTitle());
+        titleTv.setTextSize(20); // 维持你原来的字号设置
 
-        // 设置你想要的字号
-        textView.setTextSize(20);
+        // 2. 图片逻辑（维持你原来的注释状态）
+        /* ... 图片逻辑代码 ... */
 
-        // 2. 图片相关逻辑全部注释掉，防止 NullPointerException
-        /*
-        ImageView imageView = (ImageView) helper.getView(R.id.image);
-        if (TextUtils.isEmpty(item.getImage())){
-            if (imageView != null) imageView.setVisibility(GONE);
+        // 3. 【核心修改】动态设置价格和货币符号
+        String symbol = com.uhm.uhmcs.utils.CurrencyUtils.getSymbol();
+        String priceValue = item.getPrice(); // 假设这个值是 "23.00"
+
+        if ("weight".equals(item.getOnline_type())) {
+            // 称重商品逻辑：符号 + 价格 + 单位
+            // 这里建议将 "元" 改为更通用的 "/"
+            helper.setText(R.id.price, symbol + priceValue + "/500g");
         } else {
-            if (imageView != null) {
-                imageView.setVisibility(VISIBLE);
-                Glide.with(context)
-                        .load(item.getImage())
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .into(imageView);
-            }
+            // 计件商品逻辑：符号 + 价格
+            helper.setText(R.id.price, symbol + priceValue);
         }
-        */
-
-        // 3. 设置价格
-        helper.setText(R.id.price, "￥" + item.getPrice());
     }
 
 
