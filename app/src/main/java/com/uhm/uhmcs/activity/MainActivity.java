@@ -9,14 +9,11 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-
 import com.uhm.uhmcs.utils.CurrencyUtils;
-
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import android.widget.EditText;
-
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
