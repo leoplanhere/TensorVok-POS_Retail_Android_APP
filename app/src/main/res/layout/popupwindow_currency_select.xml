@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:padding="10dp"
-        android:text="货币设置"
+        android:text="@string/currency_setting"
         android:textColor="#333333"
         android:textSize="20sp"
         android:textStyle="bold" />

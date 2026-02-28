@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="选择开始日期"
+            android:text="@string/select_start_date"
             android:textColor="@color/black"
             android:textSize="35dp"
             android:textStyle="bold"
@@ -65,7 +65,7 @@
                 android:layout_height="match_parent"
                 android:background="@drawable/blue_bg1"
                 android:gravity="center"
-                android:text="下一步"
+                android:text="@string/next"
                 android:textColor="@color/white"
                 android:textSize="30dp" />
         </LinearLayout>

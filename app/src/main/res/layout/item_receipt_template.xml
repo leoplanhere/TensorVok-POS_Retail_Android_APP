@@ -29,7 +29,7 @@
         android:gravity="center"
         android:text="优道佳家福会员超市"
         android:textColor="@color/black"
-        android:textSize="32px"
+        android:textSize="18px"
         android:textStyle="bold"
         android:layout_marginTop="8dp"/>
 
@@ -40,13 +40,13 @@
         android:gravity="center"
         android:text="全国客服热线: 17560635652"
         android:textColor="@color/black"
-        android:textSize="26px"
+        android:textSize="18px"
         android:layout_marginTop="2dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="5dp"
         android:orientation="vertical">
 
         <TextView
@@ -56,7 +56,7 @@
             android:gravity="center"
             android:text="会员名称: 体验会员"
             android:textColor="@color/black"
-            android:textSize="26px"/>
+            android:textSize="14px"/>
 
         <TextView
             android:id="@+id/tv_cashier_info"
@@ -65,7 +65,7 @@
             android:gravity="center"
             android:text="收银员: 001"
             android:textColor="@color/black"
-            android:textSize="26px"/>
+            android:textSize="14px"/>
 
         <TextView
             android:id="@+id/tv_time_info"
@@ -74,7 +74,7 @@
             android:gravity="center"
             android:text="收银时间: 2026/01/04 16:09:24"
             android:textColor="@color/black"
-            android:textSize="26px"/>
+            android:textSize="14px"/>
     </LinearLayout>
 
     <TextView
@@ -90,10 +90,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        <TextView android:layout_width="0dp" android:layout_weight="14" android:layout_height="wrap_content" android:text="商品名称" android:textColor="@color/black" android:textSize="26px" android:textStyle="bold"/>
-        <TextView android:layout_width="0dp" android:layout_weight="6" android:layout_height="wrap_content" android:text="数量" android:textColor="@color/black" android:textSize="26px" android:textStyle="bold" android:gravity="end"/>
-        <TextView android:layout_width="0dp" android:layout_weight="6" android:layout_height="wrap_content" android:text="单价" android:textColor="@color/black" android:textSize="26px" android:textStyle="bold" android:gravity="end"/>
-        <TextView android:layout_width="0dp" android:layout_weight="6" android:layout_height="wrap_content" android:text="金额" android:textColor="@color/black" android:textSize="26px" android:textStyle="bold" android:gravity="end"/>
+        <TextView android:layout_width="0dp" android:layout_weight="14" android:layout_height="wrap_content" android:text="商品名称" android:textColor="@color/black" android:textSize="14px" android:textStyle="bold"/>
+        <TextView android:layout_width="0dp" android:layout_weight="6" android:layout_height="wrap_content" android:text="数量" android:textColor="@color/black" android:textSize="14px" android:textStyle="bold" android:gravity="end"/>
+        <TextView android:layout_width="0dp" android:layout_weight="6" android:layout_height="wrap_content" android:text="单价" android:textColor="@color/black" android:textSize="14px" android:textStyle="bold" android:gravity="end"/>
+        <TextView android:layout_width="0dp" android:layout_weight="6" android:layout_height="wrap_content" android:text="金额" android:textColor="@color/black" android:textSize="14px" android:textStyle="bold" android:gravity="end"/>
     </LinearLayout>
 
     <TextView
@@ -127,18 +127,18 @@
         android:paddingRight="5dp">
 
         <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content">
-            <TextView android:layout_alignParentLeft="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="应付总计:" android:textColor="@color/black" android:textSize="26px"/>
-            <TextView android:id="@+id/tv_total_amount_label" android:layout_alignParentRight="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="100.00" android:textColor="@color/black" android:textSize="26px"/>
+            <TextView android:layout_alignParentLeft="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="应付总计:" android:textColor="@color/black" android:textSize="18px"/>
+            <TextView android:id="@+id/tv_total_amount_label" android:layout_alignParentRight="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="100.00" android:textColor="@color/black" android:textSize="18px"/>
         </RelativeLayout>
 
         <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp">
-            <TextView android:layout_alignParentLeft="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="实付金额:" android:textColor="@color/black" android:textSize="30px" android:textStyle="bold"/>
-            <TextView android:id="@+id/tv_total_amount" android:layout_alignParentRight="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="100.00" android:textColor="@color/black" android:textSize="36px" android:textStyle="bold"/>
+            <TextView android:layout_alignParentLeft="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="实付金额:" android:textColor="@color/black" android:textSize="18px" android:textStyle="bold"/>
+            <TextView android:id="@+id/tv_total_amount" android:layout_alignParentRight="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="100.00" android:textColor="@color/black" android:textSize="18px" android:textStyle="bold"/>
         </RelativeLayout>
 
         <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp">
-            <TextView android:id="@+id/tv_pay_name" android:layout_alignParentLeft="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="支付宝支付:" android:textColor="@color/black" android:textSize="28px"/>
-            <TextView android:id="@+id/tv_payment_detail" android:layout_alignParentRight="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="100.00" android:textColor="@color/black" android:textSize="28px"/>
+            <TextView android:id="@+id/tv_pay_name" android:layout_alignParentLeft="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="支付宝支付:" android:textColor="@color/black" android:textSize="18px"/>
+            <TextView android:id="@+id/tv_payment_detail" android:layout_alignParentRight="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="100.00" android:textColor="@color/black" android:textSize="18px"/>
         </RelativeLayout>
     </LinearLayout>
 
@@ -170,7 +170,7 @@
         android:text="3350012601045655511930001"
         android:gravity="center"
         android:textColor="@color/black"
-        android:textSize="22px"
+        android:textSize="14px"
         android:layout_marginTop="4dp"/>
 
     <TextView
@@ -180,7 +180,7 @@
         android:gravity="center"
         android:text="此单据二维码为开具增值税普通发票\n的唯一凭证，请妥善保管。\n请保留此单据，作为退、换货凭证。"
         android:textColor="@color/black"
-        android:textSize="24px"
+        android:textSize="14px"
         android:layout_marginTop="15dp"
         android:lineSpacingExtra="4px"/>
 

@@ -15,6 +15,14 @@
     <string name="zlyc">重量异常</string>
     <string name="zlbwd">重量不稳定</string>
     <string name="total_items">总件数:</string>
+    <string name="item_discounts">折扣</string>
+
+
+
+
+
+
+
     <string name="delete_item">删除商品</string>
     <string name="clear_all">清空(F5)</string>
     <string name="hold_order">挂单(F2)</string>
@@ -127,7 +135,36 @@
     <string name="order_canceled">"订单已撤销，支付失败</string>
     <string name="loading_data">数据加载中...</string>
     <string name="Sync_completed">数据同步成功</string>
-    <string name="fold">"折: "</string>
+    <string name="fold">"x"</string>
+    <string name="realtimekg">"实时重量(kg)"</string>
+
+    <string name="netzero">"去皮/置零"</string>
+
+    <string name="Tareweigth">"皮重:0.000"</string>
+
+    <string name="shiftover">"交接班"</string>
+    <string name="currencyset">"货币设置"</string>
+    <string name="receiptstyle">"小票样式"</string>
+    <string name="possetting">"POS设置"</string>
+    <string name="noitem">"暂无商品"</string>
+    <string name="waitproduct">"等待加入商品"</string>
+    <string name="sycndatanow">"正在同步商品..."</string>
+    <string name="lablediy">"标签样式"</string>
+    <string name="subtitle">"副标题"</string>
+    <string name="shiftovertime">"交班时间"</string>
+    <string name="shouyinyuan">"收银员"</string>
+    <string name="operation">"操作"</string>
+    <string name="TotalDue">"应收总额"</string>
+
+    <string name="membernumber">"会员号"</string>
+    <string name="coupon">"优惠券"</string>
+
+    <string name="select_start_date">"请选择开始日期"</string>
+
+    <string name="next">"下一步"</string>
+
+
+
     <string name="Local_bill_upload_required">你有本地账单需上传</string>
     <string name="Enter_item_price">请输入商品价格</string>
     <string name="Please_input_in_correct_price_format">请输入正确格式的金额</string>

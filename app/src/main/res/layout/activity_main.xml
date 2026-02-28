@@ -77,9 +77,9 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center"
-                            android:text="等待扫描商品..."
+                            android:text="@string/waitproduct"
                             android:textColor="#CCCCCC"
-                            android:textSize="22dp"
+                            android:textSize="16dp"
                             android:background="#F9F9FB" />
 
                         <com.makeramen.roundedimageview.RoundedImageView
@@ -110,7 +110,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="应付总计:"
                                 android:textColor="@color/black"
-                                android:textSize="24dp"
+                                android:textSize="18dp"
                                 android:textStyle="bold"/>
                             <TextView
                                 android:fontFamily="@font/font2"
@@ -120,7 +120,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:textStyle="bold"
-                                android:textSize="35dp"
+                                android:textSize="24dp"
                                 android:textColor="#FF00AB1D"
                                 android:text="0.00"/>
                         </LinearLayout>
@@ -147,7 +147,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="优惠总计:"
                                     android:textColor="@color/black"
-                                    android:textSize="14dp" />
+                                    android:textSize="12dp" />
                                 <TextView
                                     android:fontFamily="@font/font2"
                                     android:includeFontPadding="false"
@@ -171,7 +171,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="代金券:"
                                     android:textColor="@color/black"
-                                    android:textSize="14dp" />
+                                    android:textSize="12dp" />
                                 <TextView
                                     android:fontFamily="@font/font2"
                                     android:includeFontPadding="false"
@@ -197,7 +197,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="实付:"
                                 android:textColor="@color/black"
-                                android:textSize="24dp" />
+                                android:textSize="18dp" />
                             <TextView
                                 android:fontFamily="@font/font2"
                                 android:includeFontPadding="false"
@@ -205,7 +205,7 @@
                                 android:layout_marginStart="10dp"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textSize="30dp"
+                                android:textSize="24dp"
                                 android:textStyle="bold"
                                 android:textColor="@color/black"
                                 android:text="0.00"/>
@@ -233,7 +233,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="现金:"
                                     android:textColor="@color/black"
-                                    android:textSize="18dp" />
+                                    android:textSize="12dp" />
                                 <TextView
                                     android:fontFamily="@font/font2"
                                     android:includeFontPadding="false"
@@ -257,7 +257,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="会员卡:"
                                     android:textColor="@color/black"
-                                    android:textSize="18dp" />
+                                    android:textSize="12dp" />
                                 <TextView
                                     android:fontFamily="@font/font2"
                                     android:includeFontPadding="false"
@@ -294,7 +294,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="微信:"
                                     android:textColor="@color/black"
-                                    android:textSize="18dp" />
+                                    android:textSize="12dp" />
                                 <TextView
                                     android:fontFamily="@font/font2"
                                     android:includeFontPadding="false"
@@ -318,7 +318,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="支付宝:"
                                     android:textColor="@color/black"
-                                    android:textSize="18dp" />
+                                    android:textSize="12dp" />
                                 <TextView
                                     android:fontFamily="@font/font2"
                                     android:includeFontPadding="false"
@@ -355,7 +355,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="NETS:"
                                     android:textColor="@color/black"
-                                    android:textSize="18dp" />
+                                    android:textSize="12dp" />
                                 <TextView
                                     android:fontFamily="@font/font2"
                                     android:includeFontPadding="false"
@@ -391,7 +391,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="找零:"
                                 android:textColor="@color/black"
-                                android:textSize="18dp" />
+                                android:textSize="12dp" />
                             <TextView
                                 android:fontFamily="@font/font2"
                                 android:includeFontPadding="false"
@@ -477,7 +477,7 @@
                     android:orientation="horizontal">
                     <ImageView
                         android:paddingLeft="10dp"
-                        android:layout_width="70dp"
+                        android:layout_width="50dp"
                         android:paddingRight="10dp"
                         android:layout_height="match_parent"
                         android:src="@mipmap/wangluo"/>
@@ -486,7 +486,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/no_network_detected"
                         android:textColor="@color/mr_red_000"
-                        android:textSize="24dp"/>
+                        android:textSize="16sp"/>
                 </LinearLayout>
 
 
@@ -523,7 +523,7 @@
                         android:singleLine="true"
                         android:textColor="@color/black"
                         android:textColorHint="#c1c1c1"
-                        android:textSize="18dp" />
+                        android:textSize="16dp" />
 
                     <ImageView
                         android:id="@+id/iv_clear_search"
@@ -547,7 +547,7 @@
                         android:id="@+id/et_tiaoxingma"
                         android:hint="@string/barcode"
                         android:textColorHint="#c1c1c1"
-                        android:textSize="20dp"
+                        android:textSize="16dp"
                         android:textColor="@color/black"
                         android:layout_margin="10dp"
                         android:layout_width="0dp"
@@ -565,11 +565,12 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="100dp"
             android:layout_height="match_parent"
             android:background="@drawable/white_bg"
             android:layout_weight="3"
             android:orientation="vertical">
+
             <LinearLayout
                 android:layout_marginStart="10dp"
                 android:layout_width="match_parent"
@@ -577,38 +578,38 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
                 <ImageView
-                    android:layout_width="144dp"
+                    android:layout_width="100dp"
                     android:layout_height="42dp"
                     android:scaleType="fitCenter"
                     android:layout_gravity="center_vertical"
                     android:src="@mipmap/pos_ui_logo_01"/>
 
                 <LinearLayout
-                    android:layout_weight="1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="@dimen/pos_main_top_text_margin_size_01"
                     android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
                     android:orientation="vertical">
                     <TextView
                         android:visibility="visible"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="12dp"
+                        android:textSize="12sp"
                         android:textStyle="bold"
                         android:textColor="@color/black"
                         android:layout_gravity="center_vertical"
                         android:layout_marginLeft="5dp"
                         android:text="优道佳家福会员超市" />
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="150dp"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
                         <TextView
                             android:id="@+id/tv_main_shop_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="12dp"
+                            android:textSize="12sp"
                             android:textColor="@color/black"
                             android:layout_gravity="center_vertical"
                             android:layout_marginLeft="5dp"
@@ -617,7 +618,7 @@
                             android:id="@+id/tv_nickname"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="12dp"
+                            android:textSize="12sp"
                             android:textColor="@color/black"
                             android:layout_gravity="center_vertical"
                             android:layout_marginLeft="7dp"
@@ -628,17 +629,18 @@
                     android:paddingStart="22dp"
                     android:paddingEnd="22dp"
                     android:layout_marginStart="@dimen/dp_10"
-                    android:layout_marginEnd="30dp"
+                    android:layout_marginEnd="5dp"
                     android:layout_width="wrap_content"
                     android:layout_height="59dp"
+                    android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
                         android:src="@drawable/yanchi_iv"/>
                     <LinearLayout
-                        android:layout_marginStart="20dp"
+                        android:layout_marginStart="5dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
@@ -690,7 +692,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="ms"
-                            android:layout_marginLeft="4dp"
+                            android:layout_marginLeft="2dp"
                             android:textColor="@color/black"
                             android:textSize="12dp"/>
                     </LinearLayout>
@@ -713,7 +715,7 @@
                             android:id="@+id/v_pos_status_light"
                             android:layout_width="10dp"
                             android:layout_height="10dp"
-                            android:layout_marginStart="5dp"
+                            android:layout_marginStart="2dp"
                             android:background="@drawable/shape_circle_gray" /> <TextView
                         android:id="@+id/tv_pos_status_text"
                         android:layout_width="wrap_content"
@@ -729,24 +731,39 @@
 
 
                 </LinearLayout>
-                <ImageView
+
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:src="@drawable/shijian_iv"/>
                 <TextClock
-                    android:layout_marginEnd="30dp"
+                    android:layout_marginEnd="2dp"
+                    android:layout_marginStart="5dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="12dp"
+                    android:textSize="12sp"
                     android:textColor="@color/black"
                     android:format24Hour="yyyy-MM-dd\nHH:mm:ss a"
                     android:format12Hour="yyyy-MM-dd\nHH:mm:ss a"
                     android:gravity="left"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginStart="14dp"
                     android:timeZone="GMT+8"/>
 
+                </LinearLayout>
+
+
+
+
             </LinearLayout>
+
+
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
@@ -786,7 +803,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="#FFD9001B"
-                            android:textSize="25dp"
+                            android:textSize="18dp"
                             android:gravity="bottom"
                             android:text="￥"
                             android:textStyle="bold"
@@ -798,7 +815,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="#FFD9001B"
-                            android:textSize="45dp"
+                            android:textSize="30sp"
                             android:textStyle="bold"
                             android:text="0.00" />
                     </LinearLayout>
@@ -822,7 +839,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="实时重量(kg)"
+                            android:text="@string/realtimekg"
                             android:textColor="@color/black"
                             android:textSize="14dp"
                             android:textStyle="bold"/>
@@ -832,7 +849,7 @@
                             android:layout_height="wrap_content"
                             android:text="0.000"
                             android:textColor="#FF00AB1D"
-                            android:textSize="32dp"
+                            android:textSize="18sp"
                             android:textStyle="bold"
                             android:fontFamily="@font/font2"
                             android:includeFontPadding="false"/>
@@ -848,7 +865,7 @@
                             android:id="@+id/tv_tare_weight"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="皮重:0.000"
+                            android:text="@string/Tareweigth"
                             android:textColor="@color/black"
                             android:textSize="12dp"/>
                         <TextView
@@ -857,8 +874,8 @@
                             android:background="@drawable/blue_bg5"
                             android:layout_width="100dp"
                             android:layout_height="35dp"
-                            android:text="去皮/置零"
-                            android:textSize="14dp"
+                            android:text="@string/netzero"
+                            android:textSize="12sp"
                             android:gravity="center"
                             android:textColor="@color/white"
                             android:textStyle="bold"/>
@@ -891,7 +908,7 @@
                         android:layout_marginStart="@dimen/dp_10"
                         android:text="0"
                         android:textColor="#FFD9001B"
-                        android:textSize="45dp"
+                        android:textSize="30sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
@@ -915,7 +932,7 @@
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:text="@string/delete_item"
-                        android:textSize="20dp"
+                        android:textSize="16dp"
                         android:textColor="#FFEF4444"
                         android:gravity="center"
                         android:textStyle="bold"
@@ -927,7 +944,7 @@
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:text="@string/clear_all"
-                        android:textSize="20dp"
+                        android:textSize="16dp"
                         android:textColor="#FFEF4444"
                         android:gravity="center"
                         android:textStyle="bold"
@@ -937,7 +954,7 @@
                     android:id="@+id/huiyuan_btn"
                     android:gravity="center_vertical"
                     android:layout_width="0dp"
-                    android:layout_weight="3"
+                    android:layout_weight="2.9"
                     android:layout_height="match_parent"
                     android:orientation="horizontal"
                     android:background="@drawable/rounded_border2">
@@ -954,7 +971,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/member_nickname"
                         android:textColor="@color/black"
-                        android:textSize="18dp"/>
+                        android:textSize="14dp"/>
                     <ImageView
                         android:padding="10dp"
                         android:id="@+id/shanchuhuiyuan_btn"
@@ -978,7 +995,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="@string/hold_order"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#FF3B82F6"
                     android:gravity="center"
                     android:textStyle="bold"
@@ -990,7 +1007,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="@string/qudan_null"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#FF3B82F6"
                     android:gravity="center"
                     android:textStyle="bold"
@@ -1002,7 +1019,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="@string/item_discount"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#FF00AB1D"
                     android:gravity="center"
                     android:textStyle="bold"
@@ -1014,7 +1031,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="@string/order_discount"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#FF00AB1D"
                     android:gravity="center"
                     android:textStyle="bold"
@@ -1026,7 +1043,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="@string/print_receipt"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="@color/black"
                     android:gravity="center"
                     android:textStyle="bold" />
@@ -1068,7 +1085,7 @@
                         android:layout_weight="0.5"
                         android:textSize="16dp"
                         android:textColor="#FF71717A"
-                        android:text="折扣"/>
+                        android:text="@string/item_discounts"/>
                     <TextView
                         android:gravity="center"
                         android:layout_width="0dp"
@@ -1081,7 +1098,7 @@
                         android:gravity="center"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_weight="0.5"
+                        android:layout_weight="1"
                         android:textSize="16dp"
                         android:textColor="#FF71717A"
                         android:text="@string/total"/>
@@ -1109,18 +1126,18 @@
                         android:orientation="vertical"
                         android:visibility="visible">
                         <ImageView
-                            android:layout_width="60dp"
-                            android:layout_height="60dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:src="@drawable/gengduo"
                             android:alpha="0.2"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
-                            android:text="购物车是空的\n请扫码或选择商品"
+                            android:text="@string/noitem"
                             android:gravity="center"
                             android:textColor="#CCCCCC"
-                            android:textSize="18dp" />
+                            android:textSize="16dp" />
                     </LinearLayout>
 
                     <androidx.recyclerview.widget.RecyclerView
@@ -1181,7 +1198,7 @@
         android:background="@color/white"
         android:id="@+id/rv_choose_menu3"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="80dp"
         android:fadeScrollbars="false"
         android:scrollbarFadeDuration="0"
         android:scrollbarSize="6dp"

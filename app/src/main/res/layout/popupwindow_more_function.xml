@@ -54,7 +54,7 @@
                 android:background="@drawable/num_btn_bg1"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="170dp"
+                android:layout_height="150dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
@@ -64,7 +64,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="22dp"
+                    android:textSize="20sp"
                     android:text="@string/sync_data"
                     android:gravity="center" />
             </LinearLayout>
@@ -75,7 +75,7 @@
                 android:background="@drawable/num_btn_bg1"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="170dp"
+                android:layout_height="150dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
@@ -85,7 +85,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="22dp"
+                    android:textSize="20sp"
                     android:text="@string/label_printing"
                     android:gravity="center" />
             </LinearLayout>
@@ -117,7 +117,7 @@
                 android:background="@drawable/num_btn_bg1"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="170dp"
+                android:layout_height="150dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
@@ -127,7 +127,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="22dp"
+                    android:textSize="20sp"
                     android:text="@string/order_history"
                     android:gravity="center" />
             </LinearLayout>
@@ -138,7 +138,7 @@
                 android:background="@drawable/num_btn_bg1"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="170dp"
+                android:layout_height="150dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
@@ -148,8 +148,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="22dp"
-                    android:text="交接班"
+                    android:textSize="20sp"
+                    android:text="@string/shiftover"
                     android:gravity="center" />
             </LinearLayout>
 
@@ -159,7 +159,7 @@
                 android:background="@drawable/num_btn_bg1"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="170dp"
+                android:layout_height="150dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
@@ -169,8 +169,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="22dp"
-                    android:text="货币设置"
+                    android:textSize="20sp"
+                    android:text="@string/currencyset"
                     android:gravity="center" />
             </LinearLayout>
 
@@ -180,7 +180,7 @@
                 android:background="@drawable/num_btn_bg1"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="170dp"
+                android:layout_height="150dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
@@ -190,7 +190,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="22dp"
+                    android:textSize="20sp"
                     android:text="@string/language_settings"
                     android:gravity="center" />
             </LinearLayout>
@@ -212,7 +212,7 @@
                 android:background="@drawable/num_btn_bg1"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="170dp"
+                android:layout_height="150dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
@@ -222,8 +222,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="22dp"
-                    android:text="POS 设置"
+                    android:textSize="20sp"
+                    android:text="@string/possetting"
                     android:gravity="center" />
             </LinearLayout>
 
@@ -233,7 +233,7 @@
                 android:background="@drawable/num_btn_bg1"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="170dp"
+                android:layout_height="150dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
@@ -243,7 +243,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="22dp"
+                    android:textSize="20sp"
                     android:text="@string/receipt_printer_setup"
                     android:gravity="center" />
             </LinearLayout>
@@ -254,7 +254,7 @@
                 android:background="@drawable/num_btn_bg1"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="170dp"
+                android:layout_height="150dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
@@ -264,8 +264,29 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="22dp"
+                    android:textSize="20sp"
                     android:text="@string/label_printer_setup"
+                    android:gravity="center" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_marginRight="10dp"
+                android:id="@+id/xiaopiaoyangshi_btn"
+                android:background="@drawable/num_btn_bg1"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="150dp"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:paddingTop="35dp">
+                <TextView
+                    android:drawableTop="@drawable/zhangdan_iv"
+                    android:drawablePadding="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FF1359FE"
+                    android:textSize="20sp"
+                    android:text="@string/receiptstyle"
                     android:gravity="center" />
             </LinearLayout>
 
@@ -275,7 +296,7 @@
                 android:background="@drawable/num_btn_bg1"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="170dp"
+                android:layout_height="150dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
@@ -290,31 +311,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="22dp"
+                    android:textSize="20sp"
                     android:text="@string/discount_toggle"
                     android:gravity="center" />
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_marginRight="10dp"
-                android:id="@+id/xiaopiaoyangshi_btn"
-                android:background="@drawable/num_btn_bg1"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="170dp"
-                android:orientation="vertical"
-                android:gravity="center_horizontal"
-                android:paddingTop="35dp">
-                <TextView
-                    android:drawableTop="@drawable/zhangdan_iv"
-                    android:drawablePadding="12dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="#FF1359FE"
-                    android:textSize="22dp"
-                    android:text="小票样式"
-                    android:gravity="center" />
-            </LinearLayout>
+
 
             <LinearLayout
                 android:layout_marginRight="10dp"
@@ -322,7 +324,7 @@
                 android:background="@drawable/num_btn_bg3"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="170dp"
+                android:layout_height="150dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
@@ -332,7 +334,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FFFF4159"
-                    android:textSize="22dp"
+                    android:textSize="20sp"
                     android:text="@string/log_out"
                     android:gravity="center"/>
             </LinearLayout>

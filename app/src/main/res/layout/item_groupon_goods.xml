@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="商品名称"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textColor="@color/white"
             android:textStyle="bold"
             android:gravity="center" />
@@ -39,7 +39,7 @@
             android:layout_height="wrap_content"
             android:text="0.00"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:layout_centerHorizontal="true"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="10dp"/>

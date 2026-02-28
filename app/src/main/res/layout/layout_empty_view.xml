@@ -7,8 +7,8 @@
     android:padding="20dp">
 
     <ImageView
-        android:layout_width="120dp"
-        android:layout_height="120dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         android:src="@android:drawable/ic_menu_search"
         android:alpha="0.3" />
 
@@ -16,7 +16,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="暂无历史订单"
+        android:text="@string/noitem"
         android:textColor="#999999"
         android:textSize="22sp" />
 

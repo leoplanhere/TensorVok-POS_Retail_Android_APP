@@ -14,7 +14,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:text=""
-            android:textSize="25dp"
+            android:textSize="16dp"
             android:textColor="@color/black"
             android:layout_weight="1"/>
         <TextView
@@ -23,7 +23,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:text=""
-            android:textSize="25dp"
+            android:textSize="16dp"
             android:textColor="@color/black"
             android:layout_weight="2"/>
         <TextView
@@ -32,7 +32,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:text=""
-            android:textSize="25dp"
+            android:textSize="16dp"
             android:textColor="@color/black"
             android:layout_weight="1"/>
         <TextView
@@ -41,7 +41,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:text=""
-            android:textSize="25dp"
+            android:textSize="16dp"
             android:textColor="@color/black"
             android:layout_weight="1"/>
         <TextView
@@ -50,7 +50,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:text=""
-            android:textSize="25dp"
+            android:textSize="16dp"
             android:textColor="@color/black"
             android:layout_weight="1"/>
         <TextView
@@ -59,7 +59,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:text=""
-            android:textSize="25dp"
+            android:textSize="16dp"
             android:textColor="@color/black"
             android:layout_weight="1"/>
         <LinearLayout
@@ -75,9 +75,9 @@
                 android:layout_height="50dp"
                 android:background="@drawable/gray_line1"
                 android:layout_weight="1"
-                android:textSize="25dp"
+                android:textSize="16dp"
                 android:textColor="@color/black"
-                android:text="打印"
+                android:text="@string/print"
                 android:gravity="center"/>
         </LinearLayout>
     </LinearLayout>

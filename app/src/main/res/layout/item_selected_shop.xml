@@ -18,7 +18,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
-            android:textSize="18dp"
+            android:textSize="16sp"
             android:textColor="@color/black"
             android:text="序号"/>
         <TextView
@@ -27,7 +27,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:textSize="18dp"
+            android:textSize="16sp"
             android:textColor="@color/black"
             android:text="品名"/>
         <TextView
@@ -37,7 +37,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
-            android:textSize="18dp"
+            android:textSize="16sp"
             android:textColor="@color/black"
             android:text="规格"/>
         <LinearLayout
@@ -53,8 +53,8 @@
                 android:orientation="horizontal">
                 <ImageView
                     android:id="@+id/shuliang_jian"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:src="@drawable/jian_iv"/>
                 <TextView
                     android:id="@+id/shuliang"
@@ -63,13 +63,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="1231"
-                    android:textSize="20dp"
+                    android:textSize="16sp"
                     android:textColor="@color/black"
                     android:gravity="center"/>
                 <ImageView
                     android:id="@+id/shuliang_jia"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:src="@drawable/jia_iv"/>
             </LinearLayout>
 
@@ -79,8 +79,8 @@
             android:gravity="center"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.5"
-            android:textSize="20dp"
+            android:layout_weight="1"
+            android:textSize="16sp"
             android:textColor="@color/black"
             android:text="合计"/>
         <LinearLayout
@@ -93,10 +93,10 @@
             <TextView
                 android:id="@+id/zengsong"
                 android:gravity="center"
-                android:layout_width="100dp"
-                android:layout_height="45dp"
+                android:layout_width="60dp"
+                android:layout_height="40dp"
                 android:background="@drawable/blue_line1"
-                android:textSize="18dp"
+                android:textSize="14sp"
                 android:textColor="#FF3B82F6"
                 android:text="@string/give_away"/>
         </LinearLayout>

@@ -38,7 +38,7 @@ public class SyncLoadingPopup extends CenterPopupView {
         if (progressBar != null) {
             progressBar.setProgress(percent);
             tvPercent.setText(percent + "%");
-            tvCount.setText("正在同步: " + current + " / " + total);
+            tvCount.setText("Processing: " + current + " / " + total);
         }
     }
 }

@@ -10,15 +10,17 @@
     <string name="clear">Clear</string>
     <string name="delete">Delete</string>
     <string name="barcode">Barcode</string>
-    <string name="grand_total">Grand Total:</string>
+    <string name="grand_total">Total:</string>
     <string name="total_items">Total Items:</string>
     <string name="currency_setting">Currency Setting</string>
-    <string name="delete_item">Delete Item</string>
+    <string name="delete_item">Delete</string>
     <string name="clear_all"> Clear All(F5)</string>
     <string name="hold_order">Hold Order(F2)</string>
     <string name="item_discount">Item Discount(F4)</string>
     <string name="order_discount">Order Discount(F6)</string>
-    <string name="print_receipt">Print Receipt(F7)</string>
+    <string name="print_receipt">Print Last(F7)</string>
+
+    <string name="item_discounts">Discount</string>
     <string name="No">No.</string>
     <string name="product_name">Product Name</string>
     <string name="qty">Qty</string>
@@ -42,7 +44,7 @@
     <string name="payment">Payment</string>
     <string name="change">Change</string>
     <string name="enter_payment_amount">Please enter amount</string>
-    <string name="tips">Tips</string>
+    <string name="tips">Info</string>
     <string name="delete_shop">Are you sure delete ?</string>
     <string name="cancel">Cancel</string>
     <string name="discount1">Discount</string>
@@ -88,7 +90,7 @@
     <string name="device_name">Device Name</string>
     <string name="vendor_id">Vendor ID</string>
     <string name="product_id">Product ID</string>
-    <string name="product_selection">Product Selection</string>
+    <string name="product_selection">Select</string>
     <string name="print">Print</string>
     <string name="sku">SKU</string>
     <string name="selling_price">Selling Price</string>
@@ -102,17 +104,44 @@
     <string name="please_enter_refund_password">Please enter refund password</string>
     <string name="pinming_bianma">Product Name/SKU</string>
     <string name="product_category">Product Category</string>
-    <string name="check_to_add">Check to Add</string>
+    <string name="check_to_add">Add</string>
     <string name="pending_payment">Pending Payment：</string>
     <string name="check">Check</string>
     <string name="refund">Refund</string>
     <string name="selection">Selection</string>
-    <string name="give_away">Give away</string>
-    <string name="cancel_give_away">Cancel give away</string>
+    <string name="give_away">Gift</string>
+    <string name="cancel_give_away">Cancel</string>
     <string name="please_select_product">Please select product</string>
     <string name="product_stocked_successfully">Product stocked successfully</string>
     <string name="setup_completed">Setup completed</string>
+    <string name="Tareweigth">"Tare Weight:0.000"</string>
+    <string name="realtimekg">"Realtime(kg)"</string>
 
+    <string name="shiftover">"Shift"</string>
+    <string name="currencyset">"Currency"</string>
+    <string name="receiptstyle">"Receipt Style"</string>
+    <string name="possetting">"POS Settings"</string>
+    <string name="noitem">"No Item"</string>
+    <string name="waitproduct">"Item Picture Placeholder"</string>
+    <string name="sycndatanow">"Syncing Products..."</string>
+    <string name="lablediy">"Lable DIY"</string>3
+    <string name="subtitle">"Subtitle"</string>
+    <string name="shiftovertime">"Shift Time"</string>
+    <string name="shouyinyuan">"Cashier"</string>
+    <string name="operation">"Operation"</string>
+
+    <string name="TotalDue">"Total Due"</string>
+
+    <string name="membernumber">"Membership NO."</string>
+    <string name="coupon">"Coupon"</string>
+
+    <string name="select_start_date">"Select Start Date"</string>
+
+    <string name="next">"Next"</string>
+
+
+
+    <string name="netzero">"Tare/Zero"</string>
     <string name="discounts_hint">Confirm to turn %s discounts?</string>
     <string name="off">OFF</string>
     <string name="on">ON</string>
@@ -126,7 +155,7 @@
     <string name="loading_data" >Loading data...</string>
     <string name="Sync_completed">Sync completed</string>
     <string name="Refunded">Refunded</string>
-    <string name="fold">"fold: "</string>
+    <string name="fold">"x"</string>
     <string name="Local_bill_upload_required">Local bill upload required</string>
     <string name="Enter_item_price">Enter item price</string>
     <string name="Please_input_in_correct_price_format">Please input in correct price format</string>
