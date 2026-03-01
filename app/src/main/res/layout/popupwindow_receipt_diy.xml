@@ -24,7 +24,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                android:text="小票样式设置"
+                android:text="@string/receiptstyle"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -42,7 +42,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="纸张规格:"
+                        android:text="@string/paperwidth"
                         android:textColor="#666"
                         android:textSize="12sp" />
 
@@ -83,7 +83,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
-                        android:text="显示内容控制:"
+                        android:text="@string/receiptcontent"
                         android:textColor="#666"
                         android:textSize="12sp" />
 
@@ -92,7 +92,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="5dp"
-                        android:text="顶部 Logo (图片)"
+                        android:text="@string/toplogo"
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 
@@ -102,7 +102,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="5dp"
                         android:checked="true"
-                        android:text="店铺名称"
+                        android:text="@string/storename"
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 
@@ -112,7 +112,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="5dp"
                         android:checked="true"
-                        android:text="客服电话 / 地址"
+                        android:text="@string/phoneadress"
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 
@@ -122,7 +122,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="5dp"
                         android:checked="true"
-                        android:text="会员信息"
+                        android:text="@string/membershopinfo"
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 
@@ -132,7 +132,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="5dp"
                         android:checked="true"
-                        android:text="收银员 / 时间"
+                        android:text="@string/cashertime"
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 
@@ -149,7 +149,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="5dp"
                         android:checked="true"
-                        android:text="底部条形码 (订单号)"
+                        android:text="@string/barcode"
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 
@@ -158,7 +158,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="5dp"
-                        android:text="底部二维码"
+                        android:text="@string/qrcode"
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 
@@ -168,7 +168,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="5dp"
                         android:checked="true"
-                        android:text="底部欢迎语"
+                        android:text="@string/notes"
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 
@@ -177,7 +177,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="5dp"
-                        android:text="底部 Logo"
+                        android:text="@string/footerlogo"
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 
@@ -192,7 +192,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
                         android:layout_marginBottom="5dp"
-                        android:text="字体大小:"
+                        android:text="@string/fontsize"
                         android:textColor="#666"
                         android:textSize="12sp" />
 
@@ -208,7 +208,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginRight="15dp"
-                            android:text="紧凑 (小)"
+                            android:text="@string/small"
                             android:textColor="@color/black"
                             android:textSize="14sp" />
 
@@ -217,7 +217,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginRight="15dp"
-                            android:text="标准 (中)"
+                            android:text="@string/middle"
                             android:checked="true"
                             android:textColor="@color/black"
                             android:textSize="14sp" />
@@ -226,7 +226,7 @@
                             android:id="@+id/rb_font_large"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="老人模式 (大)"
+                            android:text="@string/large"
                             android:textColor="#E65100"
                             android:textStyle="bold"
                             android:textSize="14sp" />
@@ -256,9 +256,9 @@
                     android:layout_weight="1"
                     android:background="@drawable/black_line"
                     android:gravity="center"
-                    android:text="关闭"
+                    android:text="@string/back"
                     android:textColor="@color/black"
-                    android:textSize="20sp" />
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/btn_test_print"
@@ -268,10 +268,10 @@
                     android:layout_weight="1.2"
                     android:background="@drawable/blue_line1"
                     android:gravity="center"
-                    android:text="测试打印"
+                    android:text="@string/testprint"
                     android:textStyle="bold"
                     android:textColor="#000"
-                    android:textSize="20sp" />
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/btn_save"
@@ -281,9 +281,9 @@
                     android:layout_weight="1"
                     android:background="@drawable/blue_bg5"
                     android:gravity="center"
-                    android:text="保存设置"
+                    android:text="@string/save"
                     android:textColor="@color/white"
-                    android:textSize="20sp" />
+                    android:textSize="16sp" />
             </LinearLayout>
 
 
@@ -308,7 +308,7 @@
                 android:layout_height="50dp"
                 android:background="#E0E0E0"
                 android:gravity="center"
-                android:text="打印效果预览"
+                android:text="@string/realtimeeffect"
                 android:textColor="#666"
                 android:textSize="16sp" />
 

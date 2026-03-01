@@ -69,7 +69,7 @@
 
                     <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="330dp"
+                        android:layout_height="400dp"
                         android:layout_margin="15dp">
 
                         <TextView
@@ -97,7 +97,7 @@
                         android:id="@+id/zhifuxinxi_view"
                         android:padding="25dp"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="1000dp"
                         android:orientation="vertical">
 
                         <LinearLayout
@@ -108,9 +108,9 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="应付总计:"
+                                android:text="@string/TotalDue"
                                 android:textColor="@color/black"
-                                android:textSize="18dp"
+                                android:textSize="16dp"
                                 android:textStyle="bold"/>
                             <TextView
                                 android:fontFamily="@font/font2"
@@ -145,7 +145,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="优惠总计:"
+                                    android:text="@string/discountamount"
                                     android:textColor="@color/black"
                                     android:textSize="12dp" />
                                 <TextView
@@ -156,7 +156,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:textStyle="bold"
-                                    android:textSize="20dp"
+                                    android:textSize="12dp"
                                     android:textColor="#FFEF4444"
                                     android:text="-0.00"/>
                             </LinearLayout>
@@ -169,7 +169,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="代金券:"
+                                    android:text="@string/coupon"
                                     android:textColor="@color/black"
                                     android:textSize="12dp" />
                                 <TextView
@@ -180,7 +180,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:textStyle="bold"
-                                    android:textSize="20dp"
+                                    android:textSize="12dp"
                                     android:textColor="#FFEF4444"
                                     android:text="-0.00"/>
                             </LinearLayout>
@@ -195,9 +195,10 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="实付:"
+                                android:text="@string/actualamount"
                                 android:textColor="@color/black"
-                                android:textSize="18dp" />
+                                android:textSize="16dp"
+                                android:textStyle="bold"/>
                             <TextView
                                 android:fontFamily="@font/font2"
                                 android:includeFontPadding="false"
@@ -231,7 +232,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="现金:"
+                                    android:text="@string/cashamount"
                                     android:textColor="@color/black"
                                     android:textSize="12dp" />
                                 <TextView
@@ -241,7 +242,7 @@
                                     android:layout_marginStart="10dp"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textSize="18dp"
+                                    android:textSize="12dp"
                                     android:textStyle="bold"
                                     android:textColor="@color/black"
                                     android:text="0.00"/>
@@ -255,7 +256,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="会员卡:"
+                                    android:text="@string/membercardamount"
                                     android:textColor="@color/black"
                                     android:textSize="12dp" />
                                 <TextView
@@ -265,7 +266,7 @@
                                     android:layout_marginStart="10dp"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textSize="18dp"
+                                    android:textSize="12dp"
                                     android:textStyle="bold"
                                     android:textColor="@color/black"
                                     android:text="0.00"/>
@@ -292,7 +293,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="微信:"
+                                    android:text="@string/wechatamount"
                                     android:textColor="@color/black"
                                     android:textSize="12dp" />
                                 <TextView
@@ -302,7 +303,7 @@
                                     android:layout_marginStart="10dp"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textSize="18dp"
+                                    android:textSize="12dp"
                                     android:textStyle="bold"
                                     android:textColor="@color/black"
                                     android:text="0.00"/>
@@ -316,7 +317,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="支付宝:"
+                                    android:text="@string/alipayamount"
                                     android:textColor="@color/black"
                                     android:textSize="12dp" />
                                 <TextView
@@ -326,7 +327,7 @@
                                     android:layout_marginStart="10dp"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textSize="18dp"
+                                    android:textSize="12dp"
                                     android:textStyle="bold"
                                     android:textColor="@color/black"
                                     android:text="0.00"/>
@@ -363,7 +364,7 @@
                                     android:layout_marginStart="10dp"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textSize="18dp"
+                                    android:textSize="12dp"
                                     android:textStyle="bold"
                                     android:textColor="@color/black"
                                     android:text="0.00"/>
@@ -389,9 +390,10 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="找零:"
+                                android:text="@string/changeamount"
                                 android:textColor="@color/black"
-                                android:textSize="12dp" />
+                                android:textSize="16dp"
+                                android:textStyle="bold"/>
                             <TextView
                                 android:fontFamily="@font/font2"
                                 android:includeFontPadding="false"
@@ -429,7 +431,7 @@
                     android:layout_width="wrap_content"
                     android:paddingRight="15dp"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/gengduo" />
+                    android:src="@drawable/baseline_settings_24" />
 
                 <LinearLayout
                     android:id="@+id/shuaxin_btn"
@@ -518,7 +520,7 @@
                         android:layout_marginStart="10dp"
                         android:background="@null"
                         android:gravity="center_vertical"
-                        android:hint="拼音/首字母/名称"
+                        android:hint="@string/typetoserch"
                         android:imeOptions="actionSearch"
                         android:singleLine="true"
                         android:textColor="@color/black"
@@ -578,7 +580,7 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
                 <ImageView
-                    android:layout_width="100dp"
+                    android:layout_width="120dp"
                     android:layout_height="42dp"
                     android:scaleType="fitCenter"
                     android:layout_gravity="center_vertical"
@@ -592,36 +594,25 @@
                     android:layout_weight="1"
                     android:orientation="vertical">
                     <TextView
-                        android:visibility="visible"
+                        android:id="@+id/tv_main_shop_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
+                        android:textSize="15sp"
                         android:textColor="@color/black"
                         android:layout_gravity="center_vertical"
-                        android:layout_marginLeft="5dp"
-                        android:text="优道佳家福会员超市" />
+                        android:text="优海猫" />
                     <LinearLayout
                         android:layout_width="150dp"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
-                        <TextView
-                            android:id="@+id/tv_main_shop_name"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="12sp"
-                            android:textColor="@color/black"
-                            android:layout_gravity="center_vertical"
-                            android:layout_marginLeft="5dp"
-                            android:text="优海猫" />
+
                         <TextView
                             android:id="@+id/tv_nickname"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textSize="12sp"
-                            android:textColor="@color/black"
+                            android:textColor="#999999"
                             android:layout_gravity="center_vertical"
-                            android:layout_marginLeft="7dp"
                             android:text="12321414" />
                     </LinearLayout>
                 </LinearLayout>
@@ -638,7 +629,7 @@
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:src="@drawable/yanchi_iv"/>
+                        android:src="@drawable/outline_bigtop_updates_24"/>
                     <LinearLayout
                         android:layout_marginStart="5dp"
                         android:layout_width="wrap_content"
@@ -654,7 +645,7 @@
 
                         <TextView
                             android:id="@+id/pingValue"
-                            android:layout_width="wrap_content"
+                            android:layout_width="25dp"
                             android:layout_height="wrap_content"
                             android:textColor="@color/black"
                             android:textSize="12dp"/>
@@ -669,7 +660,7 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:layout_marginStart="30dp"
+                        android:layout_marginStart="10dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
@@ -683,7 +674,7 @@
 
                         <TextView
                             android:id="@+id/httpValue"
-                            android:layout_width="wrap_content"
+                            android:layout_width="25dp"
                             android:layout_height="wrap_content"
                             android:textColor="@color/black"
                             android:textSize="12dp"/>
@@ -698,7 +689,7 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:layout_marginStart="30dp"
+                        android:layout_marginStart="10dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
@@ -742,7 +733,7 @@
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:src="@drawable/shijian_iv"/>
+                    android:src="@drawable/outline_calendar_clock_24"/>
                 <TextClock
                     android:layout_marginEnd="2dp"
                     android:layout_marginStart="5dp"
@@ -822,6 +813,36 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:layout_marginEnd="10dp"
+                    android:gravity="center_vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:layout_weight="0.7"
+                    android:background="@drawable/blue_bg">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/black"
+                        android:textSize="16dp"
+                        android:text="@string/total_items"
+                        android:textStyle="bold"
+                        android:layout_marginStart="@dimen/dp_10"/>
+
+                    <TextView
+                        android:fontFamily="@font/font2"
+                        android:includeFontPadding="false"
+                        android:id="@+id/tv_zongjian"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/dp_10"
+                        android:text="0"
+                        android:textColor="#FFD9001B"
+                        android:textSize="30sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_marginEnd="5dp"
                     android:gravity="center_vertical"
                     android:layout_width="0dp"
@@ -882,35 +903,7 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <LinearLayout
-                    android:layout_marginEnd="10dp"
-                    android:gravity="center_vertical"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:layout_weight="0.7"
-                    android:background="@drawable/blue_bg">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/black"
-                        android:textSize="16dp"
-                        android:text="@string/total_items"
-                        android:textStyle="bold"
-                        android:layout_marginStart="@dimen/dp_10"/>
 
-                    <TextView
-                        android:fontFamily="@font/font2"
-                        android:includeFontPadding="false"
-                        android:id="@+id/tv_zongjian"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/dp_10"
-                        android:text="0"
-                        android:textColor="#FFD9001B"
-                        android:textSize="30sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout
@@ -962,7 +955,7 @@
                         android:layout_marginStart="25dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:src="@drawable/huiyuan_iv"/>
+                        android:src="@drawable/outline_crown_24"/>
                     <TextView
                         android:id="@+id/huiyuan_name"
                         android:layout_marginLeft="10dp"
@@ -1128,7 +1121,7 @@
                         <ImageView
                             android:layout_width="40dp"
                             android:layout_height="40dp"
-                            android:src="@drawable/gengduo"
+                            android:src="@drawable/rounded_add_chart_24"
                             android:alpha="0.2"/>
                         <TextView
                             android:layout_width="wrap_content"

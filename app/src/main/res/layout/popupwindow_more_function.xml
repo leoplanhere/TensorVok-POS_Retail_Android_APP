@@ -64,7 +64,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:text="@string/sync_data"
                     android:gravity="center" />
             </LinearLayout>
@@ -85,7 +85,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:text="@string/label_printing"
                     android:gravity="center" />
             </LinearLayout>
@@ -127,7 +127,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:text="@string/order_history"
                     android:gravity="center" />
             </LinearLayout>
@@ -148,7 +148,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:text="@string/shiftover"
                     android:gravity="center" />
             </LinearLayout>
@@ -164,12 +164,12 @@
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
                 <TextView
-                    android:drawableTop="@drawable/yuyan_iv"
+                    android:drawableTop="@drawable/outline_currency_exchange_24"
                     android:drawablePadding="12dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:text="@string/currencyset"
                     android:gravity="center" />
             </LinearLayout>
@@ -185,12 +185,12 @@
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
                 <TextView
-                    android:drawableTop="@drawable/yuyan_iv"
+                    android:drawableTop="@drawable/outline_g_translate_24"
                     android:drawablePadding="12dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:text="@string/language_settings"
                     android:gravity="center" />
             </LinearLayout>
@@ -217,12 +217,12 @@
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
                 <TextView
-                    android:drawableTop="@drawable/gengduo"
+                    android:drawableTop="@drawable/outline_ad_24"
                     android:drawablePadding="12dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:text="@string/possetting"
                     android:gravity="center" />
             </LinearLayout>
@@ -238,12 +238,12 @@
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
                 <TextView
-                    android:drawableTop="@drawable/zhangdan_iv"
+                    android:drawableTop="@drawable/outline_credit_card_gear_24"
                     android:drawablePadding="12dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:text="@string/receipt_printer_setup"
                     android:gravity="center" />
             </LinearLayout>
@@ -264,7 +264,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:text="@string/label_printer_setup"
                     android:gravity="center" />
             </LinearLayout>
@@ -280,12 +280,12 @@
                 android:gravity="center_horizontal"
                 android:paddingTop="35dp">
                 <TextView
-                    android:drawableTop="@drawable/zhangdan_iv"
+                    android:drawableTop="@drawable/receiptstyle"
                     android:drawablePadding="12dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:text="@string/receiptstyle"
                     android:gravity="center" />
             </LinearLayout>
@@ -311,7 +311,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FF1359FE"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:text="@string/discount_toggle"
                     android:gravity="center" />
             </LinearLayout>
@@ -334,7 +334,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#FFFF4159"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:text="@string/log_out"
                     android:gravity="center"/>
             </LinearLayout>

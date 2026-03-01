@@ -139,6 +139,48 @@
 
     <string name="next">"Next"</string>
 
+    <string name="realtimeeffect">"Real-time Effect"</string>
+    <string name="paperwidth">"Paper Width"</string>
+    <string name="receiptcontent">"Receipt Contenct"</string>
+    <string name="toplogo">"Top Logo"</string>
+    <string name="storename">"Store Name"</string>
+    <string name="phoneadress">"Tel/Address"</string>
+    <string name="membershopinfo">"Membership Info"</string>
+    <string name="cashertime">"Cashier / Time"</string>
+    <string name="qrcode">"Qrcode"</string>
+    <string name="notes">"Notes"</string>
+    <string name="footerlogo">"Footer Logo"</string>
+    <string name="fontsize">"Font Size</string>
+    <string name="small">"Small"</string>
+    <string name="middle">"Middle"</string>
+    <string name="large">"Large"</string>
+    <string name="testprint">"Test Print"</string>
+    <string name="save">"Save Settings"</string>
+
+
+
+    <string name="itemname">"Item</string>
+    <string name="subtotal">"Subtotal"</string>
+    <string name="membershipinfo">"Membership：leoinny"</string>
+    <string name="notessample">"Tell us how we did! Complete our survey at posvox.com for a chance to win a $500 gift card."</string>
+    <string name="typetoserch">"Type to search..."</string>
+
+    <string name="changeamount">"Change"</string>
+    <string name="alipayamount">"Alipay"</string>
+    <string name="wechatamount">"Wechat"</string>
+    <string name="membercardamount">"Member Card"</string>
+    <string name="cashamount">"Cash"</string>
+    <string name="actualamount">"Total Paid"</string>
+    <string name="discountamount">"Discount"</string>
+
+
+
+
+
+
+
+
+
 
 
     <string name="netzero">"Tare/Zero"</string>
@@ -185,5 +227,5 @@
     <string name="shangpinkaiguan">商品点击开关\n(当前:打开)</string>
     <string name="shangpinkaiguan_hint">您确定%s商品点击吗?</string>
     <string name="Language">Language</string>
-    <string name="language_settings">Language settings</string>
+    <string name="language_settings">Language</string>
 </resources>

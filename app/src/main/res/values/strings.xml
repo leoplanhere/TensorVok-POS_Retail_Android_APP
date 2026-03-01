@@ -164,6 +164,43 @@
     <string name="next">"下一步"</string>
 
 
+    <string name="realtimeeffect">"实时效果"</string>
+    <string name="paperwidth">"纸张宽度"</string>
+    <string name="receiptcontent">"打印元素"</string>
+    <string name="toplogo">"顶部logo"</string>
+    <string name="storename">"店铺名称"</string>
+    <string name="phoneadress">"电话地址"</string>
+    <string name="membershopinfo">"会员信息"</string>
+    <string name="cashertime">"收银员/时间"</string>
+    <string name="qrcode">"二维码"</string>
+    <string name="notes">"备注信息"</string>
+    <string name="footerlogo">"底部logo"</string>
+    <string name="fontsize">"字体大小"</string>
+    <string name="small">"小"</string>
+    <string name="middle">"中"</string>
+    <string name="large">"大"</string>
+    <string name="testprint">"测试打印"</string>
+    <string name="save">"保存设置"</string>
+
+    <string name="itemname">"商品"</string>
+    <string name="subtotal">"金额"</string>
+    <string name="notessample">"此单据二维码为开具增值税普通发票\n的唯一凭证，请妥善保管。\n请保留此单据，作为退、换货凭证。"</string>
+
+
+    <string name="membershipinfo">"会员信息：leoinny"</string>
+    <string name="typetoserch">"拼音/首字母/名称"</string>
+
+    <string name="changeamount">"找零"</string>
+    <string name="alipayamount">"支付宝"</string>
+    <string name="wechatamount">"微信支付"</string>
+    <string name="membercardamount">"会员卡"</string>
+    <string name="cashamount">"现金"</string>
+    <string name="actualamount">"实际支付"</string>
+    <string name="discountamount">"折扣"</string>
+
+
+
+
 
     <string name="Local_bill_upload_required">你有本地账单需上传</string>
     <string name="Enter_item_price">请输入商品价格</string>

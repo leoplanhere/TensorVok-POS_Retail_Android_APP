@@ -298,7 +298,7 @@
                         android:layout_gravity="center_vertical"
                         android:layout_marginLeft="18dp"
                         android:gravity="center"
-                        android:text="前往"
+                        android:text="Go to"
                         android:textColor="@color/black"
                         android:textSize="16dp"
                         android:visibility="visible" />
@@ -321,7 +321,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
                         android:gravity="center"
-                        android:text="页"
+                        android:text="Page"
                         android:textColor="@color/black"
                         android:textSize="16dp"
                         android:visibility="visible" />
