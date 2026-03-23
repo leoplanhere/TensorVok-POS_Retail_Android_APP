@@ -1265,11 +1265,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
             jsonBean.setGoods_sku_price_id(String.valueOf(model.getGgspid()));
 
             // 修复 goods_sku_text 为空导致 500 错误的问题
-            String safeSkuText = model.getGoods_sku_text();
-            if (TextUtils.isEmpty(safeSkuText)) {
-                safeSkuText = "[\"商品\"]";
-            }
-            jsonBean.setGoods_sku_text(safeSkuText);
+//            String safeSkuText = model.getGoods_sku_text();
+//            if (TextUtils.isEmpty(safeSkuText)) {
+//                safeSkuText = "[\"商品\"]";
+//            }
+//            jsonBean.setGoods_sku_text(safeSkuText);
+
+
+            // 根据后端要求，直接传空字符串 20260323修改
+            jsonBean.setGoods_sku_text("");
 
             goodsJsonList.add(jsonBean);
         }
