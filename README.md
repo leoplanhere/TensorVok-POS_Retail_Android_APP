@@ -42,8 +42,8 @@ While we offer the core POS client as an open-source solution, we provide advanc
 We are open-sourcing our core client code to empower global developers and business partners.
 
 * **Official Website:** [tensorvok.com](https://tensorvok.com)
-* **Partner Program:** For White-Label solutions or OEM services, please visit our [AI Vision Partner Program](https://tensorvok.com/channel-partner-program/).
-* **Custom R&D:** For bespoke AI algorithm development tailored to specific industrial scenarios, explore our [Algorithms Custom R&D](https://tensorvok.com/algorithms-custom-rd/) page.
+* **Partner Program:** For White-Label solutions or OEM services, please visit our [AI Vision Partner Program](https://tensorvok.com/ai-vision-partner-program-aiot-integration-for-sis/).
+* **Custom R&D:** For bespoke AI algorithm development tailored to specific industrial scenarios, explore our [Algorithms Custom R&D](https://tensorvok.com/custom-ai-vision-rd-bespoke-yolo-edge-ai-solutions/) page.
 
 ---
 
