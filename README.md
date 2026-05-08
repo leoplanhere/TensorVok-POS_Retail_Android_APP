@@ -1,6 +1,6 @@
-# UHMCS: Professional AI-Powered POS & Retail Management System
+# TensorVok-POS_Retail_Android_APP: Professional AI-Powered POS & Retail Management System
 
-**UHMCS** (Unified Handheld Mobile Checkout System) 是由 **TensorVok** 开发的一套全栈式智能收银与商业管理系统。该系统专注于高性能、高稳定性以及深度硬件集成，为零售和餐饮行业提供从云端管理到边缘设备落地的完整解决方案。
+**TensorVok-POS_Retail_Android_APP** (Unified Handheld Mobile Checkout System) 是由 **TensorVok** 开发的一套全栈式智能收银与商业管理系统。该系统专注于高性能、高稳定性以及深度硬件集成，为零售和餐饮行业提供从云端管理到边缘设备落地的完整解决方案。
 
 ---
 
