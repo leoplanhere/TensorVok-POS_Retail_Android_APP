@@ -146,13 +146,24 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private GetRegistrationShopPopupWindow getRegistrationShopPopupWindow;
 
     // 支付相关
+    private static final long POLL_INTERVAL_MS = 5000L;
+    private static final long POLL_TIMEOUT_DOMESTIC_MS = 60000L;
+    private static final long POLL_TIMEOUT_FOREIGN_MS = 120000L;
+
     private boolean is_kuangjie = false;
     private boolean is_jiezhang_qingkong = false;
     private int allNum = 0;
     public String out_trade_no = "", order_sn = "", transaction_id = "";
     private TimeCount timeCount;
     private boolean is_chaoshi = false;
+    private boolean isForeignPayment = false;
+    private boolean isPaymentPollingActive = false;
     private CheckoutBean checkoutBean;
+    private final Runnable wechatPollRunnable = () -> {
+        if (checkoutBean != null) {
+            fwsgetOrderInformation(checkoutBean);
+        }
+    };
 
     // ★★★ 新增：声音反馈相关变量 ★★★
     private SoundPool soundPool;
@@ -330,7 +341,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         Glide.with(this).load(R.drawable.have_paid_img).into((ImageView) findViewById(R.id.image));
         animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.scale_click);
         buildBean = DialogUIUtils.showLoading(this, getString(R.string.paying), true, false, false, false);
-        timeCount = new TimeCount(90000, 3000);
 
 
 
@@ -1167,9 +1177,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 case 13:
                     new ReceiptDiyPopupWindow(this).show();
                     break;
-
-
-
+                case 14:
+                    new AppUpdatePopupWindow(this).show();
+                    break;
 
             }
         }).show();
@@ -1450,9 +1460,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                             JSONObject jsonObject = new JSONObject(responseStr);
                             String msg = jsonObject.optString("msg");
 
-                            if (msg.contains("成功") || msg.contains("Success")) {
+                            if (isPaymentImmediateSuccess(msg)) {
                                 handlePaymentSuccess(jsonObject);
-                            } else if (msg.contains("密码") || msg.contains("process")) {
+                            } else if (isPaymentInProcess(jsonObject)) {
                                 handlePaymentProcess(jsonObject);
                             } else {
                                 DialogUIUtils.dismiss(buildBean);
@@ -1479,7 +1489,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
      * 当 SubmitCheckout 彻底超时时调用此方法
      */
     private void verifyPaymentResult(CheckoutBean originalBean) {
+        verifyPaymentResult(originalBean, false);
+    }
+
+    private void verifyPaymentResult(CheckoutBean originalBean, boolean fromPollingTimeout) {
         Log.w("PayDebug", "支付请求无响应，正在反查服务器最近一笔订单进行核对...");
+
+        if (fromPollingTimeout) {
+            showPaymentVerifyHintOnPopup();
+        }
 
         Map<String, String> params = new HashMap<>();
         // 获取店铺ID
@@ -1527,26 +1545,26 @@ public class MainActivity extends Activity implements View.OnClickListener {
                                     // 我们允许 90秒 的误差，只要是刚才生成的单子就算
                                     long serverTime = lastOrder.getCreatetime() * 1000L;
                                     long currentTime = System.currentTimeMillis();
-                                    boolean isTimeRecent = Math.abs(currentTime - serverTime) < 90000; // 90秒内
+                                    long windowMs = isForeignPayment ? 180000L : 90000L;
+                                    boolean isTimeRecent = Math.abs(currentTime - serverTime) < windowMs;
+                                    boolean payTypeMatch = TextUtils.isEmpty(lastOrder.getPay_type())
+                                            || originalBean.getPay_type().equals(lastOrder.getPay_type());
 
                                     // 3. 判定结果
-                                    if (isAmountMatch && isTimeRecent) {
+                                    if (isAmountMatch && isTimeRecent && payTypeMatch) {
                                         Log.i("PayDebug", "【反查成功】发现掉单！自动恢复。单号：" + lastOrder.getOrder_sn());
 
-                                        // 修正本地 Bean 的订单号
+                                        stopPaymentPolling();
                                         originalBean.setOrder_sn(lastOrder.getOrder_sn());
                                         originalBean.setTransaction_id(lastOrder.getTransaction_id());
 
-                                        // ★ 手动触发成功逻辑 (模拟一个成功的 JSON 返回给 handlePaymentSuccess)
-                                        // 这样可以复用你现有的打印、清空购物车、语音逻辑
                                         JSONObject mockSuccessJson = new JSONObject();
                                         mockSuccessJson.put("msg", "反查恢复成功");
                                         mockSuccessJson.put("data", lastOrder.getOrder_sn());
-                                        // 有些逻辑可能从 code 对象取值，根据你的 handlePaymentSuccess 逻辑适配
                                         JSONObject codeObj = new JSONObject();
                                         codeObj.put("order_sn", lastOrder.getOrder_sn());
                                         codeObj.put("transaction_id", lastOrder.getTransaction_id());
-                                        mockSuccessJson.put("code", codeObj); // 注意这里结构要凑一下，虽然后面可能不一定全用到
+                                        mockSuccessJson.put("code", codeObj);
 
                                         handlePaymentSuccess(mockSuccessJson);
                                         return;
@@ -1557,15 +1575,21 @@ public class MainActivity extends Activity implements View.OnClickListener {
                             }
                         }
 
-                        // 如果代码走到这里，说明服务器没有刚才那笔单子 -> 确实支付失败了
-                        DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected) + "\n(请求超时，未生成订单)", true).show();
+                        if (fromPollingTimeout) {
+                            showPaymentVerifyFailedDialog();
+                        } else {
+                            DialogUIUtils.dismiss(buildBean);
+                            new DeleteShopPopupWindow(MainActivity.this, getString(R.string.no_network_detected) + "\n(请求超时，未生成订单)", true).show();
+                        }
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        // 解析异常，不敢乱报成功，提示网络错误
-                        DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(MainActivity.this, "验证支付状态异常", true).show();
+                        if (fromPollingTimeout) {
+                            showPaymentVerifyFailedDialog();
+                        } else {
+                            DialogUIUtils.dismiss(buildBean);
+                            new DeleteShopPopupWindow(MainActivity.this, "验证支付状态异常", true).show();
+                        }
                     }
                 });
             }
@@ -1573,9 +1597,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
             @Override
             public void onFailure(IOException e) {
                 runOnUiThread(() -> {
-                    // ★★★ 最坏情况：连反查接口都连不上（网彻底断了） ★★★
-                    // 必须弹窗警告收银员人工确认
-                    showAmbiguousStatusDialog();
+                    if (fromPollingTimeout) {
+                        showPaymentVerifyFailedDialog();
+                    } else {
+                        showAmbiguousStatusDialog();
+                    }
                 });
             }
         });
@@ -1601,7 +1627,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     // 替换 MainActivity.java 中的 handlePaymentSuccess 方法
     private void handlePaymentSuccess(JSONObject jsonObject) {
-
+        stopPaymentPolling();
 
         // --- 确保这段代码在最前面 ---
         if (currentCheckoutPopup != null && currentCheckoutPopup.isShowing()) {
@@ -1716,20 +1742,195 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
 
     private void handlePaymentProcess(JSONObject jsonObject) throws JSONException {
+        isForeignPayment = detectForeignPayment(jsonObject);
+        if (isForeignPayment) {
+            DialogUIUtils.dismiss(buildBean);
+            showForeignPaymentHintOnPopup();
+        } else {
+            hidePaymentHintOnPopup();
+        }
+
         if ("wechat".equals(checkoutBean.getPay_type())) {
-            order_sn = new JSONObject(jsonObject.getString("code")).optString("order_sn");
-            if (new JSONObject(jsonObject.getString("code")).has("out_trade_no")) {
-                out_trade_no = new JSONObject(jsonObject.getString("code")).getString("out_trade_no");
-                fwsgetOrderInformation(checkoutBean);
-            } else {
+            if (!extractWechatTradeInfo(jsonObject)) {
                 DialogUIUtils.dismiss(buildBean);
                 new DeleteShopPopupWindow(this, getString(R.string.No_transaction_ID_recorded), true).show();
+                return;
             }
+            startPaymentPolling(false);
+            scheduleWechatPoll(1000);
         } else if ("alipay".equals(checkoutBean.getPay_type())) {
-            out_trade_no = jsonObject.optString("out_trade_no");
-            order_sn = jsonObject.optString("order_sn");
-            queryOrder(checkoutBean);
-            timeCount.start();
+            if (!extractAlipayTradeInfo(jsonObject)) {
+                DialogUIUtils.dismiss(buildBean);
+                new DeleteShopPopupWindow(this, getString(R.string.No_transaction_ID_recorded), true).show();
+                return;
+            }
+            startPaymentPolling(isForeignPayment);
+        }
+    }
+
+    private boolean isPaymentInProcess(JSONObject jsonObject) {
+        String msg = jsonObject.optString("msg", "");
+        if (TextUtils.isEmpty(msg)) return false;
+        String lower = msg.toLowerCase();
+        return msg.contains("输入密码")
+                || lower.contains("inprocess")
+                || lower.contains("userpaying")
+                || "10003".equals(jsonObject.optString("code"));
+    }
+
+    private boolean isPaymentImmediateSuccess(String msg) {
+        if (TextUtils.isEmpty(msg)) return false;
+        String lower = msg.toLowerCase();
+        if (msg.contains("输入密码") || lower.contains("inprocess") || lower.contains("userpaying")) {
+            return false;
+        }
+        return msg.contains("成功") || lower.contains("success");
+    }
+
+    private boolean detectForeignPayment(JSONObject jsonObject) {
+        String buyerLogonId = jsonObject.optString("buyer_logon_id", "");
+        if (buyerLogonId.contains("@")) {
+            return true;
+        }
+        JSONObject codeObj = jsonObject.optJSONObject("code");
+        if (codeObj != null && codeObj.optString("buyer_logon_id", "").contains("@")) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean extractAlipayTradeInfo(JSONObject jsonObject) {
+        out_trade_no = jsonObject.optString("out_trade_no");
+        order_sn = jsonObject.optString("order_sn");
+        if (TextUtils.isEmpty(out_trade_no)) {
+            JSONObject codeObj = jsonObject.optJSONObject("code");
+            if (codeObj != null) {
+                out_trade_no = codeObj.optString("out_trade_no");
+                if (TextUtils.isEmpty(order_sn)) {
+                    order_sn = codeObj.optString("order_sn");
+                }
+            }
+        }
+        return !TextUtils.isEmpty(out_trade_no) && !TextUtils.isEmpty(order_sn);
+    }
+
+    private boolean extractWechatTradeInfo(JSONObject jsonObject) {
+        try {
+            JSONObject codeObj = jsonObject.getJSONObject("code");
+            order_sn = codeObj.optString("order_sn");
+            if (codeObj.has("out_trade_no")) {
+                out_trade_no = codeObj.getString("out_trade_no");
+            }
+            return !TextUtils.isEmpty(order_sn) && !TextUtils.isEmpty(out_trade_no);
+        } catch (JSONException e) {
+            return false;
+        }
+    }
+
+    private boolean isAlipayTradeSuccess(JSONObject jsonObject) {
+        String tradeStatus = jsonObject.optString("trade_status", "").toUpperCase();
+        if (tradeStatus.contains("TRADE_SUCCESS") || tradeStatus.contains("TRADE_FINISHED")) {
+            return true;
+        }
+        try {
+            String payAmount = jsonObject.optString("buyer_pay_amount", "0");
+            if (!TextUtils.isEmpty(payAmount) && new BigDecimal(payAmount).compareTo(BigDecimal.ZERO) > 0) {
+                return true;
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    private void startPaymentPolling(boolean foreign) {
+        isForeignPayment = foreign;
+        isPaymentPollingActive = true;
+        is_chaoshi = false;
+        if (timeCount != null) {
+            timeCount.cancel();
+        }
+        long timeout = foreign ? POLL_TIMEOUT_FOREIGN_MS : POLL_TIMEOUT_DOMESTIC_MS;
+        timeCount = new TimeCount(timeout, POLL_INTERVAL_MS);
+        if ("alipay".equals(checkoutBean.getPay_type())) {
+            queryOrder(checkoutBean, false);
+        }
+        timeCount.start();
+    }
+
+    private void stopPaymentPolling() {
+        isPaymentPollingActive = false;
+        new Handler(Looper.getMainLooper()).removeCallbacks(wechatPollRunnable);
+        if (timeCount != null) {
+            timeCount.cancel();
+        }
+        hidePaymentHintOnPopup();
+    }
+
+    private void scheduleWechatPoll(long delayMs) {
+        if (!isPaymentPollingActive) return;
+        new Handler(Looper.getMainLooper()).removeCallbacks(wechatPollRunnable);
+        new Handler(Looper.getMainLooper()).postDelayed(wechatPollRunnable, delayMs);
+    }
+
+    private void showForeignPaymentHintOnPopup() {
+        if (currentCheckoutPopup != null && currentCheckoutPopup.isShowing()) {
+            currentCheckoutPopup.showForeignPaymentHintUi();
+        }
+    }
+
+    private void showPaymentVerifyHintOnPopup() {
+        if (currentCheckoutPopup != null && currentCheckoutPopup.isShowing()) {
+            currentCheckoutPopup.showPaymentVerifyHintUi();
+        }
+    }
+
+    private void hidePaymentHintOnPopup() {
+        if (currentCheckoutPopup != null) {
+            currentCheckoutPopup.hidePaymentHintUi();
+        }
+    }
+
+    private void showPaymentVerifyFailedDialog() {
+        stopPaymentPolling();
+        DialogUIUtils.dismiss(buildBean);
+        new DeleteShopPopupWindow(MainActivity.this, true, getString(R.string.payment_verify_manual), text -> {
+        }).show();
+    }
+
+    private void handleWechatPollResponse(CheckoutBean checkoutBean, JSONObject jsonObject) {
+        if (!isPaymentPollingActive) return;
+        try {
+            JSONObject codeObj = jsonObject.optJSONObject("code");
+            String tradeState = codeObj != null ? codeObj.optString("trade_state", "") : "";
+            String tradeStateDesc = codeObj != null ? codeObj.optString("trade_state_desc", "") : "";
+            String stateText = (tradeState + " " + tradeStateDesc).toUpperCase();
+
+            if (stateText.contains("USERPAYING") || tradeStateDesc.contains("密码") || tradeStateDesc.contains("支付密码")) {
+                scheduleWechatPoll(1000);
+            } else if (stateText.contains("SUCCESS") || tradeStateDesc.contains("支付成功")) {
+                stopPaymentPolling();
+                if (codeObj != null) {
+                    transaction_id = codeObj.optString("transaction_id");
+                    checkoutBean.setTransaction_id(transaction_id);
+                }
+                checkoutBean.setOrder_sn(order_sn);
+                handlePaymentSuccess(jsonObject);
+                pushorders(checkoutBean);
+            } else if (stateText.contains("PAYERROR") || tradeStateDesc.contains("支付失败")) {
+                stopPaymentPolling();
+                fwscancelanOrder(checkoutBean);
+            } else if (stateText.contains("REVOKED") || tradeStateDesc.contains("订单已撤销")) {
+                stopPaymentPolling();
+                order_sn = "";
+                out_trade_no = "";
+                DialogUIUtils.dismiss(buildBean);
+                new DeleteShopPopupWindow(MainActivity.this, getString(R.string.order_canceled), true).show();
+            } else {
+                scheduleWechatPoll(3000);
+            }
+        } catch (Exception e) {
+            Log.e("PayDebug", "处理微信轮询结果异常", e);
+            scheduleWechatPoll(3000);
         }
     }
 
@@ -1857,9 +2058,20 @@ public class MainActivity extends Activity implements View.OnClickListener {
     class TimeCount extends CountDownTimer {
         public TimeCount(long millisInFuture, long countDownInterval) { super(millisInFuture, countDownInterval); }
         @Override
-        public void onTick(long millisUntilFinished) { queryOrder(checkoutBean); }
+        public void onTick(long millisUntilFinished) {
+            if ("alipay".equals(checkoutBean.getPay_type())) {
+                queryOrder(checkoutBean, false);
+            }
+        }
         @Override
-        public void onFinish() { is_chaoshi = true; queryOrder(checkoutBean); }
+        public void onFinish() {
+            is_chaoshi = true;
+            if ("alipay".equals(checkoutBean.getPay_type())) {
+                queryOrder(checkoutBean, true);
+            } else if (checkoutBean != null) {
+                verifyPaymentResult(checkoutBean, true);
+            }
+        }
     }
 
     private class NetworkChangeReceiver extends BroadcastReceiver {
@@ -1906,7 +2118,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         super.onDestroy();
         if (networkChangeReceiver != null) unregisterReceiver(networkChangeReceiver);
         MyUsbDeviceHelper.getInstance().unregisterReceiver();
-        if (timeCount != null) timeCount.cancel();
+        stopPaymentPolling();
 
         // ★★★ 释放 SoundPool
         if (soundPool != null) {
@@ -1918,53 +2130,61 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     public void queryOrder(CheckoutBean checkoutBean) {
-        // 构造请求参数
+        queryOrder(checkoutBean, false);
+    }
+
+    private void queryOrder(CheckoutBean checkoutBean, boolean finalAttempt) {
+        if (!isPaymentPollingActive && !finalAttempt) return;
+
         Map<String, String> params = new HashMap<>();
         params.put("out_trade_no", out_trade_no);
         params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
 
-        // 发起查询
         OkHttpUtil.postFormAsync(POSApiSerview.POS_URL + POSApiSerview.queryOrder, params, this, new OkHttpUtil.OkHttpCallback() {
             @Override
             public void onSuccess(String response) {
                 runOnUiThread(() -> {
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        String trade_status = jsonObject.optString("trade_status");
 
-                        // 1. 支付成功
-                        if (trade_status.contains("TRADE_FINISHED") || trade_status.contains("TRADE_SUCCESS")) {
-                            if (timeCount != null) timeCount.cancel(); // 停止倒计时
+                        if (isAlipayTradeSuccess(jsonObject)) {
+                            stopPaymentPolling();
                             is_chaoshi = false;
-
                             transaction_id = jsonObject.optString("trade_no");
                             checkoutBean.setTransaction_id(transaction_id);
                             checkoutBean.setOrder_sn(order_sn);
-
-                            // ★★★ 核心修复：成功后手动触发后续流程 ★★★
                             handlePaymentSuccess(jsonObject);
-
-                            // 如果需要推单
                             pushorders(checkoutBean);
+                            return;
                         }
-                        // 2. 支付关闭/撤销
-                        else if (trade_status.contains("TRADE_CLOSED")) {
-                            if (timeCount != null) timeCount.cancel();
+
+                        String tradeStatus = jsonObject.optString("trade_status", "").toUpperCase();
+                        if (tradeStatus.contains("TRADE_CLOSED")) {
+                            stopPaymentPolling();
                             DialogUIUtils.dismiss(buildBean);
                             new DeleteShopPopupWindow(MainActivity.this, getString(R.string.order_canceled), true).show();
+                            return;
                         }
-                        // 3. 等待支付中... (什么都不做，等待下一次轮询)
+
+                        if (finalAttempt || is_chaoshi) {
+                            is_chaoshi = false;
+                            verifyPaymentResult(checkoutBean, true);
+                        }
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        Log.e("PayDebug", "支付宝轮询解析失败", e);
+                        if (finalAttempt || is_chaoshi) {
+                            verifyPaymentResult(checkoutBean, true);
+                        }
                     }
                 });
             }
 
             @Override
             public void onFailure(IOException e) {
-                // ★★★ 核心修复：查询失败不弹窗报错，而是静默失败，等待下一次轮询 ★★★
-                Log.e("PayDebug", "查询支付状态网络失败: " + e.getMessage());
-                // 这里不要 dismiss loading，因为网络波动是暂时的，下次轮询可能就通了
+                Log.w("PayDebug", "支付宝轮询网络失败: " + e.getMessage());
+                if (finalAttempt || is_chaoshi) {
+                    runOnUiThread(() -> verifyPaymentResult(checkoutBean, true));
+                }
             }
         });
     }
@@ -1979,6 +2199,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
      * 微信支付轮询逻辑（加固版：抗网络波动）
      */
     public void fwsgetOrderInformation(CheckoutBean checkoutBean) {
+        if (!isPaymentPollingActive) return;
+
         Map<String, String> params = new HashMap<>();
         params.put("outTradeNo", out_trade_no);
         params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
@@ -2006,18 +2228,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         client.newCall(builder.build()).enqueue(new okhttp3.Callback() {
             @Override
             public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
-                // ▼▼▼▼▼▼ 修改开始：网络波动时，不报错，而是延迟重试 ▼▼▼▼▼▼
                 Log.w("PayDebug", "微信轮询网络失败，3秒后自动重试: " + e.getMessage());
-
-                runOnUiThread(() -> {
-                    // 只要界面还没销毁，loading 框还在显示，就继续重试
-                    if (!isFinishing() && buildBean != null && buildBean.dialog != null && buildBean.dialog.isShowing()) {
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            fwsgetOrderInformation(checkoutBean);
-                        }, 3000); // 3秒后重试
-                    }
-                });
-                // ▲▲▲▲▲▲ 修改结束 ▲▲▲▲▲▲
+                scheduleWechatPoll(3000);
             }
 
             @Override
@@ -2027,68 +2239,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         String success = response.body().string();
                         JSONObject jsonObject = new JSONObject(success);
 
-                        runOnUiThread(() -> {
-                            try {
-                                String trade_state_desc = "";
-                                // 增加判空保护，防止JSON解析炸裂
-                                if (jsonObject.has("code") && !jsonObject.isNull("code")) {
-                                    JSONObject codeObj = jsonObject.optJSONObject("code");
-                                    if(codeObj != null) {
-                                        trade_state_desc = codeObj.optString("trade_state_desc");
-                                    }
-                                }
-
-                                if (trade_state_desc.contains("密码") || trade_state_desc.contains("USERPAYING")) {
-                                    // 用户正在输入密码，继续轮询
-                                    // 这里也可以稍微 delay 一下，防止请求太频繁
-                                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                                        fwsgetOrderInformation(checkoutBean);
-                                    }, 1000);
-
-                                } else if (trade_state_desc.contains("支付成功") || trade_state_desc.contains("SUCCESS")) {
-                                    // 支付成功
-                                    transaction_id = new JSONObject(jsonObject.getString("code")).getString("transaction_id");
-                                    checkoutBean.setTransaction_id(transaction_id);
-                                    checkoutBean.setOrder_sn(order_sn);
-
-                                    handlePaymentSuccess(jsonObject);
-                                    pushorders(checkoutBean);
-
-                                } else if (trade_state_desc.contains("支付失败") || trade_state_desc.contains("PAYERROR")) {
-                                    fwscancelanOrder(checkoutBean);
-
-                                } else if (trade_state_desc.contains("订单已撤销") || trade_state_desc.contains("REVOKED")) {
-                                    order_sn = "";
-                                    out_trade_no = "";
-                                    DialogUIUtils.dismiss(buildBean);
-                                    new DeleteShopPopupWindow(MainActivity.this, getString(R.string.order_canceled), true).show();
-                                } else {
-                                    // 未知状态，继续轮询 (防止状态描述变化导致中断)
-                                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                                        fwsgetOrderInformation(checkoutBean);
-                                    }, 3000);
-                                }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                                // 解析失败也重试，万一服务器传回乱码
-                                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                                    fwsgetOrderInformation(checkoutBean);
-                                }, 3000);
-                            }
-                        });
+                        runOnUiThread(() -> handleWechatPollResponse(checkoutBean, jsonObject));
 
                     } catch (Exception e) {
-                        Log.e("PayDebug", "Error occurred", e);
-                        // 异常重试
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            fwsgetOrderInformation(checkoutBean);
-                        }, 3000);
+                        Log.e("PayDebug", "微信轮询解析失败", e);
+                        scheduleWechatPoll(3000);
                     }
                 } else {
-                    // 服务器报错 (500/404) 也重试
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        fwsgetOrderInformation(checkoutBean);
-                    }, 3000);
+                    scheduleWechatPoll(3000);
                 }
             }
         });

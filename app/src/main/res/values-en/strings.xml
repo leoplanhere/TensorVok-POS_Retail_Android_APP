@@ -79,7 +79,7 @@
     <string name="log_out">Log Out</string>
     <string name="receipt_printer_setup">Receipt Printer Setup</string>
     <string name="label_printer_setup">Label Printer Setup</string>
-    <string name="discount_toggle">Discount Toggle\n(Current:%s)</string>
+    <string name="discount_toggle">Discount %s</string>
     <string name="payment_type">Payment Type</string>
     <string name="transaction_id">Transaction ID</string>
     <string name="printer_device_information">Printer Device Information</string>
@@ -115,6 +115,9 @@
     <string name="off">OFF</string>
     <string name="on">ON</string>
     <string name="paying">Paying...</string>
+    <string name="foreign_payment_hint">International payment in progress. Please wait patiently and do not scan again.</string>
+    <string name="payment_verify_hint">Confirming payment, please wait…</string>
+    <string name="payment_verify_manual">Payment not confirmed yet. Please check the customer\'s phone before scanning again.</string>
     <string name="product_not_found_in_inventory">Product not found in inventory</string>
     <string name="no_network_detected">No network detected</string>
     <string name="Payment_succeeded">Payment succeeded</string>
@@ -151,6 +154,25 @@
     <string name="pwd1">Please enter your login password.</string>
     <string name="Reprint">(Reprint)</string>
     <string name="add_pay">Add payment configuration</string>
-    <string name="shangpinkaiguan">商品点击开关\n(当前:打开)</string>
+    <string name="shangpinkaiguan">Product Tap %s</string>
     <string name="shangpinkaiguan_hint">您确定%s商品点击吗?</string>
+    <string name="more_section_business">Business</string>
+    <string name="more_section_devices">Devices</string>
+    <string name="more_section_system">System</string>
+    <string name="receipt_diy_setup">Receipt Layout</string>
+    <string name="check_update">Check Update</string>
+    <string name="app_update_title">Version Management</string>
+    <string name="current_app_version">Current Version:</string>
+    <string name="refresh_list">Refresh</string>
+    <string name="apk_file_name">APK File</string>
+    <string name="install_apk">Install</string>
+    <string name="current_version">Current</string>
+    <string name="apk_list_empty">No APK files available</string>
+    <string name="apk_list_load_failed">Failed to load APK list. Check network or contact support.</string>
+    <string name="confirm_install_apk">Install %s?</string>
+    <string name="apk_downloading">Downloading APK...</string>
+    <string name="apk_downloading_with_name">Downloading: %s</string>
+    <string name="apk_download_complete">Download complete. Opening installer.</string>
+    <string name="apk_download_failed">Download failed</string>
+    <string name="apk_save_failed">Failed to save APK</string>
 </resources>

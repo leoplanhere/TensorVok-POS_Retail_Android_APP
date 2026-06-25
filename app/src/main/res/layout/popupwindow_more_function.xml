@@ -1,25 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/all_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#80000000"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:background="#99000000">
 
     <LinearLayout
-        android:layout_width="860dp"
+        android:id="@+id/more_feature_card"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/white_bg"
+        android:layout_gravity="center"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:background="@drawable/bg_more_feature_card"
         android:clickable="true"
+        android:elevation="12dp"
         android:focusable="true"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:paddingStart="20dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="16dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="25dp">
+            android:layout_marginBottom="12dp">
 
             <TextView
                 android:id="@+id/hint_tv"
@@ -28,124 +34,135 @@
                 android:layout_centerInParent="true"
                 android:text="@string/more_features"
                 android:textColor="@color/black"
-                android:textSize="28sp"
+                android:textSize="26sp"
                 android:textStyle="bold" />
 
             <ImageView
                 android:id="@+id/guanbi_btn"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_alignParentRight="true"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/cancel"
+                android:padding="6dp"
                 android:src="@drawable/guanbi" />
         </RelativeLayout>
 
-        <LinearLayout
+        <com.uhm.uhmcs.view.MaxHeightScrollView
+            android:id="@+id/more_feature_scroll"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:fadeScrollbars="false"
+            android:fillViewport="true"
+            android:overScrollMode="ifContentScrolls"
+            android:scrollbarStyle="outsideInset"
+            android:scrollbars="vertical">
 
-            <TextView
-                android:id="@+id/tongbushuju_btn"
-                style="@style/MoreFeatureBtnStyle"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:drawableTop="@drawable/baseline_sync_24"
-                android:drawablePadding="-22dp"
-                android:text="@string/sync_data"
-                android:textColor="@color/mr_red_000" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/bianqiandaying_btn"
-                style="@style/MoreFeatureBtnStyle"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:drawableTop="@drawable/outline_aod_tablet_24"
-                android:drawablePadding="-22dp"
-                android:text="@string/label_printing" />
+                <TextView
+                    style="@style/MoreFeatureSectionTitle"
+                    android:text="@string/more_section_business" />
 
-            <TextView
-                android:id="@+id/shangpinruku_btn"
-                style="@style/MoreFeatureBtnStyle"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:drawableTop="@drawable/outline_add_ad_24"
-                android:drawablePadding="-22dp"
-                android:text="@string/stock_in" />
+                <LinearLayout style="@style/MoreFeatureGridRow">
 
-            <TextView
-                android:id="@+id/lishizhangdan_btn"
-                style="@style/MoreFeatureBtnStyle"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:drawableTop="@drawable/outline_browse_gallery_24"
-                android:drawablePadding="-22dp"
-                android:text="@string/order_history" />
+                    <TextView
+                        android:id="@+id/tongbushuju_btn"
+                        style="@style/MoreFeatureGridItem"
+                        android:drawableTop="@drawable/ic_more_sync"
+                        android:text="@string/sync_data" />
 
-            <TextView
-                android:id="@+id/tuichudenglv_btn"
-                style="@style/MoreFeatureBtnStyle"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:drawableTop="@drawable/outline_all_out_24"
-                android:drawablePadding="-22dp"
-                android:text="@string/log_out"
-                android:textColor="@color/mr_red_000" />
-        </LinearLayout>
+                    <TextView
+                        android:id="@+id/bianqiandaying_btn"
+                        style="@style/MoreFeatureGridItem"
+                        android:drawableTop="@drawable/ic_more_label_print"
+                        android:text="@string/label_printing" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:gravity="center"
-            android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/shangpinruku_btn"
+                        style="@style/MoreFeatureGridItem"
+                        android:drawableTop="@drawable/ic_more_stock_in"
+                        android:text="@string/stock_in" />
 
-            <TextView
-                android:id="@+id/zhangdandayingji_btn"
-                style="@style/MoreFeatureBtnStyle"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:drawableTop="@drawable/baseline_print_24"
-                android:drawablePadding="-22dp"
-                android:text="@string/receipt_printer_setup" />
+                    <TextView
+                        android:id="@+id/lishizhangdan_btn"
+                        style="@style/MoreFeatureGridItem"
+                        android:drawableTop="@drawable/ic_more_history"
+                        android:text="@string/order_history" />
+                </LinearLayout>
 
-            <TextView
-                android:id="@+id/bianqiandayingji_btn"
-                style="@style/MoreFeatureBtnStyle"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:drawableTop="@drawable/outline_adf_scanner_24"
-                android:drawablePadding="-22dp"
-                android:text="@string/label_printer_setup" />
+                <TextView
+                    style="@style/MoreFeatureSectionTitle"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/more_section_devices" />
 
-            <TextView
-                android:id="@+id/xiaopiaodiy_btn"
-                style="@style/MoreFeatureBtnStyle"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:drawableTop="@drawable/outline_adf_scanner_24"
-                android:drawablePadding="-22dp"
-                android:text="小票样式设置" />
+                <LinearLayout style="@style/MoreFeatureGridRow">
 
-            <TextView
-                android:id="@+id/dazhekaiguan_btn"
-                style="@style/MoreFeatureBtnStyle"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:drawableTop="@drawable/outline_award_star_24"
-                android:drawablePadding="-22dp"
-                android:text="@string/discount_toggle" />
+                    <TextView
+                        android:id="@+id/zhangdandayingji_btn"
+                        style="@style/MoreFeatureGridItem"
+                        android:drawableTop="@drawable/ic_more_receipt_printer"
+                        android:text="@string/receipt_printer_setup" />
 
-            <TextView
-                android:id="@+id/shangpindianji_btn"
-                style="@style/MoreFeatureBtnStyle"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:drawableTop="@drawable/outline_blur_off_24"
-                android:drawablePadding="-22dp"
-                android:text="@string/shangpinkaiguan" />
+                    <TextView
+                        android:id="@+id/bianqiandayingji_btn"
+                        style="@style/MoreFeatureGridItem"
+                        android:drawableTop="@drawable/ic_more_label_printer"
+                        android:text="@string/label_printer_setup" />
 
-        </LinearLayout>
+                    <TextView
+                        android:id="@+id/xiaopiaodiy_btn"
+                        style="@style/MoreFeatureGridItem"
+                        android:drawableTop="@drawable/ic_more_receipt_style"
+                        android:text="@string/receipt_diy_setup" />
+
+                    <TextView
+                        android:id="@+id/dazhekaiguan_btn"
+                        style="@style/MoreFeatureGridItem"
+                        android:drawableTop="@drawable/ic_more_discount"
+                        android:text="@string/discount_toggle" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/MoreFeatureSectionTitle"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/more_section_system" />
+
+                <LinearLayout style="@style/MoreFeatureGridRow">
+
+                    <TextView
+                        android:id="@+id/shangpindianji_btn"
+                        style="@style/MoreFeatureGridItem"
+                        android:drawableTop="@drawable/ic_more_product_tap"
+                        android:text="@string/shangpinkaiguan" />
+
+                    <TextView
+                        android:id="@+id/gengxinjiancha_btn"
+                        style="@style/MoreFeatureGridItem"
+                        android:background="@drawable/bg_more_feature_tile_accent"
+                        android:drawableTop="@drawable/ic_more_update"
+                        android:text="@string/check_update"
+                        android:textColor="@color/color_006ce6" />
+
+                    <TextView
+                        android:id="@+id/tuichudenglv_btn"
+                        style="@style/MoreFeatureGridItem"
+                        android:background="@drawable/bg_more_feature_tile_danger"
+                        android:drawableTop="@drawable/ic_more_logout"
+                        android:text="@string/log_out"
+                        android:textColor="@color/mr_red_000" />
+
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_margin="6dp"
+                        android:layout_weight="1" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.uhm.uhmcs.view.MaxHeightScrollView>
     </LinearLayout>
-</LinearLayout>
+</FrameLayout>

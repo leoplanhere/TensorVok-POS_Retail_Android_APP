@@ -65,75 +65,78 @@ public class StartActivity extends Activity {
         setContentView(R.layout.activity_start);
 
 
-        String url= POSApiSerview.POS_URL1+POSApiSerview.version;
-        Request.Builder builder = new Request.Builder()
-                .url(url);
-        Request request = builder.build();
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(60, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(60, TimeUnit.SECONDS)   // 写入超时
-                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
-                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
-                .build();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        delaymillinon();
-                    }
-                });
-            }
+        // 启动页强制更新已关闭，改由「更多功能 -> 检查更新」手动处理
+        delaymillinon();
 
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    String success=response.body().string();
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            VersionBean versionBean=new Gson().fromJson(success, VersionBean.class);
-                            Log.i("ttt",">>VersionName>>"+Utilis.getVersionName(StartActivity.this));
-                            if (versionBean.getVersionName().equals(Utilis.getVersionName(StartActivity.this))){
-                                delaymillinon();
-                            }else {
-
-                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.getDefault());
-                                String currentTime = sdf.format(new Date());
-
-                                UpdateAppUtils.init(StartActivity.this);
-                                UpdateConfig updateConfig=new UpdateConfig();
-                                updateConfig.setAlwaysShow(true);//非强制更新时是否每次显示弹窗
-                                updateConfig.setAlwaysShowDownLoadDialog(true);//飞强制更新时是否显示进度条
-                                updateConfig.setForce(true);//是否强制更新
-                                updateConfig.setApkSaveName("uhm"+currentTime);
-                                updateConfig.setApkSavePath(Environment.getExternalStorageDirectory().getAbsolutePath() +"/UHM");
-                                updateConfig.isShowNotification();
-                                updateConfig.setShowDownloadingToast(true);
-                                updateConfig.setServerVersionName(versionBean.getVersionName());
-                                UiConfig uiConfig = new UiConfig();
-                                uiConfig.setDownloadingBtnText("下载中");
-                                uiConfig.setUiType(UiType.PLENTIFUL);
-                                UpdateAppUtils
-                                        .getInstance()
-                                        .apkUrl(versionBean.getApkUrl())
-                                        .updateConfig(updateConfig)
-                                        .uiConfig(uiConfig)
-                                        .updateTitle("发现新版本"+versionBean.getVersionName())
-                                        .updateContent("版本更新优化")
-                                        .update();
-                            }
-                        }
-                    });
-                } else {
-                    delaymillinon();
-                }
-            }
-        });
+//        String url= POSApiSerview.POS_URL1+POSApiSerview.version;
+//        Request.Builder builder = new Request.Builder()
+//                .url(url);
+//        Request request = builder.build();
+//        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+//        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
+//        OkHttpClient client = new OkHttpClient.Builder()
+//                .connectTimeout(10, TimeUnit.SECONDS) // 连接超时
+//                .readTimeout(60, TimeUnit.SECONDS)    // 读取超时
+//                .writeTimeout(60, TimeUnit.SECONDS)   // 写入超时
+//                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
+//                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+//                .build();
+//        client.newCall(request).enqueue(new Callback() {
+//            @Override
+//            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        delaymillinon();
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+//                if (response.isSuccessful()) {
+//                    String success=response.body().string();
+//                    runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            VersionBean versionBean=new Gson().fromJson(success, VersionBean.class);
+//                            Log.i("ttt",">>VersionName>>"+Utilis.getVersionName(StartActivity.this));
+//                            if (versionBean.getVersionName().equals(Utilis.getVersionName(StartActivity.this))){
+//                                delaymillinon();
+//                            }else {
+//
+//                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.getDefault());
+//                                String currentTime = sdf.format(new Date());
+//
+//                                UpdateAppUtils.init(StartActivity.this);
+//                                UpdateConfig updateConfig=new UpdateConfig();
+//                                updateConfig.setAlwaysShow(true);//非强制更新时是否每次显示弹窗
+//                                updateConfig.setAlwaysShowDownLoadDialog(true);//飞强制更新时是否显示进度条
+//                                updateConfig.setForce(true);//是否强制更新
+//                                updateConfig.setApkSaveName("uhm"+currentTime);
+//                                updateConfig.setApkSavePath(Environment.getExternalStorageDirectory().getAbsolutePath() +"/UHM");
+//                                updateConfig.isShowNotification();
+//                                updateConfig.setShowDownloadingToast(true);
+//                                updateConfig.setServerVersionName(versionBean.getVersionName());
+//                                UiConfig uiConfig = new UiConfig();
+//                                uiConfig.setDownloadingBtnText("下载中");
+//                                uiConfig.setUiType(UiType.PLENTIFUL);
+//                                UpdateAppUtils
+//                                        .getInstance()
+//                                        .apkUrl(versionBean.getApkUrl())
+//                                        .updateConfig(updateConfig)
+//                                        .uiConfig(uiConfig)
+//                                        .updateTitle("发现新版本"+versionBean.getVersionName())
+//                                        .updateContent("版本更新优化")
+//                                        .update();
+//                            }
+//                        }
+//                    });
+//                } else {
+//                    delaymillinon();
+//                }
+//            }
+//        });
 //        Map<String, String> params = new HashMap<>();
 //        params.put("shop_id","DP2025021528377");
 //        OkHttpUtil.postFormAsync("https://xlcc.uhimao.com/api/supermarket/getVersion", params, this, new OkHttpUtil.OkHttpCallback() {

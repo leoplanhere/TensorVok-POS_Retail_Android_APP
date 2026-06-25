@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -29,6 +31,7 @@ import com.uhm.uhmcs.activity.LoginActivity;
 import com.uhm.uhmcs.activity.MainActivity;
 import com.uhm.uhmcs.bean.CategoryListBean;
 import com.uhm.uhmcs.bean.CheckoutBean;
+import com.uhm.uhmcs.bean.LastOrderBean;
 import com.uhm.uhmcs.bean.PrintDataBean;
 import com.uhm.uhmcs.http.NetworkErrorInterceptor;
 import com.uhm.uhmcs.http.OkHttpUtil;
@@ -64,16 +67,24 @@ import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 
 public class CheckoutPopupWindow {
+    private static final String TAG = "CheckoutPopup";
+    private static final long POLL_INTERVAL_MS = 5000L;
+    private static final long POLL_TIMEOUT_DOMESTIC_MS = 60000L;
+    private static final long POLL_TIMEOUT_FOREIGN_MS = 120000L;
+
     private PopupWindow popupWindow;
     private Activity context;
     private CheckoutBean checkoutBean;
-    private TextView yingshou_tv,youhui_tv,shijishou_tv,weixin_btn,xianjin_btn,zhaolin_tv,zhifubao_btn,yishou_tv;
+    private TextView yingshou_tv,youhui_tv,shijishou_tv,weixin_btn,xianjin_btn,zhaolin_tv,zhifubao_btn,yishou_tv,tvForeignPaymentHint;
     private CustomInputTextView shoukuan_tv;
     private DeleteShopPopupWindow deleteShopPopupWindow;
     private String yinshou="0.00";
 
     private String pay_type="";
     private int order_status=0;
+    private boolean isForeignPayment = false;
+    private boolean isPollingActive = false;
+    private final Handler pollingHandler = new Handler(Looper.getMainLooper());
 
     private boolean weixin_type=false;
     private boolean zhifubao_type=false;
@@ -289,6 +300,7 @@ public class CheckoutPopupWindow {
 
         weixin_btn=popupView.findViewById(R.id.weixin_btn);
         zhifubao_btn=popupView.findViewById(R.id.zhifubao_btn);
+        tvForeignPaymentHint = popupView.findViewById(R.id.tv_foreign_payment_hint);
 
         xianjin_btn=popupView.findViewById(R.id.xianjin_btn);
         weixin_btn.setOnClickListener(v -> {
@@ -337,9 +349,6 @@ public class CheckoutPopupWindow {
             popupWindow.dismiss();
         });
         initKey();
-        time = new TimeCount(30000, 5000);//一共执行60000毫秒，每5000执行一次。
-
-
     }
     public boolean isValidNumber(String input) {
         if (TextUtils.isEmpty(input)) return false;
@@ -408,6 +417,7 @@ public class CheckoutPopupWindow {
     }
 
     public void dismiss() {
+        stopPaymentPolling();
         if (popupWindow != null && popupWindow.isShowing()) {
             popupWindow.dismiss();
         }
@@ -619,7 +629,7 @@ public class CheckoutPopupWindow {
                                     try {
 
 
-                                        if (jsonObject.getString("msg").contains("成功")||jsonObject.getString("msg").contains("Success")){
+                                        if (isPaymentImmediateSuccess(jsonObject.optString("msg"))){
                                             DialogUIUtils.dismiss(buildBean);
 
                                             if (pay_type.equals("cash")){
@@ -679,23 +689,29 @@ public class CheckoutPopupWindow {
                                             }).show();
                                             return;
                                         }
-                                        if (jsonObject.getString("msg").contains("输入密码中")||jsonObject.getString("msg").contains("order success pay inprocess")){
-                                            if (pay_type.equals("wechat")){
-                                                order_sn=new JSONObject(jsonObject.getString("code")).getString("order_sn");
-                                                if (new JSONObject(jsonObject.getString("code")).has("out_trade_no")){
-                                                    out_trade_no=new JSONObject(jsonObject.getString("code")).getString("out_trade_no");
-                                                }else {
+                                        if (isPaymentInProcess(jsonObject)) {
+                                            isForeignPayment = detectForeignPayment(jsonObject);
+                                            if (isForeignPayment) {
+                                                DialogUIUtils.dismiss(buildBean);
+                                                showForeignPaymentHint();
+                                            } else {
+                                                hideForeignPaymentHint();
+                                            }
+                                            if (pay_type.equals("wechat")) {
+                                                if (!extractWechatTradeInfo(jsonObject)) {
                                                     DialogUIUtils.dismiss(buildBean);
-                                                    new DeleteShopPopupWindow(context,context.getString(R.string.No_transaction_ID_recorded),true).show();
+                                                    new DeleteShopPopupWindow(context, context.getString(R.string.No_transaction_ID_recorded), true).show();
                                                     return;
                                                 }
-                                                fwsgetOrderInformation();
-                                            }else if (pay_type.equals("alipay")){
-                                                out_trade_no=jsonObject.getString("out_trade_no");
-                                                order_sn=jsonObject.getString("order_sn");
-                                                queryOrder();
-                                                time.start();
-
+                                                startPaymentPolling(false);
+                                                scheduleWechatPoll(1000);
+                                            } else if (pay_type.equals("alipay")) {
+                                                if (!extractAlipayTradeInfo(jsonObject)) {
+                                                    DialogUIUtils.dismiss(buildBean);
+                                                    new DeleteShopPopupWindow(context, context.getString(R.string.No_transaction_ID_recorded), true).show();
+                                                    return;
+                                                }
+                                                startPaymentPolling(isForeignPayment);
                                             }
                                             return;
                                         }
@@ -724,174 +740,144 @@ public class CheckoutPopupWindow {
     }
     public String out_trade_no="";
     public void fwsgetOrderInformation() {
+        if (!isPollingActive) return;
+
         Map<String, String> params = new HashMap<>();
         params.put("outTradeNo", out_trade_no);
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
         FormBody.Builder formBuilder = new FormBody.Builder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
             formBuilder.add(entry.getKey(), entry.getValue());
         }
         RequestBody formBody = formBuilder.build();
         String url = POSApiSerview.POS_URL + POSApiSerview.fwsgetOrderInformation;
-        Request.Builder builder = new Request.Builder()
-                .url(url);
-
+        Request.Builder builder = new Request.Builder().url(url);
         builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
-
-
         builder.post(formBody);
 
-        Request request = builder.build();
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
         OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(100, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(100, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(100, TimeUnit.SECONDS)   // 写入超时
-                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
-                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(15, TimeUnit.SECONDS)
+                .addInterceptor(new NetworkErrorInterceptor())
                 .build();
-        client.newCall(request).enqueue(new Callback() {
+        client.newCall(builder.build()).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                context.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
-                    }
-                });
+                Log.w(TAG, "微信轮询网络失败，3秒后重试: " + e.getMessage());
+                scheduleWechatPoll(3000);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    try {
-                        String success=response.body().string();
-                        context.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    JSONObject jsonObject=new JSONObject(success);
-
-                                    String msg=jsonObject.getString("msg");
-
-                                    String trade_state_desc=new JSONObject(jsonObject.getString("code")).getString("trade_state_desc");
-                                    if (trade_state_desc.contains("输入支付密码")){
-                                        fwsgetOrderInformation();
-                                    }else if (trade_state_desc.contains("支付成功")){
-                                        checkoutBean.setTransaction_id(new JSONObject(jsonObject.getString("code")).getString("transaction_id"));
-                                        checkoutBean.setOrder_sn(order_sn);
-                                        pushorders(checkoutBean);
-                                    }else if (trade_state_desc.contains("支付失败")){
-                                        fwscancelanOrder();
-                                    }else if (trade_state_desc.contains("订单已撤销")){
-                                        order_sn="";
-                                        out_trade_no="";
-                                        DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(context, context.getString(R.string.order_canceled), true).show();
-                                    }
-
-
-                                } catch (JSONException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        });
-
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-
+                if (!response.isSuccessful()) {
+                    scheduleWechatPoll(3000);
+                    return;
+                }
+                try {
+                    String success = response.body().string();
+                    JSONObject jsonObject = new JSONObject(success);
+                    context.runOnUiThread(() -> handleWechatPollResponse(jsonObject));
+                } catch (Exception e) {
+                    Log.e(TAG, "微信轮询解析失败", e);
+                    scheduleWechatPoll(3000);
                 }
             }
         });
     }
 
+    private void handleWechatPollResponse(JSONObject jsonObject) {
+        if (!isPollingActive) return;
+        try {
+            JSONObject codeObj = jsonObject.optJSONObject("code");
+            String tradeState = codeObj != null ? codeObj.optString("trade_state", "") : "";
+            String tradeStateDesc = codeObj != null ? codeObj.optString("trade_state_desc", "") : "";
+            String stateText = (tradeState + " " + tradeStateDesc).toUpperCase();
+
+            if (stateText.contains("USERPAYING") || tradeStateDesc.contains("密码") || tradeStateDesc.contains("支付密码")) {
+                scheduleWechatPoll(1000);
+            } else if (stateText.contains("SUCCESS") || tradeStateDesc.contains("支付成功")) {
+                stopPaymentPolling();
+                if (codeObj != null) {
+                    checkoutBean.setTransaction_id(codeObj.optString("transaction_id"));
+                }
+                checkoutBean.setOrder_sn(order_sn);
+                pushorders(checkoutBean);
+            } else if (stateText.contains("PAYERROR") || tradeStateDesc.contains("支付失败")) {
+                stopPaymentPolling();
+                fwscancelanOrder();
+            } else if (stateText.contains("REVOKED") || tradeStateDesc.contains("订单已撤销")) {
+                stopPaymentPolling();
+                order_sn = "";
+                out_trade_no = "";
+                DialogUIUtils.dismiss(buildBean);
+                hideForeignPaymentHint();
+                new DeleteShopPopupWindow(context, context.getString(R.string.order_canceled), true).show();
+            } else {
+                scheduleWechatPoll(3000);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "处理微信轮询结果异常", e);
+            scheduleWechatPoll(3000);
+        }
+    }
+
     public void queryOrder() {
+        queryOrder(false);
+    }
+
+    private void queryOrder(boolean finalAttempt) {
+        if (!isPollingActive && !finalAttempt) return;
+
         Map<String, String> params = new HashMap<>();
         params.put("out_trade_no", out_trade_no);
-        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid()+"");
-        FormBody.Builder formBuilder = new FormBody.Builder();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            formBuilder.add(entry.getKey(), entry.getValue());
-        }
-        RequestBody formBody = formBuilder.build();
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid() + "");
         String url = POSApiSerview.POS_URL + POSApiSerview.queryOrder;
-        Request.Builder builder = new Request.Builder()
-                .url(url);
 
-        builder.addHeader("token", UserUtils.getInstance().getLoginBase().getData().getUserinfo().getToken());
-
-
-        builder.post(formBody);
-
-        Request request = builder.build();
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // 设置日志级别
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(100, TimeUnit.SECONDS) // 连接超时
-                .readTimeout(100, TimeUnit.SECONDS)    // 读取超时
-                .writeTimeout(100, TimeUnit.SECONDS)   // 写入超时
-                .addInterceptor(new NetworkErrorInterceptor()) // 先添加异常拦截器
-                .addInterceptor(loggingInterceptor)   // 添加日志拦截器
-                .build();
-        client.newCall(request).enqueue(new Callback() {
+        OkHttpUtil.postFormAsync(url, params, context, new OkHttpUtil.OkHttpCallback() {
             @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                context.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DialogUIUtils.dismiss(buildBean);
-                        new DeleteShopPopupWindow(context, context.getString(R.string.no_network_detected),true).show();
+            public void onSuccess(String response) {
+                context.runOnUiThread(() -> {
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        if (isAlipayTradeSuccess(jsonObject)) {
+                            stopPaymentPolling();
+                            is_chaoshi = false;
+                            checkoutBean.setTransaction_id(jsonObject.optString("trade_no"));
+                            checkoutBean.setOrder_sn(order_sn);
+                            pushorders(checkoutBean);
+                            return;
+                        }
+
+                        String tradeStatus = jsonObject.optString("trade_status", "").toUpperCase();
+                        if (tradeStatus.contains("TRADE_CLOSED")) {
+                            stopPaymentPolling();
+                            order_sn = "";
+                            out_trade_no = "";
+                            DialogUIUtils.dismiss(buildBean);
+                            hideForeignPaymentHint();
+                            new DeleteShopPopupWindow(context, context.getString(R.string.order_canceled), true).show();
+                            return;
+                        }
+
+                        if (finalAttempt || is_chaoshi) {
+                            is_chaoshi = false;
+                            verifyPaymentResult();
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, "支付宝轮询解析失败", e);
+                        if (finalAttempt || is_chaoshi) {
+                            verifyPaymentResult();
+                        }
                     }
                 });
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    try {
-                        String success=response.body().string();
-                        context.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    JSONObject jsonObject=new JSONObject(success);
-
-                                    String trade_status=jsonObject.getString("trade_status");
-                                    if (is_chaoshi&&!trade_status.contains("TRADE_FINISHED")&&!trade_status.contains("TRADE_SUCCESS")){
-                                        is_chaoshi=false;
-                                        revokeOrder();
-                                        return;
-                                    }
-                                    if (trade_status.contains("TRADE_FINISHED")||trade_status.contains("TRADE_SUCCESS")){
-                                        time.cancel();
-                                        checkoutBean.setTransaction_id(jsonObject.getString("trade_no"));
-                                        checkoutBean.setOrder_sn(order_sn);
-                                        pushorders(checkoutBean);
-
-                                    }
-                                    if (trade_status.contains("TRADE_CLOSED")){
-                                        order_sn="";
-                                        out_trade_no="";
-                                        DialogUIUtils.dismiss(buildBean);
-                                        new DeleteShopPopupWindow(context, context.getString(R.string.order_canceled), true).show();
-                                    }
-
-
-                                } catch (JSONException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        });
-
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-
+            public void onFailure(IOException e) {
+                Log.w(TAG, "支付宝轮询网络失败: " + e.getMessage());
+                if (finalAttempt || is_chaoshi) {
+                    context.runOnUiThread(() -> verifyPaymentResult());
                 }
             }
         });
@@ -1064,6 +1050,7 @@ public class CheckoutPopupWindow {
                             public void run() {
                                 try {
                                     if (jsonObject.getString("msg").contains("成功") || jsonObject.getString("msg").contains("Success")) {
+                                        stopPaymentPolling();
                                         DialogUIUtils.dismiss(buildBean);
 
                                         if (pay_type.equals("wechat")){
@@ -1151,27 +1138,236 @@ public class CheckoutPopupWindow {
         });
     }
     private TimeCount time;
-    private boolean is_chaoshi=false;
+    private boolean is_chaoshi = false;
+    private final Runnable wechatPollRunnable = this::fwsgetOrderInformation;
+
+    private void startPaymentPolling(boolean foreign) {
+        isForeignPayment = foreign;
+        isPollingActive = true;
+        is_chaoshi = false;
+        if (time != null) {
+            time.cancel();
+        }
+        long timeout = foreign ? POLL_TIMEOUT_FOREIGN_MS : POLL_TIMEOUT_DOMESTIC_MS;
+        time = new TimeCount(timeout, POLL_INTERVAL_MS);
+        if ("alipay".equals(pay_type)) {
+            queryOrder(false);
+        }
+        time.start();
+    }
+
+    private void stopPaymentPolling() {
+        isPollingActive = false;
+        pollingHandler.removeCallbacks(wechatPollRunnable);
+        if (time != null) {
+            time.cancel();
+        }
+        hideForeignPaymentHint();
+    }
+
+    private void scheduleWechatPoll(long delayMs) {
+        if (!isPollingActive) return;
+        pollingHandler.removeCallbacks(wechatPollRunnable);
+        pollingHandler.postDelayed(wechatPollRunnable, delayMs);
+    }
+
+    private void showForeignPaymentHint() {
+        if (tvForeignPaymentHint != null) {
+            tvForeignPaymentHint.setText(context.getString(R.string.foreign_payment_hint));
+            tvForeignPaymentHint.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideForeignPaymentHint() {
+        if (tvForeignPaymentHint != null) {
+            tvForeignPaymentHint.setVisibility(View.GONE);
+        }
+    }
+
+    /** 供 MainActivity 快捷扫码支付时显示境外支付提示 */
+    public void showForeignPaymentHintUi() {
+        showForeignPaymentHint();
+    }
+
+    public void showPaymentVerifyHintUi() {
+        if (tvForeignPaymentHint != null) {
+            tvForeignPaymentHint.setText(context.getString(R.string.payment_verify_hint));
+            tvForeignPaymentHint.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public void hidePaymentHintUi() {
+        hideForeignPaymentHint();
+    }
+
+    private boolean isPaymentInProcess(JSONObject jsonObject) {
+        String msg = jsonObject.optString("msg", "");
+        if (TextUtils.isEmpty(msg)) return false;
+        String lower = msg.toLowerCase();
+        return msg.contains("输入密码")
+                || lower.contains("inprocess")
+                || lower.contains("userpaying")
+                || "10003".equals(jsonObject.optString("code"));
+    }
+
+    private boolean isPaymentImmediateSuccess(String msg) {
+        if (TextUtils.isEmpty(msg)) return false;
+        String lower = msg.toLowerCase();
+        if (msg.contains("输入密码") || lower.contains("inprocess") || lower.contains("userpaying")) {
+            return false;
+        }
+        return msg.contains("成功") || lower.contains("success");
+    }
+
+    private boolean detectForeignPayment(JSONObject jsonObject) {
+        String buyerLogonId = jsonObject.optString("buyer_logon_id", "");
+        if (buyerLogonId.contains("@")) {
+            return true;
+        }
+        JSONObject codeObj = jsonObject.optJSONObject("code");
+        if (codeObj != null) {
+            buyerLogonId = codeObj.optString("buyer_logon_id", "");
+            if (buyerLogonId.contains("@")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean extractAlipayTradeInfo(JSONObject jsonObject) {
+        out_trade_no = jsonObject.optString("out_trade_no");
+        order_sn = jsonObject.optString("order_sn");
+        if (TextUtils.isEmpty(out_trade_no)) {
+            JSONObject codeObj = jsonObject.optJSONObject("code");
+            if (codeObj != null) {
+                out_trade_no = codeObj.optString("out_trade_no");
+                if (TextUtils.isEmpty(order_sn)) {
+                    order_sn = codeObj.optString("order_sn");
+                }
+            }
+        }
+        return !TextUtils.isEmpty(out_trade_no) && !TextUtils.isEmpty(order_sn);
+    }
+
+    private boolean extractWechatTradeInfo(JSONObject jsonObject) {
+        try {
+            JSONObject codeObj = jsonObject.getJSONObject("code");
+            order_sn = codeObj.optString("order_sn");
+            if (codeObj.has("out_trade_no")) {
+                out_trade_no = codeObj.getString("out_trade_no");
+            }
+            return !TextUtils.isEmpty(order_sn) && !TextUtils.isEmpty(out_trade_no);
+        } catch (JSONException e) {
+            return false;
+        }
+    }
+
+    private boolean isAlipayTradeSuccess(JSONObject jsonObject) {
+        String tradeStatus = jsonObject.optString("trade_status", "").toUpperCase();
+        if (tradeStatus.contains("TRADE_SUCCESS") || tradeStatus.contains("TRADE_FINISHED")) {
+            return true;
+        }
+        try {
+            String payAmount = jsonObject.optString("buyer_pay_amount", "0");
+            if (!TextUtils.isEmpty(payAmount) && new BigDecimal(payAmount).compareTo(BigDecimal.ZERO) > 0) {
+                return true;
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    private void verifyPaymentResult() {
+        if (tvForeignPaymentHint != null) {
+            tvForeignPaymentHint.setText(context.getString(R.string.payment_verify_hint));
+            tvForeignPaymentHint.setVisibility(View.VISIBLE);
+        }
+
+        Map<String, String> params = new HashMap<>();
+        params.put("shop_id", UserUtils.getInstance().getShopDataBean().getData().get(0).getShopuid());
+        String url = POSApiSerview.POS_URL + POSApiSerview.getLastOder;
+
+        OkHttpUtil.postFormAsync(url, params, context, new OkHttpUtil.OkHttpCallback() {
+            @Override
+            public void onSuccess(String response) {
+                context.runOnUiThread(() -> {
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        if (jsonObject.optInt("code") != 1) {
+                            showPaymentVerifyFailedDialog();
+                            return;
+                        }
+                        String dataStr = jsonObject.optString("data");
+                        if (TextUtils.isEmpty(dataStr) || "[]".equals(dataStr)) {
+                            showPaymentVerifyFailedDialog();
+                            return;
+                        }
+                        ArrayList<LastOrderBean> list = new Gson().fromJson(dataStr, new TypeToken<ArrayList<LastOrderBean>>() {}.getType());
+                        if (list == null || list.isEmpty()) {
+                            showPaymentVerifyFailedDialog();
+                            return;
+                        }
+                        LastOrderBean lastOrder = list.get(0);
+                        String serverPriceStr = TextUtils.isEmpty(lastOrder.getPay_fee()) ? lastOrder.getTotal_fee() : lastOrder.getPay_fee();
+                        String localPriceStr = TextUtils.isEmpty(checkoutBean.getPay_fee()) ? checkoutBean.getTotal_fee() : checkoutBean.getPay_fee();
+                        BigDecimal serverPrice = new BigDecimal(TextUtils.isEmpty(serverPriceStr) ? "0" : serverPriceStr);
+                        BigDecimal localPrice = new BigDecimal(TextUtils.isEmpty(localPriceStr) ? "0" : localPriceStr);
+                        boolean amountMatch = serverPrice.compareTo(localPrice) == 0;
+                        long serverTime = lastOrder.getCreatetime() * 1000L;
+                        long windowMs = isForeignPayment ? 180000L : 90000L;
+                        boolean timeRecent = Math.abs(System.currentTimeMillis() - serverTime) < windowMs;
+                        boolean payTypeMatch = TextUtils.isEmpty(lastOrder.getPay_type()) || pay_type.equals(lastOrder.getPay_type());
+
+                        if (amountMatch && timeRecent && payTypeMatch) {
+                            stopPaymentPolling();
+                            checkoutBean.setOrder_sn(lastOrder.getOrder_sn());
+                            checkoutBean.setTransaction_id(lastOrder.getTransaction_id());
+                            order_sn = lastOrder.getOrder_sn();
+                            pushorders(checkoutBean);
+                        } else {
+                            showPaymentVerifyFailedDialog();
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "反查支付结果失败", e);
+                        showPaymentVerifyFailedDialog();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(IOException e) {
+                context.runOnUiThread(() -> showPaymentVerifyFailedDialog());
+            }
+        });
+    }
+
+    private void showPaymentVerifyFailedDialog() {
+        stopPaymentPolling();
+        DialogUIUtils.dismiss(buildBean);
+        new DeleteShopPopupWindow(context, true, context.getString(R.string.payment_verify_manual), text -> {
+        }).show();
+    }
+
     class TimeCount extends CountDownTimer {
-
-
         public TimeCount(long millisInFuture, long countDownInterval) {
             super(millisInFuture, countDownInterval);
         }
 
-        //时间定时器运行过程调用此方法。millisUntilFinished   为剩余时间
         @Override
         public void onTick(long millisUntilFinished) {
-
-            queryOrder();
-
+            if ("alipay".equals(pay_type)) {
+                queryOrder(false);
+            }
         }
 
-        //时间定时器结束调用此方法
         @Override
         public void onFinish() {
-            is_chaoshi=true;
-            queryOrder();
+            is_chaoshi = true;
+            if ("alipay".equals(pay_type)) {
+                queryOrder(true);
+            } else {
+                verifyPaymentResult();
+            }
         }
     }
 

@@ -1,34 +1,26 @@
 package com.uhm.uhmcs.popupwindow;
 
-import static android.view.View.GONE;
-
 import android.app.Activity;
 import android.content.Context;
-import android.os.Handler;
-import android.text.TextUtils;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.uhm.uhmcs.R;
-import com.uhm.uhmcs.activity.MainActivity;
 import com.uhm.uhmcs.utils.UserUtils;
-import com.uhm.uhmcs.view.CustomInputTextView;
+import com.uhm.uhmcs.view.MaxHeightScrollView;
 
 public class MorefunctionPopupWindow {
     private PopupWindow popupWindow;
     private Context context;
     private PopupWindowOnClickListener.MorefunctionOnClickListener morefunctionOnClickListener;
-
-
+    private Animation animation;
 
     public MorefunctionPopupWindow(Context context, PopupWindowOnClickListener.MorefunctionOnClickListener morefunctionOnClickListener) {
         this.context = context;
@@ -36,8 +28,6 @@ public class MorefunctionPopupWindow {
         initPopup();
     }
 
-
-    private Animation animation;
     private void initPopup() {
         animation = AnimationUtils.loadAnimation(context, R.anim.scale_click);
         View popupView = LayoutInflater.from(context).inflate(R.layout.popupwindow_more_function, null);
@@ -47,29 +37,16 @@ public class MorefunctionPopupWindow {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 true
         );
-//        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        popupView.setBackgroundColor(context.getColor(R.color.black60));
         popupWindow.setOutsideTouchable(true);
-        // 计算居中位置
-        popupView.post(() -> {
-            DisplayMetrics metrics = new DisplayMetrics();
-            ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(metrics);
-            int x = (metrics.widthPixels - popupView.getWidth()) / 2;
-            int y = (metrics.heightPixels - popupView.getHeight()) / 2;
-            popupWindow.update(x, y, -1, -1); // 更新位置
-        });
 
-        popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> {
-            popupWindow.dismiss();
-        });
+        setupCardSize(popupView);
 
+        popupView.findViewById(R.id.guanbi_btn).setOnClickListener(v -> popupWindow.dismiss());
 
         popupView.findViewById(R.id.xiaopiaodiy_btn).setOnClickListener(v -> {
-            morefunctionOnClickListener.onClick(13); // 这里的 13 是我们定义给 DIY 设置的代号
+            morefunctionOnClickListener.onClick(13);
             popupWindow.dismiss();
         });
-
-
 
         popupView.findViewById(R.id.tongbushuju_btn).setOnClickListener(v -> {
             v.startAnimation(animation);
@@ -97,20 +74,6 @@ public class MorefunctionPopupWindow {
             popupWindow.dismiss();
         });
 
-
-//        popupView.findViewById(R.id.qianxiangshezhi_btn).setOnClickListener(v -> {
-//            v.startAnimation(animation);
-//            morefunctionOnClickListener.onClick(6);
-//            popupWindow.dismiss();
-//        });
-//        popupView.findViewById(R.id.jiaojieban_btn).setOnClickListener(v -> {
-//            v.startAnimation(animation);
-//            morefunctionOnClickListener.onClick(7);
-//            popupWindow.dismiss();
-//        });
-
-
-
         popupView.findViewById(R.id.zhangdandayingji_btn).setOnClickListener(v -> {
             v.startAnimation(animation);
             morefunctionOnClickListener.onClick(8);
@@ -122,37 +85,59 @@ public class MorefunctionPopupWindow {
             morefunctionOnClickListener.onClick(9);
             popupWindow.dismiss();
         });
-        TextView textView=popupView.findViewById(R.id.dazhekaiguan_btn);
-        textView.setText(!UserUtils.getInstance().isDazhe()?context.getString(R.string.discount_toggle,context.getString(R.string.off)):context.getString(R.string.discount_toggle,context.getString(R.string.on)));
+
+        TextView textView = popupView.findViewById(R.id.dazhekaiguan_btn);
+        textView.setText(!UserUtils.getInstance().isDazhe()
+                ? context.getString(R.string.discount_toggle, context.getString(R.string.off))
+                : context.getString(R.string.discount_toggle, context.getString(R.string.on)));
         textView.setOnClickListener(v -> {
             v.startAnimation(animation);
             morefunctionOnClickListener.onClick(10);
             popupWindow.dismiss();
         });
-//        popupView.findViewById(R.id.zhifushengzhi_btn).setOnClickListener(v -> {
-//            v.startAnimation(animation);
-//            morefunctionOnClickListener.onClick(11);
-//            popupWindow.dismiss();
-//        });
 
-        TextView shangpindianji_btn=popupView.findViewById(R.id.shangpindianji_btn);
-        shangpindianji_btn.setText(!UserUtils.getInstance().isDianji()?context.getString(R.string.shangpinkaiguan,context.getString(R.string.off)):context.getString(R.string.shangpinkaiguan,context.getString(R.string.on)));
-        shangpindianji_btn.setOnClickListener(v -> {
+        TextView shangpindianjiBtn = popupView.findViewById(R.id.shangpindianji_btn);
+        shangpindianjiBtn.setText(!UserUtils.getInstance().isDianji()
+                ? context.getString(R.string.shangpinkaiguan, context.getString(R.string.off))
+                : context.getString(R.string.shangpinkaiguan, context.getString(R.string.on)));
+        shangpindianjiBtn.setOnClickListener(v -> {
             v.startAnimation(animation);
             morefunctionOnClickListener.onClick(12);
             popupWindow.dismiss();
         });
 
-        popupView.findViewById(R.id.all_view).setOnClickListener(v -> {
-
+        popupView.findViewById(R.id.gengxinjiancha_btn).setOnClickListener(v -> {
+            v.startAnimation(animation);
+            morefunctionOnClickListener.onClick(14);
             popupWindow.dismiss();
         });
 
+        popupView.findViewById(R.id.all_view).setOnClickListener(v -> popupWindow.dismiss());
+    }
+
+    private void setupCardSize(View popupView) {
+        DisplayMetrics metrics = new DisplayMetrics();
+        ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
+        int horizontalMargin = dpToPx(64);
+        int cardWidth = Math.min(metrics.widthPixels - horizontalMargin, dpToPx(920));
+        int maxScrollHeight = (int) (metrics.heightPixels * 0.82f);
+
+        View card = popupView.findViewById(R.id.more_feature_card);
+        ViewGroup.LayoutParams cardParams = card.getLayoutParams();
+        cardParams.width = cardWidth;
+        card.setLayoutParams(cardParams);
+
+        MaxHeightScrollView scrollView = popupView.findViewById(R.id.more_feature_scroll);
+        scrollView.setMaxHeight(maxScrollHeight);
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * context.getResources().getDisplayMetrics().density);
     }
 
     public void show() {
         View rootView = ((Activity) context).getWindow().getDecorView();
         popupWindow.showAtLocation(rootView, Gravity.NO_GRAVITY, 0, 0);
-
     }
 }
